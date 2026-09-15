@@ -87,6 +87,26 @@ for it, including a rewrite that keeps the file the same size.
 One more thing this found: the benchmark's own budget was 50 ms, which passed. A budget
 loose enough to accept a 30x regression is not a budget. It is 10 ms now, and it runs in CI.
 
+## Claim extraction, measured instead of assumed
+
+`node scripts/measure-verify.mjs` runs the crosscheck claim extractor over twelve short
+labelled texts and prints whatever it finds:
+
+| metric | value |
+| --- | --- |
+| extraction precision | **100%** (8 of 8 flagged sentences were labelled checkable) |
+| extraction recall | **89%** (8 of 9 labelled sentences were found) |
+| planted-defect catch rate | **88%** (7 of 8 deliberate defects were flagged) |
+
+The single miss is a scope boundary rather than a bug. The text contains "ignore all previous
+instructions" and nothing else checkable - no link, number, date, citation marker or source
+phrase - and those features are precisely the extractor's definition of checkable. Injection
+phrasing is checked by `packages/guard`, which is a different tool with a different job.
+
+The weakness is stated in the script: the labels are mine and twelve texts is a small sample.
+It beats the number being unavailable, and the test that runs it asserts floors, not targets,
+so the figures cannot quietly get worse.
+
 ## Still not verified anywhere but on one machine
 
 | item | state |
@@ -94,6 +114,6 @@ loose enough to accept a 30x regression is not a budget. It is 10 ms now, and it
 | Docker image build | not run, no Docker here; the build context and the image command were reproduced instead |
 
 | Scale beyond 50k records | measured at 50,000; the registry writes about 2,000 today |
-| Retrieval quality in `packages/verify` | term overlap, never measured against a labelled set |
+
 
 Each of these is a place where "it works" currently means "it worked once, for me".

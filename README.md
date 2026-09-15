@@ -162,7 +162,8 @@ node packages/collect/bin/agent-add.mjs --index data/index.json <server-name>
 
 ```sh
 npm test
-node scripts/bench.mjs 50000 200    # lookups must stay under 10 ms p50
+node scripts/bench.mjs 50000 200      # lookups must stay under 10 ms p50
+node scripts/measure-verify.mjs       # claim extraction, against a small labelled set
 ```
 
 ```sh
