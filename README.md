@@ -21,6 +21,10 @@ built so that cannot happen.
 | **policy** | scan configs, hooks, manifests and source for what a company would refuse | `packages/guard` |
 | **verification** | check a claim against something outside the claim | `packages/verify` |
 
+## Reading
+
+[Clean is a claim about work that was done](docs/articles/2026-09-clean-is-a-claim.md) — five failures, four of them mine, and what the tool does about them. The short version: ask a scanner what it did not do.
+
 ## Look at it without installing anything
 
 <https://ciceroyang.github.io/agentgate/> — the evidence index as one browsable page,
