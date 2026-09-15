@@ -27,9 +27,10 @@ function runPageScript(html) {
   const code = scripts.join("\n")
   const dataTag = /<script id="data" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1]
   const diffTag = /<script id="diffdata" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1]
+  const totalsTag = /<script id="totals" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1]
   const made = {}
   const el = function (id) {
-    if (!made[id]) made[id] = { id: id, textContent: id === "data" ? dataTag : id === "diffdata" ? diffTag : "", innerHTML: "", value: "", style: {}, classList: { add: function () {}, remove: function () {} } }
+    if (!made[id]) made[id] = { id: id, textContent: id === "data" ? dataTag : id === "diffdata" ? diffTag : id === "totals" ? totalsTag : "", innerHTML: "", value: "", style: {}, classList: { add: function () {}, remove: function () {} } }
     return made[id]
   }
   const sandbox = { document: { getElementById: el }, window: {}, console: console }
@@ -79,7 +80,10 @@ test("a large index is capped and the page says so", function () {
   assert.equal((html.match(/"server":/g) || []).length, 10)
   const embedded = JSON.parse(/<script id="data" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1])
   assert.equal(embedded[0].verdict, "incomplete", "the notable records must survive the cap")
-  assert.equal(embedded.filter(function (r) { return r.verdict === "clean" }).length, 0, "clean records are dropped first")
+  const clean = embedded.filter(function (r) { return r.verdict === "clean" }).length
+  const notable = embedded.filter(function (r) { return r.verdict !== "clean" }).length
+  assert.equal(notable, 8, "every incomplete and findings record must survive the cap")
+  assert.equal(clean, 2, "clean records only fill what is left")
 })
 
 test("a small index is not marked truncated", function () {
