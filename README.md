@@ -164,6 +164,15 @@ wrote: a real MCP server through the gateway, and the list of what is still unve
 node scripts/verify-real-server.mjs
 ```
 
+## Operating this
+
+- [docs/operations/what-i-need.md](docs/operations/what-i-need.md) — what has to be provided before it can be deployed, and what to hand over safely.
+- [docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md) — aliyun plus the 智量.com domain, with the ICP filing caveat called out.
+- [docs/operations/trademark-filing.md](docs/operations/trademark-filing.md) — the filing sheet, ready except for the applicant details.
+- [docs/operations/outreach-templates.md](docs/operations/outreach-templates.md) — how the first three design partners are approached.
+- [docs/product/decisions-2026-09.md](docs/product/decisions-2026-09.md) — the four decisions, with numbers: npm, trademark, design partners, pricing.
+- [site/index.html](site/index.html) — the landing page for the domain, self-contained, no external assets.
+
 ## Status, honestly
 
 This is an open-source core in pieces, not yet a product. There is no runtime gateway,

@@ -1,9 +1,9 @@
 {
-  "name": "agentgate",
+  "name": "@zhiliang/agentgate",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "module",
-  "description": "Control plane for the tools agents run: inventory, evidence, policy, enforcement.",
+  "description": "Control plane for the tools agents run. Inventory, evidence, policy, enforcement. Clean is only emitted when every check ran.",
   "workspaces": [
     "packages/*"
   ],
@@ -20,5 +20,37 @@
   "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=20"
-  }
+  },
+  "bin": {
+    "agentgate": "./bin/agentgate.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ciceroyang/agentgate.git"
+  },
+  "homepage": "https://github.com/ciceroyang/agentgate",
+  "bugs": {
+    "url": "https://github.com/ciceroyang/agentgate/issues"
+  },
+  "keywords": [
+    "mcp",
+    "agent-security",
+    "supply-chain",
+    "policy",
+    "sbom",
+    "sarif"
+  ],
+  "author": "ciceroyang",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": [
+    "bin/",
+    "packages/",
+    "docs/spec/",
+    "docs/roadmap.md",
+    "README.md",
+    "LICENSE"
+  ]
 }
