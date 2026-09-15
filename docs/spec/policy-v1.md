@@ -34,6 +34,21 @@ does not read JSON for a living.
 | `forbidden.servers` | server-name patterns, exact or with a single `*`. |
 | `forbidden.tools` | tool-name patterns, exact or with a single `*`. Applied by the runtime gateway: a matching call is refused before the server sees it, and a matching tool is removed from the advertised list. |
 
+## Batches and unparseable input, at the gateway
+
+JSON-RPC allows a batch, and a batch has no top-level `method`. The gateway inspects every
+member of one: a batch that contains a forbidden `tools/call` is refused whole and nothing
+from it reaches the server. A partial answer would have to be assembled from two speakers,
+and a gateway that guesses at a protocol shape is how a policy gets walked around.
+
+The same applies in the other direction: every member of a batch response goes through the
+tool filter, so a forbidden tool cannot be advertised by answering a `tools/list` inside an
+array.
+
+A leading byte-order mark is removed before parsing. A line that still cannot be parsed is
+forwarded unchanged, because the gateway cannot rewrite what it cannot read — but that path
+is a known one, and it is why the mark is handled rather than left to chance.
+
 ## When there is no policy file
 
 There is no such thing as a policy-less silence. If `--policy` is not given and
