@@ -21,6 +21,12 @@ built so that cannot happen.
 | **policy** | scan configs, hooks, manifests and source for what a company would refuse | `packages/guard` |
 | **verification** | check a claim against something outside the claim | `packages/verify` |
 
+## Starting the deployment
+
+If you are the person this was built for, read
+[docs/operations/START-HERE.md](docs/operations/START-HERE.md) first: one fact is needed
+from you, three decisions are already made, and it ends with a reply template to fill in.
+
 ## Reading
 
 [Clean is a claim about work that was done](docs/articles/2026-09-clean-is-a-claim.md) — five failures, four of them mine, and what the tool does about them. The short version: ask a scanner what it did not do.
@@ -231,5 +237,6 @@ can never produce `clean`.
 
 ## Licence
 
-AGPL-3.0. A commercial licence is available for use the AGPL does not permit. See
-[docs/product/b2b.md](docs/product/b2b.md).
+AGPL-3.0-only. A commercial licence is available for the case the AGPL does not permit:
+offering a modified agentgate as a closed service without publishing your changes. See
+[docs/product/licensing.md](docs/product/licensing.md).
