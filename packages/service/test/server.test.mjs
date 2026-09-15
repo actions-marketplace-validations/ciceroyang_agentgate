@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 import { mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { createService, matchRecords } from "../src/server.mjs"
+import { createService, matchRecords, clearIndexCache } from "../src/server.mjs"
 
 const SAMPLE = {
   generatedAt: "2026-09-15T00:00:00.000Z",
@@ -76,4 +76,30 @@ test("matchRecords prefers exact, then substring", function () {
   const records = [{ server: "a/b" }, { server: "a/bc" }]
   assert.equal(matchRecords(records, "a/b").length, 1)
   assert.equal(matchRecords(records, "a/").length, 2)
+})
+
+test("a badge renders only a known verdict, whatever the index says", function () {
+  const dir = mkdtempSync(join(tmpdir(), "agentgate-badge-"))
+  const p = join(dir, "index.json")
+  writeFileSync(p, JSON.stringify({
+    generatedAt: "2026-09-15T00:00:00.000Z",
+    count: 2,
+    records: [
+      { server: "evil", verdict: 'clean" onload="alert(1)', packages: [], evidence: {} },
+      { server: "inject", verdict: "</" + "text><script>alert(1)</" + "script>", packages: [], evidence: {} },
+    ],
+  }))
+  clearIndexCache()
+  const service = createService({ indexPath: p })
+  for (const name of ["evil", "inject"]) {
+    const out = service.handle("GET", "/badge/" + name + ".svg")
+    assert.equal(out.status, 200)
+    assert.equal(out.body.indexOf("onload="), -1, "an attribute came from the index")
+    assert.equal(out.body.indexOf("<" + "script"), -1, "markup came from the index")
+    assert.match(out.body, /unknown/, "an unrecognised verdict should render as unknown")
+  }
+  // and a real verdict still renders as itself
+  clearIndexCache()
+  const sample = withIndex()
+  assert.match(sample.handle("GET", "/badge/acme/weather.svg").body, /clean/)
 })

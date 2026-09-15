@@ -122,3 +122,52 @@ test("the plain pages are published beside the index, and the index does not ove
     }
   }
 })
+
+// Registry data is written by whoever registered the server. It reaches this page as
+// embedded JSON, twice. Two ways that went wrong: String.replace() reads $& and the
+// dollar-prefix forms in a string replacement, so a name containing one spliced the rest of
+// the template -- including a literal closing script tag -- into the middle of the JSON; and
+// the diff was embedded as plain JSON.stringify, so a name containing a closing script tag
+// ended the block on its own.
+
+function block(html, id) {
+  const open = '<script id="' + id + '" type="application/json">'
+  const start = html.indexOf(open)
+  assert.notEqual(start, -1, "no " + id + " block in the page")
+  const from = start + open.length
+  const end = html.indexOf("</" + "script>", from)
+  assert.notEqual(end, -1, "the " + id + " block is not closed")
+  return html.slice(from, end)
+}
+
+test("registry data cannot break out of the embedded json", function () {
+  const dir = mkdtempSync(join(tmpdir(), "ag-hostile-"))
+  const idx = join(dir, "index.json")
+  const payload = "</" + "script><script>window.__pwned=1</" + "script>"
+  writeFileSync(idx, JSON.stringify({
+    generatedAt: "2026-09-15T00:00:00.000Z" + payload,
+    count: 3,
+    records: [
+      { server: "a$'b", verdict: "clean", packages: [], evidence: [] },
+      { server: "c$&d", verdict: "findings", packages: [], evidence: [] },
+      { server: payload, verdict: "clean", packages: [], evidence: [] },
+    ],
+  }))
+  const html = buildPage(idx, "index diff" + "\n" + "  added: " + payload + "\n" + "  a$'b" + "\n")
+
+  assert.equal(html.split('id="data"').length - 1, 1, "the data block was duplicated or lost")
+  assert.equal(html.split('id="diffdata"').length - 1, 1, "the diff block was duplicated or lost")
+  assert.equal(html.indexOf("__DATA__"), -1, "a placeholder survived")
+  assert.equal(html.indexOf("__DIFFJSON__"), -1, "a placeholder survived")
+
+  const data = block(html, "data")
+  const diff = block(html, "diffdata")
+  // nothing in either block may be a real "<"; that is what a closing script tag needs
+  assert.equal(data.indexOf("<"), -1, "a value put real markup inside the data block")
+  assert.equal(diff.indexOf("<"), -1, "a value put real markup inside the diff block")
+
+  // the dollar forms must arrive as data, not be read as replacement syntax.
+  // The page reorders records (notable first), so compare as a set.
+  assert.deepEqual(JSON.parse(data).map(function (r) { return r.server }).sort(), [payload, "a$'b", "c$&d"].sort())
+  assert.match(JSON.parse(diff), /a\$'b/, "the diff lost its dollar sign")
+})

@@ -9,6 +9,17 @@ import { readFileSync, existsSync, statSync } from "node:fs"
 
 const COLORS = { clean: "#2ea043", findings: "#d29922", incomplete: "#8b949e" }
 
+/** The three verdicts and nothing else. A record whose verdict is something else is
+ *  rendered as unknown rather than echoed: the badge is an XML document served from this
+ *  origin, and the index is an input like any other. */
+const VERDICTS = { clean: "clean", findings: "findings", incomplete: "incomplete" }
+
+/** Text going into an SVG document. A server is free to put anything in a registry
+ *  entry; the badge must not become markup because of it. */
+function xml(value) {
+  return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+}
+
 /**
  * The parsed index is cached and revalidated by modification time and size.
  *
@@ -50,6 +61,8 @@ export function matchRecords(records, query) {
 
 function svg(text, color, right) {
   const left = "agentgate"
+  color = xml(color)
+  right = xml(right)
   const w1 = 78
   const w2 = Math.max(46, 8 * right.length)
   return [
@@ -111,7 +124,8 @@ export function createService(options) {
         const found = matchRecords(records, name)
         if (found.length !== 1) return { status: 200, type: "image/svg+xml", body: svg("badge", "#8b949e", "unknown") }
         const record = found[0]
-        return { status: 200, type: "image/svg+xml", body: svg("badge", COLORS[record.verdict] || "#8b949e", record.verdict) }
+        const verdict = VERDICTS[record.verdict] || "unknown"
+        return { status: 200, type: "image/svg+xml", body: svg("badge", COLORS[verdict] || "#8b949e", verdict) }
       }
       return json(404, { error: "no such route", routes: ["/health", "/v1/index/summary", "/v1/servers", "/v1/servers/:name", "/badge/:name.svg"] })
     },

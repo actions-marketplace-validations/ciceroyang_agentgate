@@ -60,16 +60,33 @@ const records = kept.map(function (r) {
 const counts = { clean: 0, findings: 0, incomplete: 0 }
 for (const r of records) counts[r.verdict] = (counts[r.verdict] || 0) + 1
 
-const data = JSON.stringify(records).replace(/</g, "\\u003c")
+/**
+ * Substitute a placeholder with literal text.
+ *
+ * String.replace() gives a string replacement three special dollar forms: the matched
+ * text, the text after the match, and the text before it. A registry entry whose name
+ * contains one of those splices the rest of the template -- including a literal
+ * </script> -- into the middle of the embedded JSON and closes the block early. A function
+ * replacement has no such syntax, so the data is text here and never a pattern.
+ *
+ * The names come from other people\u0027s registrations. They are treated accordingly.
+ */
+function put(page, placeholder, value) { return page.replace(placeholder, function () { return value }) }
+
+/** JSON destined for a <script> block: "<" must not survive, or a value containing
+ *  "</script>" ends the block and everything after it is parsed as HTML. */
+function jsonForScript(value) { return JSON.stringify(value).replace(/</g, "\\u003c") }
+
+const data = jsonForScript(records)
 const diffText = diffPath && existsSync(diffPath) ? readFileSync(diffPath, "utf8") : ""
-const page = readFileSync(templatePath, "utf8")
-  .replace("__DATA__", data)
-  .replace('window.__GENERATED_AT__', JSON.stringify(index.generatedAt || "unknown"))
-  .replace('__DIFFJSON__', JSON.stringify(diffText))
-  .replace('__TOTAL__', JSON.stringify(all.length))
-  .replace('__SHOWN__', JSON.stringify(records.length))
-  .replace('__TRUNCATED__', JSON.stringify(truncated))
-  .replace('window.__COUNTS__', JSON.stringify(
+let page = readFileSync(templatePath, "utf8")
+page = put(page, "__DATA__", data)
+page = put(page, "window.__GENERATED_AT__", jsonForScript(index.generatedAt || "unknown"))
+page = put(page, "__DIFFJSON__", jsonForScript(diffText))
+page = put(page, "__TOTAL__", jsonForScript(all.length))
+page = put(page, "__SHOWN__", jsonForScript(records.length))
+page = put(page, "__TRUNCATED__", jsonForScript(truncated))
+page = put(page, "window.__COUNTS__", jsonForScript(
     '<span class="v clean">clean ' + (counts.clean || 0) + '</span> · <span class="v findings">findings ' + (counts.findings || 0) + '</span> · <span class="v incomplete">incomplete ' + (counts.incomplete || 0) + "</span>"
   ))
 

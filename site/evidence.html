@@ -48,7 +48,7 @@ var q = document.getElementById("q");
 var vf = document.getElementById("v");
 var n = document.getElementById("n");
 function evCount(r){ var c=0; for (var i=0;i<r.evidence.length;i++) c+=r.evidence[i].findings.length; return c; }
-function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 function render(){
   var query = q.value.trim().toLowerCase(), ver = vf.value;
   var out = DATA.filter(function(r){
@@ -59,21 +59,21 @@ function render(){
   });
   n.textContent = "显示 " + out.length + " / " + DATA.length;
   var html = out.slice(0,600).map(function(r){
-    return "<tr onclick=\"openD(" + DATA.indexOf(r) + ")\"><td>" + esc(r.server) + "</td><td class=\"v " + r.verdict + "\">" + r.verdict + "</td><td class=\"meta\">" + esc(r.packages.join(", ") || "—") + "</td><td class=\"meta\">" + r.evidence.length + " 块 / " + evCount(r) + " 条</td></tr>";
+    return "<tr onclick=\"openD(" + DATA.indexOf(r) + ")\"><td>" + esc(r.server) + "</td><td class=\"v " + esc(r.verdict) + "\">" + esc(r.verdict) + "</td><td class=\"meta\">" + esc(r.packages.join(", ") || "—") + "</td><td class=\"meta\">" + r.evidence.length + " 块 / " + evCount(r) + " 条</td></tr>";
   }).join("");
   if (out.length > 600) html += "<tr><td colspan=4 class=\"meta\">只显示前 600 条,请用搜索缩小范围</td></tr>";
   rows.innerHTML = html;
 }
 function openD(i){
   var r = DATA[i];
-  var h = "<h2>" + esc(r.server) + "</h2><p class=\"v " + r.verdict + "\">" + r.verdict + "</p>";
+  var h = "<h2>" + esc(r.server) + "</h2><p class=\"v " + esc(r.verdict) + "\">" + esc(r.verdict) + "</p>";
   if (r.packages.length) h += "<p class=\"meta\">包:" + esc(r.packages.join(", ")) + "</p>";
   for (var i2=0;i2<r.evidence.length;i2++){
     var e = r.evidence[i2];
-    h += "<h3>" + e.block + " <span class=\"meta\">[" + e.source + "]</span></h3>";
-    h += "<p>" + e.status + (e.reason ? " <span class=\"meta\">(" + esc(e.reason) + ")</span>" : "") + "</p>";
+    h += "<h3>" + esc(e.block) + " <span class=\"meta\">[" + esc(e.source) + "]</span></h3>";
+    h += "<p>" + esc(e.status) + (e.reason ? " <span class=\"meta\">(" + esc(e.reason) + ")</span>" : "") + "</p>";
     if (e.findings.length) {
-      h += "<pre>" + e.findings.map(function(f){ return f.severity.toUpperCase() + " " + f.rule + (f.file ? "\n" + f.file : "") + "\n" + esc(f.message); }).join("\n\n") + "</pre>";
+      h += "<pre>" + e.findings.map(function(f){ return esc(String(f.severity).toUpperCase()) + " " + esc(f.rule) + (f.file ? "\n" + esc(f.file) : "") + "\n" + esc(f.message); }).join("\n\n") + "</pre>";
     }
   }
   document.getElementById("body").innerHTML = h;
