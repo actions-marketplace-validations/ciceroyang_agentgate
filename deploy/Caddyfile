@@ -27,6 +27,10 @@ docs.xn--5kvo87g.com {
 	file_server
 }
 
+# 访问日志：默认进 journald（含 IP 与 UA）。这不用于画像，也不共享。
+# 保留期建议 7 天，依据见 docs/operations/legal/data-handling.md：
+#   /etc/systemd/journald.conf.d/agentgate.conf 里设 MaxRetentionSec=7day
+
 # 说明：
 # - Caddy 会自动申请并续期 Let's Encrypt 证书，前提是 80/443 已放行且 DNS 已生效。
 # - 中国大陆服务器必须先完成 ICP 备案，否则 80/443 会被拦截（见 docs/operations/plan-b-no-icp.md）。
