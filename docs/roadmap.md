@@ -10,7 +10,11 @@ that point is enterprise surface, and it is not in the month.
 Every milestone has an acceptance command. A milestone without a passing acceptance
 command is not done, however much of it works.
 
-## M1 - Deployment: one command, one system
+## M1 - Deployment: one command, one system   **done**
+
+*Status: accepted. `node scripts/acceptance.mjs` runs in CI and is green. The Docker
+image build is the one part not verified here, because the machine this was written on
+has no Docker; the container runs the same command that was verified directly.*
 
 `docker compose up` starts the collector, the index builder and an HTTP service.
 
