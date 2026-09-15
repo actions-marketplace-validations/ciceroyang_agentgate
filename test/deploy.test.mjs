@@ -72,7 +72,7 @@ test("the onboarding script is valid shell and its dry run exits clean", functio
   assert.equal(syntax.status, 0, syntax.stderr)
 
   // A bare run is the first thing anyone does on a new machine, and it must not touch it.
-  const dry = spawnSync("bash", [scriptPath], { encoding: "utf8", timeout: 60000 })
+  const dry = spawnSync("bash", [scriptPath, "--skip-network"], { encoding: "utf8", timeout: 60000 })
   assert.equal(dry.status, 0, "the dry run failed: " + dry.stderr)
   assert.match(dry.stdout, /DRY-RUN/)
   assert.match(dry.stdout, /would run:/)
@@ -84,14 +84,14 @@ test("the installer picks the package manager the distribution actually has", fu
   // called apt-get unconditionally, which stops at the first step on the default Aliyun image.
   // A fake PATH with only what the script needs reproduces that distribution here.
   const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
-  for (const tool of ["uname", "hostname", "id"]) {
+  for (const tool of ["uname", "hostname", "id", "sed"]) {
     const from = ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
   writeFileSync(join(bin, "dnf"), "#!/bin/sh\necho dnf\n", { mode: 0o755 })
   writeFileSync(join(bin, "getenforce"), "#!/bin/sh\necho Enforcing\n", { mode: 0o755 })
 
-  const out = spawnSync("/bin/bash", [join(ROOT, "scripts", "onboard-server.sh")], {
+  const out = spawnSync("/bin/bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network"], {
     encoding: "utf8", timeout: 60000,
     env: Object.assign({}, process.env, { PATH: bin }),
   })
@@ -101,4 +101,42 @@ test("the installer picks the package manager the distribution actually has", fu
   assert.doesNotMatch(out.stdout, /apt-get/, "apt-get was used on a machine that does not have it")
   assert.match(out.stdout, /SELinux: Enforcing/, "SELinux was not reported on a RHEL-family box")
   rmSync(bin, { recursive: true, force: true })
+})
+
+/** A PATH with only what the script needs, plus whatever fakes the test supplies. */
+function fakeBin(tools, files) {
+  const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
+  for (const tool of tools) {
+    const from = ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
+    if (from) symlinkSync(from, join(bin, tool))
+  }
+  for (const name of Object.keys(files || {})) writeFileSync(join(bin, name), files[name], { mode: 0o755 })
+  return bin
+}
+
+function dryRun(bin, args) {
+  return spawnSync("/bin/bash", [join(ROOT, "scripts", "onboard-server.sh")].concat(args || []), {
+    encoding: "utf8", timeout: 60000,
+    env: Object.assign({}, process.env, { PATH: bin }),
+  })
+}
+
+test("when the repository host is unreachable, the dry run says what to do about it", function () {
+  // A mainland server frequently cannot clone github.com, and the clone is the first step.
+  const bin = fakeBin(["uname", "hostname", "id", "sed"], {
+    curl: "#!/bin/sh\ncase \"$*\" in *github.com*) exit 7 ;; *) echo 200 ;; esac\n",
+  })
+  const out = dryRun(bin)
+  assert.equal(out.status, 0, out.stderr)
+  assert.match(out.stdout, /仓库主机 github\.com: 连不上/, out.stdout)
+  assert.match(out.stdout, /--repo https:\/\/gitee\.com\//, "no mirror was suggested")
+  assert.match(out.stdout, /MCP 官方注册表: 可达/, "a reachable registry was reported as down")
+  rmSync(bin, { recursive: true, force: true })
+})
+
+test("a custom --repo is what the clone actually uses", function () {
+  const out = spawnSync("bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--repo", "https://gitee.com/someone/agentgate"], { encoding: "utf8", timeout: 60000 })
+  assert.equal(out.status, 0, out.stderr)
+  assert.match(out.stdout, /git clone https:\/\/gitee\.com\/someone\/agentgate/)
+  assert.doesNotMatch(out.stdout, /git clone https:\/\/github\.com/, "the mirror was ignored")
 })

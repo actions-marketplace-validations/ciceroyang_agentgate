@@ -39,6 +39,21 @@ docs.智量.com  →  同上
 
 **大陆服务器需要 ICP 备案才能用 80/443**，见 `what-i-need.md` 第三节。
 
+**从大陆服务器克隆 GitHub 经常不通,而这是部署的第一步。** 预演会先测三个地方并告诉你哪个不通:
+
+```sh
+bash scripts/onboard-server.sh              # 预演,含网络预检
+```
+
+仓库主机不通时,换镜像(脚本会照你给的这个 URL 去克隆):
+
+```sh
+sudo bash scripts/onboard-server.sh --apply --repo https://gitee.com/<你的镜像>/agentgate
+```
+
+完全离线或不想等超时:`--skip-network` 跳过预检。
+MCP 注册表或 npm 不通不会让部署失败——索引会退回提交里的样本,并在输出里说明"这是样本"。
+
 ## 实测耗时（2026-09-15 彩排）
 
 从公开仓库全新 clone 到冒烟通过，在本机（macOS，arm64）实测：

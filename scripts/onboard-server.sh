@@ -10,16 +10,31 @@ set -euo pipefail
 
 APPLY=0
 MODE=node
-for a in "$@"; do
-  [ "$a" = "--apply" ] && APPLY=1
-  [ "$a" = "--docker" ] && MODE=docker
-  [ "$a" = "--node" ] && MODE=node
-done
+SKIP_NET=0
 DIR=/opt/agentgate
 REPO=https://github.com/ciceroyang/agentgate
 # Caddyfile 里 serve 的目录。必须有人创建它，否则主域上线就是一个空页面。
 STATIC_DIR=/var/www/zhiliang
 DOCS_DIR=/var/www/zhiliang-docs
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --apply) APPLY=1 ;;
+    --docker) MODE=docker ;;
+    --node) MODE=node ;;
+    --skip-network) SKIP_NET=1 ;;
+    --dir) DIR="$2"; shift ;;
+    --repo) REPO="$2"; shift ;;
+    --repo=*) REPO="${1#--repo=}" ;;
+    --help)
+      sed -n "3,8p" "$0"
+      echo "  选项: --apply --node|--docker --repo <url> --dir <path> --skip-network"
+      exit 0 ;;
+    *) echo "未知选项:$1（试试 --help）"; exit 2 ;;
+  esac
+  shift
+done
+
 # 单元文件里写的是绝对路径。手册推荐 nvm，而 nvm 装的 node 不在 /usr/bin，
 # 照抄单元文件会让 systemctl 报 "No such file or directory"。所以先测真实路径。
 NODE_BIN="$(command -v node 2>/dev/null || echo /usr/bin/node)"
@@ -72,6 +87,29 @@ if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" = "Enf
   echo "           处理命令见 docs/operations/deployment-runbook.md 的 SELinux 一节。"
 fi
 echo "  包管理器:${PKG:-未识别}"
+echo
+# 大陆服务器上 github.com 经常连不上,而第一步就是 git clone。先测,别等到一半才发现。
+probe() {
+  local code="000"
+  local out
+  out="$(curl -sS -o /dev/null --max-time 6 -w "%{http_code}" "$2" 2>/dev/null || true)"
+  [ -n "$out" ] && code="$out"
+  case "$code" in
+    200|301|302|403|404) echo "  $1: 可达 ($code)" ;;
+    000) echo "  $1: 连不上 -> $3" ;;
+    *) echo "  $1: 返回 $code" ;;
+  esac
+}
+REPO_HOST="$(printf "%s" "$REPO" | sed -E "s#^[a-z]+://([^/]+)/.*#\1#")"
+if [ "$SKIP_NET" = "1" ]; then
+  echo "  网络预检:已跳过（--skip-network）"
+else
+  echo "== 网络预检 =="
+  echo "  仓库:$REPO"
+  probe "仓库主机 $REPO_HOST" "$REPO" "克隆会失败。换镜像,例如 --repo https://gitee.com/<你的镜像>/agentgate"
+  probe "MCP 官方注册表" "https://registry.modelcontextprotocol.io/v0/servers?limit=1" "采集会失败;换个时段重试"
+  probe "npm registry" "https://registry.npmjs.org/" "包清单查不到,扫描结果会把它们标成 metadata-unavailable"
+fi
 echo
 echo "== 将执行 =="
 if ! command -v git >/dev/null 2>&1; then
@@ -135,7 +173,20 @@ if [ "$MODE" = "node" ]; then
   run systemctl enable --now agentgate
 fi
 
-run "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:8080 --expect-min 1000
+if [ "$APPLY" = "1" ]; then
+  if ! "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:8080 --expect-min 1000; then
+    echo
+    echo "== smoke 没通过,先看这三个原因 =="
+    echo "  1. 采集没跑成功 -> 服务读的是样本索引（records 会停在 300 左右）"
+    echo "  2. node 路径不对 -> systemctl status agentgate / journalctl -u agentgate -n 40"
+    echo "  3. 端口被占 -> ss -ltnp | grep 8080"
+    echo "--- journalctl -u agentgate -n 40 ---"
+    journalctl -u agentgate -n 40 --no-pager 2>/dev/null || true
+    exit 1
+  fi
+else
+  run "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:8080 --expect-min 1000
+fi
 echo
 
 echo "== 我接下来会看的 =="
