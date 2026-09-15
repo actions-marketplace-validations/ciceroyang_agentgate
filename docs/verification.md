@@ -112,7 +112,6 @@ so the figures cannot quietly get worse.
 | item | state |
 | --- | --- |
 | Docker image build | not run, no Docker here; the build context and the image command were reproduced instead |
-
 | Scale beyond 50k records | measured at 50,000; the registry writes about 2,000 today |
 
 
