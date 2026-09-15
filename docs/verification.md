@@ -107,6 +107,22 @@ The weakness is stated in the script: the labels are mine and twelve texts is a 
 It beats the number being unavailable, and the test that runs it asserts floors, not targets,
 so the figures cannot quietly get worse.
 
+## The published page grows with the corpus
+
+The static index embeds its records, so the page size follows the index size:
+
+| index | page |
+| --- | --- |
+| 2,128 records (today) | 490 KB |
+| 50,000 records | 15 MB |
+| 200,000 records | 60 MB |
+
+Build time stays under a second; it is the page that becomes unusable, on a phone in
+particular. It is now capped at 20,000 embedded records, chosen so that `incomplete` and
+`findings` survive and `clean` is dropped first, and the page states the total it was cut
+from. A silently truncated view would be the same failure this project keeps arguing
+against, so the truncation is printed.
+
 ## Still not verified anywhere but on one machine
 
 | item | state |

@@ -61,3 +61,30 @@ test("a record with no packages still renders", function () {
   assert.match(made.rows.innerHTML, /a\/b/)
   assert.match(made.rows.innerHTML, /incomplete/)
 })
+
+test("a large index is capped and the page says so", function () {
+  const dir = mkdtempSync(join(tmpdir(), "ag-cap-"))
+  const indexPath = join(dir, "index.json")
+  const records = []
+  for (let i = 0; i < 40; i += 1) {
+    records.push({ server: "s/" + i, verdict: i === 3 ? "incomplete" : i < 8 ? "findings" : "clean", packages: [], evidence: {} })
+  }
+  writeFileSync(indexPath, JSON.stringify({ generatedAt: "T", threshold: "medium", count: records.length, records: records }))
+  const out = mkdtempSync(join(tmpdir(), "ag-cap-out-"))
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", indexPath, "--out", out, "--max-records", "10"], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+  const html = readFileSync(join(out, "index.html"), "utf8")
+  const totals = JSON.parse(/<script id="totals" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1])
+  assert.deepEqual(totals, { total: 40, shown: 10, truncated: true })
+  assert.equal((html.match(/"server":/g) || []).length, 10)
+  const embedded = JSON.parse(/<script id="data" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1])
+  assert.equal(embedded[0].verdict, "incomplete", "the notable records must survive the cap")
+  assert.equal(embedded.filter(function (r) { return r.verdict === "clean" }).length, 0, "clean records are dropped first")
+})
+
+test("a small index is not marked truncated", function () {
+  const html = buildPage(join(ROOT, "data", "sample-index.json"))
+  const totals = JSON.parse(/<script id="totals" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1])
+  assert.equal(totals.truncated, false)
+  assert.equal(totals.total, totals.shown)
+})

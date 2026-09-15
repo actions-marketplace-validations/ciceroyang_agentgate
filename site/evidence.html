@@ -38,9 +38,11 @@ pre{white-space:pre-wrap;word-break:break-word;background:rgba(127,127,127,.08);
 <div id="detail"><span class="close" onclick="closeD()">关闭 ×</span><div id="body"></div></div>
 <script id="data" type="application/json">__DATA__</script>
 <script id="diffdata" type="application/json">__DIFFJSON__</script>
+<script id="totals" type="application/json">{"total":__TOTAL__,"shown":__SHOWN__,"truncated":__TRUNCATED__}</script>
 <script>
 var DATA = JSON.parse(document.getElementById("data").textContent);
 var DIFF = JSON.parse(document.getElementById("diffdata").textContent || '""');
+var TOTALS = JSON.parse(document.getElementById("totals").textContent);
 var rows = document.getElementById("rows");
 var q = document.getElementById("q");
 var vf = document.getElementById("v");
@@ -80,7 +82,7 @@ function openD(i){
 function closeD(){ document.getElementById("detail").classList.remove("open"); }
 q.oninput = render; vf.onchange = render;
 if (DIFF && DIFF.trim()) { document.getElementById("diff").textContent = DIFF; document.getElementById("diff").style.display = "block"; }
-document.getElementById("meta").textContent = "生成于 " + window.__GENERATED_AT__ + " · 共 " + DATA.length + " 条";
+document.getElementById("meta").textContent = "生成于 " + window.__GENERATED_AT__ + " · 共 " + TOTALS.total + " 条" + (TOTALS.truncated ? ",本页嵌入 " + TOTALS.shown + " 条(incomplete 与 findings 优先)" : "");
 document.getElementById("counts").innerHTML = window.__COUNTS__ + " — incomplete 表示有东西没查到,那不是通过";
 render();
 </script></body></html>
