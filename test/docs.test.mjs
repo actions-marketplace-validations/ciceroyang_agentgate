@@ -37,3 +37,15 @@ test("every relative link in the documentation resolves", function () {
   }
   assert.deepEqual(broken, [], "the documentation links to files that are not there")
 })
+
+test("the documentation does not hardcode a test count", function () {
+  // The README said "98 tests" long after there were many more. A number in prose goes stale the
+  // next time a test is added, and nothing catches it; pointing at the command cannot go stale.
+  for (const file of markdownFiles(ROOT)) {
+    const text = readFileSync(file, "utf8")
+    // [ \t], not \s: \s matches newlines, so "cloned files: 130\ntests: 146 pass" looked
+    // like a claim of "130 tests". A count claim is on one line.
+    const m = /\b\d{2,4}[ \t]+tests\b/.exec(text)
+    assert.equal(m, null, file.slice(ROOT.length + 1) + " states a test count: " + (m && m[0]))
+  }
+})

@@ -46,11 +46,19 @@ test("the verdict is the same with and without the network disabled", function (
 
 test("serve reaches nothing, and still answers", async function () {
   const dir = fixture()
-  const port = 19000 + Math.floor(Math.random() * 900)
-  const child = spawn(process.execPath, ["--require", PRELOAD, join(ROOT, "bin", "agentgate.mjs"), "serve", "--port", String(port), "--host", "127.0.0.1"], { cwd: dir, stdio: ["ignore", "pipe", "pipe"] })
+  const child = spawn(process.execPath, ["--require", PRELOAD, join(ROOT, "bin", "agentgate.mjs"), "serve", "--port", "0", "--host", "127.0.0.1"], { cwd: dir, stdio: ["ignore", "pipe", "pipe"] })
   let log = ""
   child.stdout.on("data", function (d) { log += d })
   child.stderr.on("data", function (d) { log += d })
+  // --port 0: the OS picks a free port and the service says which one. A fixed random range can
+  // collide with anything else on the machine, and then the test measures that instead.
+  let port = null
+  for (let i = 0; i < 60 && !port; i += 1) {
+    await new Promise(function (r) { setTimeout(r, 100) })
+    const said = /serving http:\/\/[^:]+:(\d+)/.exec(log)
+    if (said) port = Number(said[1])
+  }
+  assert.ok(port, "the service never said which port it bound: " + log.slice(0, 300))
   try {
     let body = null
     for (let i = 0; i < 40; i += 1) {
@@ -59,6 +67,7 @@ test("serve reaches nothing, and still answers", async function () {
     }
     assert.doesNotMatch(log, /network access attempted/, log.slice(0, 400))
     assert.ok(body, "the service never answered: " + log.slice(0, 300))
+    assert.ok(body.index, "something that is not this service answered on port " + port)
   } finally {
     child.kill("SIGKILL")
     rmSync(dir, { recursive: true, force: true })

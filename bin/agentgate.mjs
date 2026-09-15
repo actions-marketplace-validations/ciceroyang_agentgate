@@ -53,13 +53,21 @@ function serve(flags) {
   const chosen = resolveIndex(flags)
   const indexPath = chosen.path
   const samplePath = resolve(flags.sample || process.env.AGENTGATE_SAMPLE || join(ROOT, "data", "sample-index.json"))
-  const port = Number(flags.port || process.env.AGENTGATE_PORT || 8080)
+  const requested = flags.port !== undefined ? flags.port : (process.env.AGENTGATE_PORT !== undefined ? process.env.AGENTGATE_PORT : 8080)
+  const port = Number(requested)
   const host = flags.host || process.env.AGENTGATE_HOST || "127.0.0.1"
-  start({ indexPath: indexPath, samplePath: samplePath, port: port, host: host })
   const which = existsSync(indexPath) ? indexPath : (existsSync(samplePath) ? samplePath + " (committed sample)" : "none")
-  console.log("agentgate serving http://" + host + ":" + port)
-  console.log("index: " + which)
-  console.log("routes: /health /v1/index/summary /v1/servers /v1/servers/:name /badge/:name.svg")
+  const server = start({
+    indexPath: indexPath, samplePath: samplePath, port: port, host: host,
+    // Print the port the socket actually got. With --port 0 the requested port is not the one
+    // anything can connect to, and a caller that cannot learn it has to guess.
+    onListening: function () {
+      const bound = server.address() && server.address().port
+      console.log("agentgate serving http://" + host + ":" + bound)
+      console.log("index: " + which)
+      console.log("routes: /health /v1/index/summary /v1/servers /v1/servers/:name /badge/:name.svg")
+    },
+  })
 }
 
 function refresh(flags) {

@@ -190,7 +190,7 @@ node scripts/measure-verify.mjs       # claim extraction, against a small labell
 ```
 
 ```sh
-npm test                              # 98 tests across the three packages
+npm test                              # the whole suite; it prints how many ran
 node packages/guard/scripts/regression.mjs   # benign must stay silent, positives must fire
 ```
 
@@ -232,8 +232,8 @@ node scripts/verify-real-server.mjs
 This is an open-source core in pieces, not yet a product. There is no runtime gateway,
 no SSO or multi-tenancy, and no deployment story. What works is the evidence half: the
 collection pipelines run on a schedule, the index derives its verdicts instead of
-asserting them, and the scanner has 98 tests including the one that says a crashed check
-can never produce `clean`.
+asserting them, and the scanner has a suite that includes the one that says a crashed check
+can never produce `clean`. It prints its own count; this page does not repeat it.
 
 ## Licence
 

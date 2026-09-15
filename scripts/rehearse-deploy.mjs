@@ -61,12 +61,20 @@ try {
   step("部署出来的页面之间没有死链", dead.length === 0, dead.join(", "))
 
   // 4. 服务 + smoke（真实起进程，真实发请求）
-  const port = 18000 + Math.floor(Math.random() * 2000)
   const child = spawn(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "serve",
-    "--port", String(port), "--host", "127.0.0.1"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] })
+    "--port", "0", "--host", "127.0.0.1"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] })
   let log = ""
   child.stdout.on("data", function (d) { log += d })
   child.stderr.on("data", function (d) { log += d })
+  // --port 0: the OS picks a free port and the service says which, instead of guessing a range
+  // that something else on the machine may already be listening on.
+  let port = null
+  for (let i = 0; i < 60 && !port; i += 1) {
+    await new Promise(function (r) { setTimeout(r, 100) })
+    const said = /serving http:\/\/[^:]+:(\d+)/.exec(log)
+    if (said) port = Number(said[1])
+  }
+  step("服务报出了它绑定的端口", port !== null, log.slice(0, 300))
   try {
     let up = false
     for (let i = 0; i < 40; i += 1) {

@@ -17,6 +17,9 @@ export function start(options) {
     res.writeHead(out.status, { "content-type": out.type })
     res.end(out.body)
   })
-  server.listen(options.port || 8080, options.host || "127.0.0.1")
+  // 0 is a valid port that asks the operating system for a free one. "options.port || 8080"
+  // quietly turned it into 8080, so a caller asking for an ephemeral port got the default instead.
+  const port = options.port === undefined || options.port === null ? 8080 : options.port
+  server.listen(port, options.host || "127.0.0.1", options.onListening)
   return server
 }

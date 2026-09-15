@@ -103,22 +103,34 @@ test("installed from a tarball, serve answers for the snapshot it was published 
   const project = join(work, "project")
   mkdirSync(project, { recursive: true })
 
-  const port = 18000 + Math.floor(Math.random() * 2000)
-  const child = spawn(process.execPath, [join(pkgDir, "bin", "agentgate.mjs"), "serve", "--port", String(port), "--host", "127.0.0.1"], { cwd: project, stdio: ["ignore", "pipe", "pipe"] })
+  const child = spawn(process.execPath, [join(pkgDir, "bin", "agentgate.mjs"), "serve", "--port", "0", "--host", "127.0.0.1"], { cwd: project, stdio: ["ignore", "pipe", "pipe"] })
   let output = ""
   child.stdout.on("data", function (d) { output += d })
   child.stderr.on("data", function (d) { output += d })
 
   try {
+    // --port 0 asks the operating system for a free one, and the service prints which it got.
+    // Guessing a port in a fixed range meant this test could reach whatever else was listening
+    // there and assert on a stranger's response. It failed once with "the service answered with
+    // an empty index" against a local gateway that was not agentgate at all.
+    let port = null
+    for (let i = 0; i < 60 && !port; i += 1) {
+      await new Promise(function (r) { setTimeout(r, 100) })
+      const said = /serving http:\/\/[^:]+:(\d+)/.exec(output)
+      if (said) port = Number(said[1])
+    }
+    assert.ok(port, "the service never said which port it bound:\n" + output)
+
     let body = null
-    for (let i = 0; i < 60; i += 1) {
-      await new Promise(function (r) { setTimeout(r, 250) })
+    for (let i = 0; i < 40; i += 1) {
       try {
         const res = await fetch("http://127.0.0.1:" + port + "/health")
         if (res.ok) { body = await res.json(); break }
       } catch (error) { /* not listening yet */ }
+      await new Promise(function (r) { setTimeout(r, 100) })
     }
     assert.ok(body, "the service never answered on port " + port + "\n" + output)
+    assert.ok(body.index, "something that is not this service answered on port " + port)
     assert.ok(body.records > 0, "the service answered with an empty index: " + JSON.stringify(body))
   } finally {
     child.kill("SIGKILL")
