@@ -68,7 +68,7 @@ Or with docker, which runs the same command in a container:
 
 ```sh
 docker compose up                            # the service on :8080
-docker compose --profile collect run --rm refresh   # rebuild data/index.json
+docker compose --profile collect run --rm refresh   # rebuild data/index.json and seed the first snapshot
 ```
 
 ## Policy

@@ -8,6 +8,7 @@ services:
   refresh:
     build: .
     profiles: ["collect"]
-    command: ["node", "bin/agentgate.mjs", "refresh", "--max", "300"]
+    # 采集之后落第一份快照:Node 路径会做这一步,docker 路径原本不做,历史就永远是空的
+    command: ["sh", "-c", "node bin/agentgate.mjs refresh --max 300 && node scripts/daily-snapshot.mjs"]
     volumes:
       - ./data:/app/data

@@ -181,3 +181,15 @@ test("the runbook points at the Caddyfile instead of copying it", function () {
   assert.match(runbook, /deploy\/Caddyfile/, "the runbook no longer points at the real Caddyfile")
   assert.doesNotMatch(runbook, /root \* \/var\/www/, "the runbook has a hand-copied Caddyfile again")
 })
+
+test("the docker refresh writes the index the docker service reads", function () {
+  // The same failure the package had once, in compose form: a collector that writes somewhere the
+  // service does not read looks like a successful refresh and leaves the service on the sample.
+  // The two services must mount the same host directory, and the refresh must also seed history,
+  // which the Node path does and the docker path did not.
+  const compose = readFileSync(join(ROOT, "docker-compose.yml"), "utf8")
+  const mounts = [...compose.matchAll(/-\s+(\.\/data:\S+)/g)].map(function (m) { return m[1] })
+  assert.equal(mounts.length, 2, "expected one data mount per service, found " + mounts.length)
+  assert.equal(new Set(mounts).size, 1, "the two services mount different directories: " + mounts.join(", "))
+  assert.match(compose, /daily-snapshot\.mjs/, "the docker path never builds history")
+})

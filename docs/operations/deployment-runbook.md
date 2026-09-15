@@ -159,12 +159,14 @@ sudo restorecon -R /var/www/zhiliang
 # 1. 基础环境（Ubuntu/Debian）
 sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2 git curl
 sudo systemctl enable --now docker
+#    RHEL 系（阿里云默认镜像）没有 apt-get,而且 SELinux 默认 Enforcing:
+#    先看本文开头的 RHEL 一节,再回来走这条。
 
 # 2. 取代码
 sudo mkdir -p /opt/agentgate && cd /opt/agentgate
 git clone https://github.com/ciceroyang/agentgate .
 
-# 3. 首次采集（会产生 data/index.json，约十分钟）
+# 3. 首次采集（会产生 data/index.json 和第一份历史快照，约十分钟）
 sudo docker compose --profile collect run --rm refresh
 
 # 4. 起服务
