@@ -53,7 +53,45 @@ docs.智量.com  →  同上
 
 彩排结果：243 个包被扫描，索引 2,127 条（2039 clean / 66 findings / 22 incomplete），第一份历史快照与 diff 正常生成，冒烟全绿。
 
-## 部署步骤
+## 选哪条路：先看这个
+
+有两条部署路径,**优先用第一条**,理由不是偏好而是验证状态:
+
+| 路径 | 验证状态 |
+| --- | --- |
+| **Node + systemd** | **已在公开仓库上完整彩排过**(clone → 采集 → 服务 → 冒烟全绿) |
+| Docker compose | 只能验到"构建上下文里文件齐全、镜像的 CMD 能跑";**镜像分层构建本身没验过**,因为写这份文档的机器上没有 docker |
+
+所以默认走 Node + systemd。除非你明确想要容器,否则不要在第一次部署时引入一个我们没能验证的环节。
+
+## 部署步骤（Node + systemd，已验证）
+
+```sh
+# 1. 基础环境
+sudo apt-get update && sudo apt-get install -y git curl
+#   需要 Node 20+；用 nvm 或 nodesource 装，不要用发行版自带的旧版本
+
+# 2. 取代码
+sudo mkdir -p /opt/agentgate && cd /opt/agentgate
+git clone https://github.com/ciceroyang/agentgate .
+
+# 3. 首次采集（实测约 2 分钟）
+node bin/agentgate.mjs refresh --max 300
+
+# 4. 起服务（先手动确认，再交给 systemd）
+node bin/agentgate.mjs serve &
+node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000
+kill %1
+
+# 5. 交给 systemd（单元文件已备好）
+sudo useradd -r -s /usr/sbin/nologin agentgate || true
+sudo chown -R agentgate:agentgate /opt/agentgate
+sudo cp deploy/agentgate.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now agentgate
+systemctl status agentgate --no-pager | head -5
+```
+
+## 部署步骤（Docker，未验证）
 
 ```sh
 # 1. 基础环境（Ubuntu/Debian）
