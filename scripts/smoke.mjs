@@ -4,10 +4,14 @@
  *
  *   node scripts/smoke.mjs https://api.智量.com
  *   node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000
+ *
+ *   --allow-stale  跳过"索引是 36 小时内生成的"。只给彩排用：彩排跑在提交里的样本上，
+ *                  那个样本本来就会过期，而部署时一定先跑过 refresh。
  */
 const base = (process.argv[2] || "http://127.0.0.1:8080").replace(/\/$/, "")
 const argOf = function (name, fallback) { const i = process.argv.indexOf(name); return i === -1 ? fallback : Number(process.argv[i + 1]) }
 const expectMin = argOf("--expect-min", 0)
+const allowStale = process.argv.indexOf("--allow-stale") !== -1
 let failures = 0
 const check = function (name, ok, detail) {
   if (ok) { console.log("ok    " + name); return }
@@ -26,7 +30,8 @@ try {
   check("索引存在", typeof h.records === "number", JSON.stringify(h).slice(0, 120))
   if (expectMin > 0) check("索引至少有 " + expectMin + " 条（不是样本）", h.records >= expectMin, "records=" + h.records)
   const age = h.generatedAt ? (Date.now() - Date.parse(h.generatedAt)) / 3600000 : null
-  check("索引是 36 小时内生成的", age !== null && age < 36, h.generatedAt || "no generatedAt")
+  if (allowStale) console.log("跳过  索引新鲜度（--allow-stale：这是彩排，不是部署）")
+  else check("索引是 36 小时内生成的", age !== null && age < 36, h.generatedAt || "no generatedAt")
 
   const summary = await get("/v1/index/summary")
   const s = JSON.parse(summary.text)

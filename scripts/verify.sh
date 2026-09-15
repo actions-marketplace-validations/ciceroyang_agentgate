@@ -17,6 +17,9 @@ node scripts/acceptance.mjs > /dev/null && echo "M1 ok"
 node scripts/acceptance-m2.mjs > /dev/null && echo "M2 ok"
 node scripts/acceptance-m3.mjs > /dev/null && echo "M3 ok"
 node scripts/acceptance-m4.mjs > /dev/null && echo "M4 ok"
+echo "== deploy rehearsal (everything except systemd and Caddy) =="
+# pipefail is set above, so a failure inside the pipe still stops the script
+node scripts/rehearse-deploy.mjs | tail -1
 echo "== regression and scale =="
 node packages/guard/scripts/regression.mjs > /dev/null && echo "regression ok"
 node scripts/bench.mjs 20000 100 | tail -1
