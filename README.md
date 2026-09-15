@@ -198,6 +198,7 @@ node scripts/verify-real-server.mjs
 - [docs/operations/plan-b-no-icp.md](docs/operations/plan-b-no-icp.md) — what to do when a mainland server has no ICP filing, which is the one thing that can stop a deployment halfway.
 - [deploy/](deploy/) — the Caddyfile and a systemd unit, ready to copy to a server.
 - [docs/product/decisions-2026-09.md](docs/product/decisions-2026-09.md) — the four decisions, with numbers: npm, trademark, design partners, pricing.
+- [docs/operations/pilot-package.md](docs/operations/pilot-package.md) — the one-pager to send a prospective design partner: deliverables, timeline, what we ask for, and what we refuse to ask for.
 - [site/index.html](site/index.html) and [site/pricing.html](site/pricing.html) — the landing and pricing pages, self-contained, no external assets.
 - [scripts/onboard-server.sh](scripts/onboard-server.sh) — the deployment steps as a script that prints what it would do and only acts with `--apply`.
 - [scripts/smoke.mjs](scripts/smoke.mjs) — the post-deployment check: reachable, index present, index recent, records real rather than the sample.
