@@ -1,6 +1,7 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { readFileSync, existsSync } from "node:fs"
+import { readFileSync, existsSync, mkdtempSync, writeFileSync, symlinkSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
@@ -76,4 +77,28 @@ test("the onboarding script is valid shell and its dry run exits clean", functio
   assert.match(dry.stdout, /DRY-RUN/)
   assert.match(dry.stdout, /would run:/)
   assert.match(dry.stdout, /smoke\.mjs http:\/\/127\.0\.0\.1:/, "the dry run does not end with a smoke check")
+})
+
+test("the installer picks the package manager the distribution actually has", function () {
+  // Alibaba Cloud Linux is RHEL family: no apt-get, dnf instead, SELinux enforcing. The script
+  // called apt-get unconditionally, which stops at the first step on the default Aliyun image.
+  // A fake PATH with only what the script needs reproduces that distribution here.
+  const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
+  for (const tool of ["uname", "hostname", "id"]) {
+    const from = ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
+    if (from) symlinkSync(from, join(bin, tool))
+  }
+  writeFileSync(join(bin, "dnf"), "#!/bin/sh\necho dnf\n", { mode: 0o755 })
+  writeFileSync(join(bin, "getenforce"), "#!/bin/sh\necho Enforcing\n", { mode: 0o755 })
+
+  const out = spawnSync("/bin/bash", [join(ROOT, "scripts", "onboard-server.sh")], {
+    encoding: "utf8", timeout: 60000,
+    env: Object.assign({}, process.env, { PATH: bin }),
+  })
+  assert.equal(out.status, 0, out.stderr)
+  assert.match(out.stdout, /包管理器:dnf/, "the script did not detect the package manager")
+  assert.match(out.stdout, /would run: dnf install -y git curl/, out.stdout)
+  assert.doesNotMatch(out.stdout, /apt-get/, "apt-get was used on a machine that does not have it")
+  assert.match(out.stdout, /SELinux: Enforcing/, "SELinux was not reported on a RHEL-family box")
+  rmSync(bin, { recursive: true, force: true })
 })

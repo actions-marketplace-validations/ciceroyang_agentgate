@@ -51,16 +51,40 @@ if [ "$MODE" = "docker" ]; then
   echo
 fi
 
+# 发行版家族决定装包命令。阿里云 ECS 的默认镜像是 Alibaba Cloud Linux(RHEL 系,用 dnf),
+# 不是 Ubuntu。写死 apt-get,这一步会在用户的机器上停住。
+PKG=""
+if command -v apt-get >/dev/null 2>&1; then PKG="apt"
+elif command -v dnf >/dev/null 2>&1; then PKG="dnf"
+elif command -v yum >/dev/null 2>&1; then PKG="yum"
+fi
+install_pkgs() {
+  case "$PKG" in
+    apt) run apt-get update; run apt-get install -y "$@" ;;
+    dnf) run dnf install -y "$@" ;;
+    yum) run yum install -y "$@" ;;
+    *) echo "  未识别包管理器,请手动安装:$*" ;;
+  esac
+}
+# SELinux 在 RHEL 系上默认 Enforcing,而 Caddy 是第三方单元,会被挡住。
+if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" = "Enforcing" ]; then
+  echo "  SELinux: Enforcing —— Caddy 可能读不了 /var/www、连不上 127.0.0.1:8080;"
+  echo "           处理命令见 docs/operations/deployment-runbook.md 的 SELinux 一节。"
+fi
+echo "  包管理器:${PKG:-未识别}"
+echo
 echo "== 将执行 =="
 if ! command -v git >/dev/null 2>&1; then
-  run apt-get update
-  run apt-get install -y git curl
+  install_pkgs git curl
 fi
 
 if [ "$MODE" = "docker" ]; then
   if ! command -v docker >/dev/null 2>&1; then
-    run apt-get update
-    run apt-get install -y docker.io docker-compose-v2
+    if [ "$PKG" = "apt" ]; then
+      install_pkgs docker.io docker-compose-v2
+    else
+      echo "  docker: RHEL 系请按 Docker 官方文档加 docker-ce 仓库,或直接用 --node 路径(已验证)"
+    fi
     run systemctl enable --now docker
   fi
 else

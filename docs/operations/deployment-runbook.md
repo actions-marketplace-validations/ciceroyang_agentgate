@@ -104,6 +104,35 @@ sudo systemctl daemon-reload && sudo systemctl enable --now agentgate
 systemctl status agentgate --no-pager | head -5
 ```
 
+## 如果服务器是 Alibaba Cloud Linux / CentOS(RHEL 系)
+
+**阿里云 ECS 的默认镜像就是这一系,不是 Ubuntu。** 差别有三处,第三处最容易卡住。
+
+```sh
+# 1. 装包命令是 dnf(脚本会自动识别,不用你改)
+sudo dnf install -y git curl
+
+# 2. 装 Node 20+ —— 别用发行版自带的旧版本
+sudo dnf module install -y nodejs:20/common    # 或按 NodeSource 官方文档加仓库
+node --version                                   # 必须 >= 20
+
+# 3. SELinux 默认 Enforcing,而 Caddy 是第三方单元,会被它挡住
+getenforce                                       # Enforcing 才需要处理下面两条
+
+# 让 Caddy 能反代到 127.0.0.1:8080
+sudo setsebool -P httpd_can_network_connect 1
+
+# 给它服务的静态目录打对标签
+sudo semanage fcontext -a -t httpd_sys_content_t "/var/www/zhiliang(/.*)?"
+sudo restorecon -R /var/www/zhiliang
+```
+
+**SELinux 挡住时的症状**:服务在本机 `curl 127.0.0.1:8080/health` 是好的,Caddy 却返回 403 或 502。确认方式:`sudo ausearch -m avc -ts recent | tail`。
+
+临时验证可以用 `sudo setenforce 0` 看是不是它;确认之后**要把它调回 Enforcing 并用上面的规则解决**,不要长期关着。
+
+**Docker 这条路在这一系上没验过**(基础镜像与仓库都要换)。直接用 Node + systemd 路径,那条是完整彩排过的。
+
 ## 部署步骤（Docker，未验证）
 
 ```sh
