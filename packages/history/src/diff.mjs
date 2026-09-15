@@ -9,18 +9,20 @@
  */
 function byServer(index) {
   const map = new Map()
-  for (const r of (index && index.records) || []) map.set(r.server, r)
+  for (const r of (index && index.records) || []) { if (r && typeof r.server === "string") map.set(r.server, r) }
   return map
 }
 
 function packageKey(record) {
-  return (record.packages || []).map(function (p) { return p.name + "@" + (p.version || "unpinned") }).join(",")
+  const pkgs = Array.isArray(record.packages) ? record.packages : []
+  return pkgs.map(function (p) { return (p && p.name) + "@" + ((p && p.version) || "unpinned") }).join(",")
 }
 
 function findingsKey(record) {
   const out = []
-  for (const blockName of Object.keys(record.evidence || {})) {
-    const block = record.evidence[blockName]
+  const evidence = record && typeof record.evidence === "object" && record.evidence ? record.evidence : {}
+  for (const blockName of Object.keys(evidence)) {
+    const block = evidence[blockName] || {}
     for (const f of block.findings || []) out.push(blockName + ":" + f.rule)
     if (block.status === "unmeasured") out.push(blockName + ":unmeasured")
   }

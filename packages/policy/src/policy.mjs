@@ -22,7 +22,7 @@ function asJson(value) {
 function asArray(value) { return Array.isArray(value) ? value.filter(function (v) { return typeof v === "string" }) : [] }
 
 export function normalizePolicy(doc) {
-  if (!doc || typeof doc !== "object") throw new Error("policy must be an object")
+  if (!doc || typeof doc !== "object" || Array.isArray(doc)) throw new Error("policy must be an object")
   const required = doc.required && typeof doc.required === "object" ? doc.required : {}
   const forbidden = doc.forbidden && typeof doc.forbidden === "object" ? doc.forbidden : {}
   const threshold = typeof doc.threshold === "string" ? doc.threshold : "high"

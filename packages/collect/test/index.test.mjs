@@ -43,3 +43,14 @@ test("buildIndex joins the artifacts and keeps provenance", function () {
   assert.equal(two.verdict, "incomplete")
   assert.equal(two.evidence.packageManifest.reason, "metadata-unavailable")
 })
+
+test("census rows that are not rows are skipped, not fatal", function () {
+  const index = buildIndex({ census: { rows: [null, 3, "x", {}, { server: "a/one" }] } })
+  assert.equal(index.count, 1)
+  assert.equal(index.skipped.length, 4)
+})
+
+test("a guard artifact that is not an artifact is ignored", function () {
+  const index = buildIndex({ census: { rows: [{ server: "a/one", package: "p", registryType: "npm" }] }, guard: "nope" })
+  assert.equal(index.count, 1)
+})

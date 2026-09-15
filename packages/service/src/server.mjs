@@ -16,6 +16,7 @@ export function loadIndex(paths) {
     try {
       const stat = statSync(p)
       const data = JSON.parse(readFileSync(p, "utf8"))
+      if (!data || !Array.isArray(data.records)) continue
       return { path: p, mtime: stat.mtimeMs, data: data }
     } catch (error) { /* try the next one */ }
   }
@@ -23,10 +24,11 @@ export function loadIndex(paths) {
 }
 
 export function matchRecords(records, query) {
+  const usable = (records || []).filter(function (r) { return r && typeof r.server === "string" })
   const q = String(query).toLowerCase()
-  const exact = records.filter(function (r) { return r.server.toLowerCase() === q })
+  const exact = usable.filter(function (r) { return r.server.toLowerCase() === q })
   if (exact.length > 0) return exact
-  return records.filter(function (r) { return r.server.toLowerCase().indexOf(q) !== -1 })
+  return usable.filter(function (r) { return r.server.toLowerCase().indexOf(q) !== -1 })
 }
 
 function svg(text, color, right) {
@@ -58,11 +60,11 @@ export function createService(options) {
       if (method !== "GET") return json(405, { error: "only GET is served" })
       if (path === "/health") {
         const loaded = load()
-        if (!loaded) return json(503, { ok: false, reason: "no index is present", hint: "run: node bin/agentgate.mjs refresh" })
+        if (!loaded) return json(503, { ok: false, reason: "no usable index is present", hint: "run: node bin/agentgate.mjs refresh" })
         return json(200, { ok: true, index: loaded.path, generatedAt: loaded.data.generatedAt, records: loaded.data.count, threshold: loaded.data.threshold })
       }
       const loaded = load()
-      if (!loaded) return json(503, { error: "no index is present", hint: "run: node bin/agentgate.mjs refresh" })
+      if (!loaded) return json(503, { error: "no usable index is present; a file without a records array is not an index", hint: "run: node bin/agentgate.mjs refresh" })
       const index = loaded.data
       const records = index.records || []
       if (path === "/v1/index/summary") {

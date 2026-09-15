@@ -47,7 +47,9 @@ export function buildIndex(options) {
   }
 
   const records = []
+  const skipped = []
   for (const row of census.rows || []) {
+    if (!row || typeof row !== "object" || typeof row.server !== "string") { skipped.push("a row without a server name"); continue }
     const blocks = {}
     blocks.registryDocument = {
       status: (row.findings || []).length > 0 ? "findings" : "clean",
@@ -90,7 +92,7 @@ export function buildIndex(options) {
       generatedAt: options.generatedAt || new Date().toISOString(),
     })
   }
-  return { generatedAt: options.generatedAt || new Date().toISOString(), threshold: threshold, count: records.length, records: records }
+  return { generatedAt: options.generatedAt || new Date().toISOString(), threshold: threshold, count: records.length, skipped: skipped, records: records }
 }
 
 function parse(argv) {

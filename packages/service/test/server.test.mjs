@@ -27,7 +27,7 @@ test("a missing index is a 503, never an empty success", function () {
   const svc = createService({ indexPath: "/nonexistent/index.json" })
   const out = svc.handle("GET", "/v1/index/summary")
   assert.equal(out.status, 503)
-  assert.match(out.body, /no index is present/)
+  assert.match(out.body, /no usable index is present/)
 })
 
 test("health reports the index it actually read", function () {

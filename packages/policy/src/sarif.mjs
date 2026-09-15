@@ -25,6 +25,14 @@ export function toSarif(result, meta) {
       locations: [],
     })
   }
+  for (const m of (result.coverage && result.coverage.malformed) || []) {
+    results.push({
+      ruleId: "POLICY-MALFORMED-INPUT",
+      level: "error",
+      message: { text: m.source + ": " + m.detail + "; the result cannot be trusted until this is fixed" },
+      locations: [],
+    })
+  }
   for (const c of (result.coverage && result.coverage.checksFailed) || []) {
     results.push({
       ruleId: "AG-INTERNAL-CHECK-FAIL",

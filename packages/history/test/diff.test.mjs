@@ -40,3 +40,14 @@ test("the rendering names the silent category rather than burying it", function 
   const d = diffIndex(index([record("a/one", "clean", "pkg")]), index([record("a/one", "findings", "pkg", [{ rule: "r", severity: "high" }], "findings")]))
   assert.match(renderDiff(d), /silent changes/)
 })
+
+test("a packages field that is not an array does not crash the diff", function () {
+  const d = diffIndex({ records: [{ server: "a", packages: "x", evidence: {} }] }, { records: [{ server: "a", packages: "x", evidence: {} }] })
+  assert.equal(d.packageChanged.length, 0)
+  assert.equal(d.silent.length, 0)
+})
+
+test("records without a server name are ignored", function () {
+  const d = diffIndex({ records: [null, {}] }, { records: [null, {}] })
+  assert.deepEqual(d.added, [])
+})

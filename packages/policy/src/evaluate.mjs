@@ -15,11 +15,13 @@ export function evaluate(options) {
   const findings = []
   const checksFailed = []
   const evidenceMissing = []
+  const malformed = []
   const threshold = severityRank(policy.threshold)
 
   if (scan) {
     for (const failed of (scan.coverage && scan.coverage.checksFailed) || []) checksFailed.push(failed)
     for (const f of scan.findings || []) {
+      if (!f || typeof f !== "object" || typeof f.rule !== "string") { malformed.push({ source: "scan", detail: "a finding is not an object with a rule" }); continue }
       const forbidden = policy.forbiddenRules.indexOf(f.rule) !== -1 || policy.forbiddenSeverities.indexOf(f.severity) !== -1
       const above = severityRank(f.severity) >= threshold
       if (!forbidden && !above) continue
@@ -35,6 +37,7 @@ export function evaluate(options) {
   }
 
   for (const record of records || []) {
+    if (!record || typeof record.server !== "string") { malformed.push({ source: "index", detail: "a record has no server name" }); continue }
     for (const pattern of policy.forbiddenServers) {
       if (matchesServer(pattern, record.server)) {
         findings.push({ source: "index", rule: "POLICY-SERVER", severity: "high", file: record.server, message: "server matches the forbidden pattern " + pattern, reason: "forbidden by policy" })
@@ -52,12 +55,12 @@ export function evaluate(options) {
     }
   }
 
-  const verdict = checksFailed.length > 0 || evidenceMissing.length > 0 ? "incomplete" : findings.length > 0 ? "findings" : "clean"
+  const verdict = checksFailed.length > 0 || evidenceMissing.length > 0 || malformed.length > 0 ? "incomplete" : findings.length > 0 ? "findings" : "clean"
   return {
     policyVersion: policy.version || POLICY_VERSION,
     verdict: verdict,
     findings: findings,
-    coverage: { checksFailed: checksFailed, evidenceMissing: evidenceMissing },
+    coverage: { checksFailed: checksFailed, evidenceMissing: evidenceMissing, malformed: malformed },
   }
 }
 
