@@ -23,6 +23,10 @@ import { createProxy } from "../packages/gateway/src/proxy.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
+/** The port the service binds when nothing says otherwise. One place, because the systemd
+ *  unit and the Caddyfile both assume it and test/deploy.test.mjs checks that all three agree. */
+const DEFAULT_PORT = 8080
+
 function parse(argv) {
   const args = { command: argv[0] || "help", flags: {}, rest: [] }
   for (let i = 1; i < argv.length; i += 1) {
@@ -53,7 +57,7 @@ function serve(flags) {
   const chosen = resolveIndex(flags)
   const indexPath = chosen.path
   const samplePath = resolve(flags.sample || process.env.AGENTGATE_SAMPLE || join(ROOT, "data", "sample-index.json"))
-  const requested = flags.port !== undefined ? flags.port : (process.env.AGENTGATE_PORT !== undefined ? process.env.AGENTGATE_PORT : 8080)
+  const requested = flags.port !== undefined ? flags.port : (process.env.AGENTGATE_PORT !== undefined ? process.env.AGENTGATE_PORT : DEFAULT_PORT)
   const port = Number(requested)
   const host = flags.host || process.env.AGENTGATE_HOST || "127.0.0.1"
   const which = existsSync(indexPath) ? indexPath : (existsSync(samplePath) ? samplePath + " (committed sample)" : "none")

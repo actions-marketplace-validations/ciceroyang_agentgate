@@ -29,7 +29,9 @@ test("the proxy, the unit and the CLI agree on one port", function () {
   const proxied = [...caddy.matchAll(/reverse_proxy\s+127\.0\.0\.1:(\d+)/g)].map(function (m) { return m[1] })
   assert.ok(proxied.length > 0, "the Caddyfile proxies nothing")
   const unitPort = /AGENTGATE_PORT=(\d+)/.exec(unit)[1]
-  const cliDefault = /AGENTGATE_PORT\s*\|\|\s*(\d+)/.exec(bin)[1]
+  const cliDefaultMatch = /const DEFAULT_PORT = (\d+)/.exec(bin)
+  assert.ok(cliDefaultMatch, "bin/agentgate.mjs no longer declares DEFAULT_PORT")
+  const cliDefault = cliDefaultMatch[1]
   for (const port of proxied) assert.equal(port, unitPort, "Caddy proxies " + port + " but the unit binds " + unitPort)
   assert.equal(unitPort, cliDefault, "the unit binds " + unitPort + " but the CLI defaults to " + cliDefault)
 })
