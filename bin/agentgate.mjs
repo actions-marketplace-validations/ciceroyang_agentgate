@@ -11,6 +11,7 @@ import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
 import { start } from "../packages/service/src/start.mjs"
+import { DEFAULT_PORT, DEFAULT_HOST } from "../packages/service/src/defaults.mjs"
 import { runScan } from "../packages/guard/src/engine.mjs"
 import { makeReader } from "../packages/guard/src/fs-scan.mjs"
 import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
@@ -23,9 +24,6 @@ import { createProxy } from "../packages/gateway/src/proxy.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
-/** The port the service binds when nothing says otherwise. One place, because the systemd
- *  unit and the Caddyfile both assume it and test/deploy.test.mjs checks that all three agree. */
-const DEFAULT_PORT = 8080
 
 function parse(argv) {
   const args = { command: argv[0] || "help", flags: {}, rest: [] }
@@ -59,7 +57,7 @@ function serve(flags) {
   const samplePath = resolve(flags.sample || process.env.AGENTGATE_SAMPLE || join(ROOT, "data", "sample-index.json"))
   const requested = flags.port !== undefined ? flags.port : (process.env.AGENTGATE_PORT !== undefined ? process.env.AGENTGATE_PORT : DEFAULT_PORT)
   const port = Number(requested)
-  const host = flags.host || process.env.AGENTGATE_HOST || "127.0.0.1"
+  const host = flags.host || process.env.AGENTGATE_HOST || DEFAULT_HOST
   const which = existsSync(indexPath) ? indexPath : (existsSync(samplePath) ? samplePath + " (committed sample)" : "none")
   const server = start({
     indexPath: indexPath, samplePath: samplePath, port: port, host: host,

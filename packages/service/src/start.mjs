@@ -1,5 +1,6 @@
 import { createServer } from "node:http"
 import { createService } from "./server.mjs"
+import { DEFAULT_PORT, DEFAULT_HOST } from "./defaults.mjs"
 
 export function start(options) {
   const service = options.service || createService(options)
@@ -19,7 +20,7 @@ export function start(options) {
   })
   // 0 is a valid port that asks the operating system for a free one. "options.port || 8080"
   // quietly turned it into 8080, so a caller asking for an ephemeral port got the default instead.
-  const port = options.port === undefined || options.port === null ? 8080 : options.port
-  server.listen(port, options.host || "127.0.0.1", options.onListening)
+  const port = options.port === undefined || options.port === null ? DEFAULT_PORT : options.port
+  server.listen(port, options.host || DEFAULT_HOST, options.onListening)
   return server
 }
