@@ -183,23 +183,19 @@ curl -s localhost:8080/health
 
 ## Caddy（自动 HTTPS）
 
-```
-# /etc/caddy/Caddyfile
-xn--5kvo87g.com, www.xn--5kvo87g.com {
-    root * /var/www/zhiliang
-    file_server
-}
+**不要手抄这段配置。** 直接复制仓库里的 `deploy/Caddyfile`,它是唯一的一份;
+这一节原来贴过一份手抄件,已经漂移了(漏了 `docs.`,也没有日志与 SELinux 的说明)。
 
-app.xn--5kvo87g.com {
-    reverse_proxy 127.0.0.1:8080
-}
-
-api.xn--5kvo87g.com {
-    reverse_proxy 127.0.0.1:8080
-}
+```sh
+sudo cp /opt/agentgate/deploy/Caddyfile /etc/caddy/Caddyfile
+sudo caddy validate --config /etc/caddy/Caddyfile     # 先验语法,再 reload
+sudo systemctl reload caddy || sudo systemctl restart caddy
 ```
 
-Caddy 会自动申请并续期证书；前提是 80/443 已放行且 DNS 已生效。
+Caddy 会对配置里的**每个名字**申请证书,前提是 80/443 已放行、前置一节那五条 DNS 都已生效。
+证书没签下来时看 `journalctl -u caddy -n 50`,最常见的原因是某条 A 记录还没生效。
+
+RHEL 系(SELinux)下 Caddy 会被挡住,见本文开头那一节。
 
 ## 数据与备份（最重要的一节）
 

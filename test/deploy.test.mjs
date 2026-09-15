@@ -171,3 +171,12 @@ test("every name Caddy serves is a name the runbook tells the user to create", f
 
   assert.match(runbook, /没有 `try\.`/, "the runbook no longer says there is no try. subdomain")
 })
+
+test("the runbook points at the Caddyfile instead of copying it", function () {
+  // A hand-copied config drifts, and this one had: it lost the docs. site block and never gained
+  // the log-retention or SELinux notes. Somebody following the runbook would have pasted a
+  // config with one fewer name than the Caddyfile serves. The file is the single source.
+  const runbook = readFileSync(join(ROOT, "docs", "operations", "deployment-runbook.md"), "utf8")
+  assert.match(runbook, /deploy\/Caddyfile/, "the runbook no longer points at the real Caddyfile")
+  assert.doesNotMatch(runbook, /root \* \/var\/www/, "the runbook has a hand-copied Caddyfile again")
+})

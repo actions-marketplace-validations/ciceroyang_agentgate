@@ -189,6 +189,15 @@ else
 fi
 echo
 
+if [ "$MODE" = "node" ]; then
+  echo "== 这一步没做,要你(或我)接着做 =="
+  echo "  对外 HTTPS 还没配。服务只在回环上跑,公网访问不了。"
+  if [ "$PKG" = "apt" ]; then echo "    sudo apt-get install -y caddy"; elif [ "$PKG" = "dnf" ] || [ "$PKG" = "yum" ]; then echo "    sudo $PKG install -y caddy"; else echo "    # 装 Caddy:按你的发行版(apt-get / dnf / yum)"; fi
+  echo "    sudo cp $DIR/deploy/Caddyfile /etc/caddy/Caddyfile"
+  echo "    sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy"
+  echo "  前提:前置一节那五条 DNS 都已生效,且大陆机器已完成 ICP 备案(见 docs/operations/plan-b-no-icp.md)。"
+  echo
+fi
 echo "== 我接下来会看的 =="
 echo "  - data/index.json 的 generatedAt 是不是当天"
 echo "  - records 是不是几千条，而不是样本的 300 条"
