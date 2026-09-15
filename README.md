@@ -154,6 +154,16 @@ packages/verify    cross-model claim checking
 docs/              architecture and product notes
 ```
 
+## Verification
+
+Beyond the tests, which are written by the same party as the code,
+[docs/verification.md](docs/verification.md) records the checks against things nobody here
+wrote: a real MCP server through the gateway, and the list of what is still unverified.
+
+```sh
+node scripts/verify-real-server.mjs
+```
+
 ## Status, honestly
 
 This is an open-source core in pieces, not yet a product. There is no runtime gateway,
