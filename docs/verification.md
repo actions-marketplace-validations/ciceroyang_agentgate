@@ -68,13 +68,32 @@ elapsed:       2m 04s for the collection step
 That is the deployment as far as it can be exercised without the target server. What it
 does not cover: the Docker layer build, TLS issuance, DNS, and the ICP question.
 
+## Scale, and the bug that measuring it found
+
+`scripts/bench.mjs` builds an index far larger than today's and times lookups. At 50,000
+records (a 9.8 MB file) the first run showed **p50 29.6 ms per request**, because the service
+re-read and re-parsed the entire index on every call.
+
+| | p50 | p95 | max | rss |
+| --- | --- | --- | --- | --- |
+| before | 29.6 ms | 40.8 ms | 42.3 ms | 276 MB |
+| after | **1.1 ms** | 1.3 ms | 2.2 ms | 213 MB |
+
+The parsed index is now cached and revalidated by modification time and size. That
+revalidation is the load-bearing part: the runbook promises a refresh takes effect without
+a restart, and a cache without it would have quietly broken that promise. There is a test
+for it, including a rewrite that keeps the file the same size.
+
+One more thing this found: the benchmark's own budget was 50 ms, which passed. A budget
+loose enough to accept a 30x regression is not a budget. It is 10 ms now, and it runs in CI.
+
 ## Still not verified anywhere but on one machine
 
 | item | state |
 | --- | --- |
 | Docker image build | not run, no Docker here; the build context and the image command were reproduced instead |
 
-| Scale | a 2,142-record index and a single 50,000-rule policy, nothing larger |
+| Scale beyond 50k records | measured at 50,000; the registry writes about 2,000 today |
 | Retrieval quality in `packages/verify` | term overlap, never measured against a labelled set |
 
 Each of these is a place where "it works" currently means "it worked once, for me".

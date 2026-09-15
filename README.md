@@ -161,6 +161,11 @@ node packages/collect/bin/agent-add.mjs --index data/index.json <server-name>
 ## Test
 
 ```sh
+npm test
+node scripts/bench.mjs 50000 200    # lookups must stay under 10 ms p50
+```
+
+```sh
 npm test                              # 98 tests across the three packages
 node packages/guard/scripts/regression.mjs   # benign must stay silent, positives must fire
 ```

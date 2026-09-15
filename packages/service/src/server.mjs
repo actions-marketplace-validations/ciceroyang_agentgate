@@ -9,16 +9,33 @@ import { readFileSync, existsSync, statSync } from "node:fs"
 
 const COLORS = { clean: "#2ea043", findings: "#d29922", incomplete: "#8b949e" }
 
+/**
+ * The parsed index is cached and revalidated by modification time and size.
+ *
+ * Without this, every request re-read and re-parsed the whole file: 30ms per lookup on a
+ * nine-megabyte index, which does not get better as the registry grows. The revalidation
+ * is the load-bearing part - the runbook promises that a refresh takes effect without a
+ * restart, and a cache without it would quietly break that promise.
+ */
+const cache = new Map()
+
+export function clearIndexCache() { cache.clear() }
+
 export function loadIndex(paths) {
   const candidates = paths.filter(Boolean)
   for (const p of candidates) {
     if (!existsSync(p)) continue
-    try {
-      const stat = statSync(p)
-      const data = JSON.parse(readFileSync(p, "utf8"))
-      if (!data || !Array.isArray(data.records)) continue
-      return { path: p, mtime: stat.mtimeMs, data: data }
-    } catch (error) { /* try the next one */ }
+    let stat
+    try { stat = statSync(p) } catch (error) { continue }
+    const hit = cache.get(p)
+    if (hit && hit.mtime === stat.mtimeMs && hit.size === stat.size) {
+      return { path: p, mtime: stat.mtimeMs, data: hit.data }
+    }
+    let data
+    try { data = JSON.parse(readFileSync(p, "utf8")) } catch (error) { cache.delete(p); continue }
+    if (!data || !Array.isArray(data.records)) { cache.delete(p); continue }
+    cache.set(p, { mtime: stat.mtimeMs, size: stat.size, data: data })
+    return { path: p, mtime: stat.mtimeMs, data: data }
   }
   return null
 }
