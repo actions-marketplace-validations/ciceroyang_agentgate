@@ -36,12 +36,25 @@ allowed. A gateway is a transparent pipe, so the startup cost of the command it 
 the client's handshake timeout, and pointing it at an un-cached `npx` package on a cold
 machine can exceed one. Pre-install, or give it time.
 
+## The GitHub Action on a real pull request
+
+It has now run on one. [Pull request #1](https://github.com/ciceroyang/agentgate/pull/1)
+was opened with a project that breaks its own policy; the `policy` check went red, the
+report named `AG-MCP-010` and `AG-MCP-014`, and the action commented the report on the pull
+request. The pull request was closed once that was confirmed.
+
+The workflow that did it is wrong in one way worth recording: run against deliberately
+broken input, it failed on every push, which is not a test. `action-verify.yml` now runs
+the action with `continue-on-error`, asserts the outcome was failure, asserts the exit code
+was 1, and asserts the SARIF names both rules. The enforcement path is exercised on every
+push, and it goes red if the action ever lets a breaking project through.
+
 ## Still not verified anywhere but on one machine
 
 | item | state |
 | --- | --- |
 | Docker image build | not run, no Docker on the machine this was written on |
-| The GitHub Action on a real pull request | YAML-validated only; never triggered by an event |
+
 | Scale | a 2,142-record index and a single 50,000-rule policy, nothing larger |
 | Retrieval quality in `packages/verify` | term overlap, never measured against a labelled set |
 
