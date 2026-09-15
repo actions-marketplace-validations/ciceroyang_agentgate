@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "/usr/local/bin/node",
+      "args": [
+        "/opt/mcp/server-filesystem/dist/index.js",
+        "/home/me/projects"
+      ]
+    }
+  }
+}

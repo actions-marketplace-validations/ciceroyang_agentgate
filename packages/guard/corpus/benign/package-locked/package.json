@@ -1,0 +1,6 @@
+{
+  "name": "benign",
+  "dependencies": {
+    "left": "^1.2.3"
+  }
+}

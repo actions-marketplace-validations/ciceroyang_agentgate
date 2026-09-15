@@ -1,0 +1,6 @@
+{
+  "name": "bad",
+  "dependencies": {
+    "a": "git+https://github.com/x/y.git"
+  }
+}

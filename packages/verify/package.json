@@ -1,0 +1,14 @@
+{
+  "name": "crosscheck",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Check what an AI just told you, with a different model, and say when it cannot be checked.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

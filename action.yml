@@ -1,0 +1,54 @@
+name: agentgate
+description: Scan an agent project for MCP config, hook, injection and A2A issues, and never report clean about work it did not do.
+author: ciceroyang
+branding:
+  icon: shield
+  color: purple
+inputs:
+  path:
+    description: Directory to scan.
+    required: false
+    default: "."
+  fail-on:
+    description: Severity that fails the run. critical, high, medium, low or info.
+    required: false
+    default: "high"
+  sarif-file:
+    description: Where to write the SARIF report.
+    required: false
+    default: "agent-guard.sarif"
+  checks:
+    description: Comma-separated check ids to run. Defaults to all of them.
+    required: false
+    default: ""
+outputs:
+  sarif-file:
+    description: Path to the SARIF report that was written.
+    value: ${{ inputs.sarif-file }}
+runs:
+  using: composite
+  steps:
+    - id: scan
+      shell: bash
+      run: |
+        set +e
+        if [ -n "${{ inputs.checks }}" ]; then
+          node "$GITHUB_ACTION_PATH/packages/guard/bin/agent-guard.mjs" "${{ inputs.path }}" \
+            --format sarif -o "${{ inputs.sarif-file }}" \
+            --fail-on "${{ inputs.fail-on }}" \
+            --checks "${{ inputs.checks }}"
+        else
+          node "$GITHUB_ACTION_PATH/packages/guard/bin/agent-guard.mjs" "${{ inputs.path }}" \
+            --format sarif -o "${{ inputs.sarif-file }}" \
+            --fail-on "${{ inputs.fail-on }}"
+        fi
+        code=$?
+        set -e
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        case "$code" in
+          0) echo "agent-guard: clean" ;;
+          1) echo "::error title=agent-guard::findings at or above --fail-on ${{ inputs.fail-on }}" ;;
+          2) echo "::error title=agent-guard::the scan is incomplete - a check did not run, so this is not a pass" ;;
+          *) echo "::error title=agent-guard::scan failed with exit code $code" ;;
+        esac
+        exit "$code"

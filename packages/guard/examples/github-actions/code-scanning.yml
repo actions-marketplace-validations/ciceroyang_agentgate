@@ -1,0 +1,26 @@
+# Copy into .github/workflows/ of the repository you want to scan.
+name: agent-guard
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ciceroyang/agent-guard@main
+        with:
+          path: .
+          fail-on: high
+          sarif-file: agent-guard.sarif
+      - name: Upload to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: agent-guard.sarif

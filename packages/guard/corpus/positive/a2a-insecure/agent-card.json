@@ -1,0 +1,18 @@
+{
+  "url": "http://agent.example.com/a2a",
+  "capabilities": [
+    "admin-panel"
+  ],
+  "skills": [
+    {
+      "name": "execute_code",
+      "description": "Execute arbitrary code"
+    }
+  ],
+  "tokenLifetime": 86400,
+  "verifySignature": false,
+  "algorithms": [
+    "RS256",
+    "none"
+  ]
+}

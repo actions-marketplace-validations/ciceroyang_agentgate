@@ -1,0 +1,17 @@
+{
+  "name": "agent-guard",
+  "version": "0.1.0",
+  "description": "A scanner that cannot report clean about work it did not do.",
+  "type": "module",
+  "bin": {
+    "agent-guard": "./bin/agent-guard.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "regression": "node scripts/regression.mjs"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "agentgate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Control plane for the tools agents run: inventory, evidence, policy, enforcement.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "node --test packages/guard/test/*.test.mjs packages/guard/test/invariant.mjs packages/collect/test/*.test.mjs packages/verify/test/*.test.mjs",
+    "test:guard": "node --test packages/guard/test/*.test.mjs packages/guard/test/invariant.mjs",
+    "test:collect": "node --test packages/collect/test/*.test.mjs",
+    "test:verify": "node --test packages/verify/test/*.test.mjs",
+    "regression": "node packages/guard/scripts/regression.mjs"
+  },
+  "license": "AGPL-3.0-only",
+  "engines": {
+    "node": ">=20"
+  }
+}
