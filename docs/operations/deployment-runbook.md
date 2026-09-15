@@ -83,10 +83,23 @@ node bin/agentgate.mjs serve &
 node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000
 kill %1
 
-# 5. 交给 systemd（单元文件已备好）
+# 5. 主域是静态站，得由仓库里的脚本生成
+#    跳过这一步，Caddy 起来也是一个空页面：它 serve 的目录没人创建。
+sudo mkdir -p /var/www/zhiliang /var/www/zhiliang-docs
+node scripts/build-site.mjs --index data/index.json --out /var/www/zhiliang --name evidence.html --pages site
+#    证据索引链到样例报告，在线上不能是死链
+node bin/agentgate.mjs check --root examples/action-verify \
+  --policy examples/action-verify/agentgate.policy.json \
+  --format html --out /var/www/zhiliang/report-sample.html || true
+
+# 6. 交给 systemd
 sudo useradd -r -s /usr/sbin/nologin agentgate || true
 sudo chown -R agentgate:agentgate /opt/agentgate
-sudo cp deploy/agentgate.service /etc/systemd/system/
+#    单元文件里 node 是绝对路径。手册推荐 nvm，而 nvm 装的 node 不在 /usr/bin，
+#    直接 cp 过去会让 systemctl 报 "No such file or directory"。
+which node
+sudo sed "s#^ExecStart=.*#ExecStart=$(which node) bin/agentgate.mjs serve#" \
+  deploy/agentgate.service | sudo tee /etc/systemd/system/agentgate.service >/dev/null
 sudo systemctl daemon-reload && sudo systemctl enable --now agentgate
 systemctl status agentgate --no-pager | head -5
 ```
@@ -172,6 +185,11 @@ cd /opt/agentgate && git log --oneline -5 && git checkout <good-sha> && docker c
 # 在服务器上，先预演，确认无误再 --apply
 bash scripts/onboard-server.sh
 sudo bash scripts/onboard-server.sh --apply
+
+# --apply 依次做：装 git -> 克隆/更新 -> 采集 -> 把静态站建到 Caddy 的目录
+#   -> 建 agentgate 用户 -> 用实测到的 node 路径生成并安装 systemd 单元
+#   -> 起服务 -> 跑 smoke。幂等，可以重复执行。
+# 预演只打印，不动机器；测试里每次都会跑一遍预演，确认它不会碰任何东西。
 
 # 部署后检查（把地址换成公网入口）
 node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000

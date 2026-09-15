@@ -1,0 +1,79 @@
+import { test } from "node:test"
+import assert from "node:assert/strict"
+import { readFileSync, existsSync } from "node:fs"
+import { join, dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
+import { spawnSync } from "node:child_process"
+
+/**
+ * Deployment drift.
+ *
+ * A first deploy does not usually fail inside one file. It fails where two files disagree
+ * about a port, a path, or which node binary to run — and that only shows up on a machine
+ * nobody can test on. Each assertion here is a thing that would have been discovered by a
+ * failed demo instead.
+ *
+ * The two that were real: the Caddyfile serves /var/www/zhiliang and nothing created it, so
+ * the brand page would have come up empty; and the systemd unit named /usr/bin/node while the
+ * runbook recommends nvm, which does not install there.
+ */
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+const caddy = readFileSync(join(ROOT, "deploy", "Caddyfile"), "utf8")
+const unit = readFileSync(join(ROOT, "deploy", "agentgate.service"), "utf8")
+const script = readFileSync(join(ROOT, "scripts", "onboard-server.sh"), "utf8")
+const bin = readFileSync(join(ROOT, "bin", "agentgate.mjs"), "utf8")
+
+test("the proxy, the unit and the CLI agree on one port", function () {
+  const proxied = [...caddy.matchAll(/reverse_proxy\s+127\.0\.0\.1:(\d+)/g)].map(function (m) { return m[1] })
+  assert.ok(proxied.length > 0, "the Caddyfile proxies nothing")
+  const unitPort = /AGENTGATE_PORT=(\d+)/.exec(unit)[1]
+  const cliDefault = /AGENTGATE_PORT\s*\|\|\s*(\d+)/.exec(bin)[1]
+  for (const port of proxied) assert.equal(port, unitPort, "Caddy proxies " + port + " but the unit binds " + unitPort)
+  assert.equal(unitPort, cliDefault, "the unit binds " + unitPort + " but the CLI defaults to " + cliDefault)
+})
+
+test("the unit reads the files that refresh writes", function () {
+  const wd = /WorkingDirectory=(\S+)/.exec(unit)[1]
+  assert.equal(/AGENTGATE_INDEX=(\S+)/.exec(unit)[1], wd + "/data/index.json")
+  assert.equal(/AGENTGATE_SAMPLE=(\S+)/.exec(unit)[1], wd + "/data/sample-index.json")
+  // refresh writes ./data beside the caller, so the unit's working directory is what makes
+  // those two paths the ones that exist after a refresh
+  assert.match(script, /refresh --max/, "onboarding no longer runs a refresh")
+})
+
+test("ExecStart names a file the repository actually has", function () {
+  const m = /ExecStart=(\S+)\s+(\S+)/.exec(unit)
+  const program = m[1]
+  assert.ok(bin.indexOf(program) === -1, "sanity: the bin path is not the interpreter path")
+  assert.ok(existsSync(join(ROOT, m[2])), "ExecStart runs " + m[2] + ", which does not exist")
+})
+
+test("everything the Caddyfile serves is created by the onboarding script", function () {
+  const roots = [...caddy.matchAll(/root \* (\S+)/g)].map(function (m) { return m[1] })
+  assert.ok(roots.length > 0, "the Caddyfile serves no static directory")
+  for (const dir of roots) {
+    assert.ok(script.indexOf(dir) !== -1, "the Caddyfile serves " + dir + " but the onboarding script never creates it")
+  }
+  // and the site built into it is the site this repository builds
+  assert.match(script, /build-site\.mjs/, "the static directory is never populated")
+})
+
+test("the unit's node path is detected rather than assumed", function () {
+  // the runbook recommends nvm; nvm does not install to /usr/bin, so a copied unit fails
+  assert.match(script, /NODE_BIN=.*command -v node/, "the onboarding script does not detect node")
+  assert.match(script, /s#\^ExecStart=.*#ExecStart=\$NODE_BIN/, "the unit is installed without substituting the real node path")
+})
+
+test("the onboarding script is valid shell and its dry run exits clean", function () {
+  const scriptPath = join(ROOT, "scripts", "onboard-server.sh")
+  const syntax = spawnSync("bash", ["-n", scriptPath], { encoding: "utf8" })
+  assert.equal(syntax.status, 0, syntax.stderr)
+
+  // A bare run is the first thing anyone does on a new machine, and it must not touch it.
+  const dry = spawnSync("bash", [scriptPath], { encoding: "utf8", timeout: 60000 })
+  assert.equal(dry.status, 0, "the dry run failed: " + dry.stderr)
+  assert.match(dry.stdout, /DRY-RUN/)
+  assert.match(dry.stdout, /would run:/)
+  assert.match(dry.stdout, /smoke\.mjs http:\/\/127\.0\.0\.1:/, "the dry run does not end with a smoke check")
+})
