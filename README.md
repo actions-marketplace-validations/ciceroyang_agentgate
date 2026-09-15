@@ -48,6 +48,16 @@ curl -s localhost:8080/v1/servers/<name>
 curl -s localhost:8080/badge/<name>.svg
 ```
 
+From npm, nothing to clone, and it works out of the box: with no policy file present
+`check` uses a built-in default that refuses nothing extra, and `serve` answers from the
+snapshot the package was published with. `refresh` always writes to `./data` beside you,
+never inside the installed package.
+
+```sh
+npx @zhiliang/agentgate check --root .
+npx @zhiliang/agentgate serve
+```
+
 Or with docker, which runs the same command in a container:
 
 ```sh
@@ -72,6 +82,11 @@ A policy says what the company refuses. It is data, not code, and it is specifie
 ```sh
 node bin/agentgate.mjs check --policy agentgate.policy.json --root .
 ```
+
+With no policy file and no `--policy`, the check still runs: it reports what the checks
+found and says it is using the built-in default, which refuses nothing extra. Inventing
+obligations on the user's behalf would make the result mean less, not more. A policy named
+explicitly that cannot be read is still an error, because that is a typo.
 
 The same evaluation can be handed to a person rather than a terminal:
 

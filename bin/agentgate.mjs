@@ -14,7 +14,7 @@ import { start } from "../packages/service/src/start.mjs"
 import { runScan } from "../packages/guard/src/engine.mjs"
 import { makeReader } from "../packages/guard/src/fs-scan.mjs"
 import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
-import { loadPolicy } from "../packages/policy/src/policy.mjs"
+import { loadPolicy, defaultPolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
 import { toSarif } from "../packages/policy/src/sarif.mjs"
 import { toHtmlReport } from "../packages/policy/src/html-report.mjs"
@@ -34,8 +34,24 @@ function parse(argv) {
   return args
 }
 
+/** Where the index lives when the user did not say. A refreshed index is written next to the
+ *  project (./data), so look there first; an installed package falls back to the snapshot it
+ *  was published with, which is why that snapshot has to be in "files". */
+function resolveIndex(flags) {
+  const candidates = [
+    flags.index || process.env.AGENTGATE_INDEX,
+    join(process.cwd(), "data", "index.json"),
+    join(ROOT, "data", "index.json"),
+    join(process.cwd(), "data", "sample-index.json"),
+    join(ROOT, "data", "sample-index.json"),
+  ].filter(Boolean)
+  for (const c of candidates) if (existsSync(c)) return { path: resolve(c), why: c === candidates[0] && (flags.index || process.env.AGENTGATE_INDEX) ? "chosen" : "found" }
+  return { path: resolve(candidates[0] || join(process.cwd(), "data", "index.json")), why: "none" }
+}
+
 function serve(flags) {
-  const indexPath = resolve(flags.index || process.env.AGENTGATE_INDEX || join(ROOT, "data", "index.json"))
+  const chosen = resolveIndex(flags)
+  const indexPath = chosen.path
   const samplePath = resolve(flags.sample || process.env.AGENTGATE_SAMPLE || join(ROOT, "data", "sample-index.json"))
   const port = Number(flags.port || process.env.AGENTGATE_PORT || 8080)
   const host = flags.host || process.env.AGENTGATE_HOST || "127.0.0.1"
@@ -48,7 +64,9 @@ function serve(flags) {
 
 function refresh(flags) {
   const max = String(flags.max || 300)
-  const dataDir = join(ROOT, "data")
+  // Written next to the caller, not inside the package: an installed package may be read-only,
+  // and a refresh should never scribble under node_modules.
+  const dataDir = process.env.AGENTGATE_DATA || join(process.cwd(), "data")
   const run = function (label, script, args) {
     process.stderr.write("[refresh] " + label + "\n")
     const out = spawnSync(process.execPath, [script].concat(args), { stdio: "inherit", cwd: ROOT })
@@ -79,10 +97,17 @@ function recordsFor(root, indexPath) {
 
 function check(flags) {
   const root = resolve(flags.root || ".")
+  const policyPath = flags.policy || join(root, "agentgate.policy.json")
   let policy
-  try { policy = loadPolicy(flags.policy || join(root, "agentgate.policy.json")) } catch (error) {
-    console.error("policy: " + error.message)
-    process.exit(3)
+  let policyNote = null
+  if (!flags.policy && !existsSync(policyPath)) {
+    policy = defaultPolicy()
+    policyNote = "built-in default: nothing extra is refused. Write " + join(root, "agentgate.policy.json") + " to refuse specific rules, servers or tools."
+  } else {
+    try { policy = loadPolicy(policyPath) } catch (error) {
+      console.error("policy: " + error.message)
+      process.exit(3)
+    }
   }
   const exclude = String(flags.exclude || "node_modules,.git").split(",").filter(Boolean)
   const scan = runScan({ root: root, checks: ALL_CHECKS, readText: makeReader(), exclude: exclude })
@@ -90,6 +115,7 @@ function check(flags) {
   const result = evaluate({ policy: policy, scan: scan, records: records })
   const lines = []
   lines.push("policy " + result.policyVersion + "   root " + root)
+  if (policyNote) lines.push(policyNote)
   lines.push("")
   for (const f of result.findings) {
     lines.push("  " + String(f.severity).toUpperCase().padEnd(9) + f.rule + "  " + (f.file || "") + "  " + f.reason)

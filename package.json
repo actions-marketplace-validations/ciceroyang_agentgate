@@ -48,6 +48,7 @@
   "files": [
     "bin/",
     "packages/",
+    "data/sample-index.json",
     "docs/spec/",
     "docs/roadmap.md",
     "README.md",

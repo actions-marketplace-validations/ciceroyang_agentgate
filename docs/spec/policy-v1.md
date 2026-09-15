@@ -34,6 +34,24 @@ does not read JSON for a living.
 | `forbidden.servers` | server-name patterns, exact or with a single `*`. |
 | `forbidden.tools` | tool-name patterns, exact or with a single `*`. Applied by the runtime gateway: a matching call is refused before the server sees it, and a matching tool is removed from the advertised list. |
 
+## When there is no policy file
+
+There is no such thing as a policy-less silence. If `--policy` is not given and
+`agentgate.policy.json` does not exist next to the scanned root, the check proceeds under a
+built-in default and prints that it is doing so. The default is:
+
+```json
+{ "version": "agentgate.policy/v1", "threshold": "medium",
+  "required": { "pinnedPackages": false, "measuredEvidence": [] },
+  "forbidden": { "rules": [], "severities": [], "servers": [], "tools": [] } }
+```
+
+It refuses nothing extra, because a tool that invents obligations on the user's behalf is
+reporting on itself rather than on the code. The checks still report what they found; the
+policy only adds what *you* refuse. If `--policy` names a file that cannot be read, that is
+an error (exit 3) rather than a fallback, because a named file that does not load is a typo,
+not a default.
+
 ## The evaluation rule
 
 The result is one of three values and there is no fourth:

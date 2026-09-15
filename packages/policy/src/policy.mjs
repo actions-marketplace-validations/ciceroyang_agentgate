@@ -39,6 +39,18 @@ export function normalizePolicy(doc) {
   }
 }
 
+/** What a scan uses when no policy file was written. It refuses nothing extra, because
+ *  inventing obligations on a user's behalf is how a tool starts lying about what it checked.
+ *  The checks still report their own findings; a policy only adds what *you* refuse. */
+export const DEFAULT_POLICY_DOC = {
+  version: POLICY_VERSION,
+  threshold: "medium",
+  required: { pinnedPackages: false, measuredEvidence: [] },
+  forbidden: { rules: [], severities: [], servers: [], tools: [] },
+}
+
+export function defaultPolicy() { return normalizePolicy(DEFAULT_POLICY_DOC) }
+
 export function loadPolicy(value) {
   const doc = asJson(value)
   if (!doc) throw new Error("policy could not be read")
