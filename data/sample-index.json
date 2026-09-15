@@ -1,0 +1,5806 @@
+{
+ "generatedAt": "2026-09-15T12:57:29.354Z",
+ "threshold": "medium",
+ "count": 300,
+ "snapshot": true,
+ "note": "committed sample so a fresh clone serves immediately; run bin/agentgate.mjs refresh to replace it with a current index",
+ "records": [
+  {
+   "server": "ac.inference.sh/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.346Z"
+  },
+  {
+   "server": "ac.snag/snag",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ac.tandem/docs-mcp",
+   "title": null,
+   "repository": "https://github.com/frumu-ai/tandem",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ad.inside/inside-ads",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ae.propick/propick",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ag.hood/name-service",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "agency.goji/goji",
+   "title": null,
+   "repository": "https://github.com/goji-agency/goji-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "agency.kesey/pretrip",
+   "title": null,
+   "repository": null,
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "pretrip-mcp",
+     "version": "1.0.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "registry document has no repository field"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "agency.lona/trading",
+   "title": null,
+   "repository": "https://github.com/mindsightventures/lona",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "agency.ottobot/business-contact-finder",
+   "title": null,
+   "repository": "https://github.com/modelcontextprotocol/registry",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "agency.ottobot/contractor-license-changes",
+   "title": null,
+   "repository": "https://github.com/modelcontextprotocol/registry",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "agency.thebureauoflostcontext/bureau-public",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.1325/mcp",
+   "title": null,
+   "repository": "https://github.com/1325ai/1325ai",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aard/aard",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aarna/atars-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.abmeter/abmeter",
+   "title": null,
+   "repository": "https://github.com/abmeter/abmeter",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.actwise/ideation",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adadvisor/mcp-server",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adako/ads",
+   "title": null,
+   "repository": "https://github.com/ruslan2027/adako-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adeu/adeu",
+   "title": null,
+   "repository": "https://github.com/dealfluence/adeu",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@adeu/mcp-server",
+     "version": "1.7.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 1.7.1, npm latest is 3.0.5"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adoraads/beauty",
+   "title": null,
+   "repository": "https://github.com/DIGIBIZ360-COM/adoraads",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adplane/google-ads",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adramp/google-ads",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adside/adside",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adtest/adtest-mcp",
+   "title": null,
+   "repository": "https://github.com/menaker/adtest-mcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "adtest-mcp",
+     "version": "1.1.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.advisorsai/service-navigator",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.advisorsai/store-readiness",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.adweave/meta-ads-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aetherwealth/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@aetherwealth/mcp",
+     "version": "0.2.15"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "registry document has no repository field"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.afmr/discovery",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentberg/agentberg",
+   "title": null,
+   "repository": "https://github.com/Agentberg/agentberg",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentdm/agentdm",
+   "title": null,
+   "repository": "https://github.com/agentdmai/agentdm",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentgates/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentic-news/mcp",
+   "title": null,
+   "repository": "https://github.com/u00dxk2/agentic-news",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agenticaffiliate/affiliate-networks-mcp",
+   "title": null,
+   "repository": "https://github.com/bobberrisford/affiliatemcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "affiliate-networks-mcp",
+     "version": "0.19.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.19.0, npm latest is 0.20.0"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agenticfabricationnetwork/ufp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agenticshelf/graffeo",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agenticshelf/mcp",
+   "title": null,
+   "repository": "https://github.com/vboykoCTO/agentic-shelf",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agenticshelf/puroair",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agenticterminal/directory",
+   "title": null,
+   "repository": "https://github.com/observer-protocol/at-directory",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentlookups/counterscript",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentlookups/greenlight",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentlookups/groundtruth",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentlookups/overassessed",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentlookups/plumbline",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentmesh/mesh",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentplaybooks/agentplaybooks",
+   "title": null,
+   "repository": "https://github.com/matebenyovszky/agentplaybooks",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentrapay/agentra",
+   "title": null,
+   "repository": {},
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentroam/agentroam",
+   "title": null,
+   "repository": "https://github.com/adiny/nomad-crypto-travel",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agenttrust/mcp-server",
+   "title": null,
+   "repository": "https://github.com/agenttrust/mcp-server",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agenttrust/mcp-server",
+     "version": "1.1.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 1.1.1, npm latest is 1.2.1"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-agentops",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-agentops",
+     "version": "0.1.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.1, npm latest is 0.1.4"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-bestiary",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-bestiary",
+     "version": "0.1.3"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.3, npm latest is 0.1.5"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-browser-workflow",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-browser-workflow",
+     "version": "0.1.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.1, npm latest is 0.1.3"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-compose",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-compose",
+     "version": "0.13.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.13.0, npm latest is 0.18.3"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-edge-finance",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-edge-finance",
+     "version": "0.18.8"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.18.8, npm latest is 0.19.1"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-edge-market",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-edge-market",
+     "version": "0.15.6"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.15.6, npm latest is 0.15.9"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-locale",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-locale",
+     "version": "0.8.7"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.8.7, npm latest is 0.8.10"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-matchpoint",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-matchpoint",
+     "version": "0.1.4"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.4, npm latest is 0.1.6"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-mediakit",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-mediakit",
+     "version": "0.11.9"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.11.9, npm latest is 0.11.11"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-model-router",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-model-router",
+     "version": "0.1.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.1, npm latest is 0.2.3"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-prooflayer",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-prooflayer",
+     "version": "0.2.4"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.2.4, npm latest is 0.3.3"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-retail",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-retail",
+     "version": "0.2.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.2.1, npm latest is 0.2.3"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-rollforge",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-rollforge",
+     "version": "0.1.5"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.5, npm latest is 0.1.7"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-statline",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-statline",
+     "version": "0.1.3"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.3, npm latest is 0.1.5"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-synthforge",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-synthforge",
+     "version": "0.8.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.8.2, npm latest is 0.8.15"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-web-probe",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-web-probe",
+     "version": "0.32.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.32.1, npm latest is 0.32.19"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentutility/mcp-wordmint",
+   "title": null,
+   "repository": "https://github.com/rooz21/x402",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@agentutility/mcp-wordmint",
+     "version": "0.16.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.16.1, npm latest is 0.17.5"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.agentxray/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aginera/preconstruction",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.ai-advisors/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.ai-akari/agent-trust-receipt",
+   "title": null,
+   "repository": "https://github.com/AInoAKARI/AInoAKARI",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.ai-akari/one-minute-akari",
+   "title": null,
+   "repository": "https://github.com/AInoAKARI/arigatou-kawaii-lp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.ai-portal/ai-portal",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aient/mcp",
+   "title": null,
+   "repository": "https://github.com/haf/glimt",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.airshelf/catalog",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aislabs/cve",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aislabs/gateway",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aislabs/recorder",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aivonic/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.akkrudata/akkrudata",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.aliengiraffe/spotdb",
+   "title": null,
+   "repository": "https://github.com/aliengiraffe/spotdb",
+   "packages": [
+    {
+     "registry": "oci",
+     "name": "docker.io/aliengiraffe/spotdb:0.1.0",
+     "version": "0.1.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.alphacreek/alphacreek-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.alpic.alpix/Alpix",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.alpic.mcp/alpic-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.alpic.test/test-mcp-server",
+   "title": null,
+   "repository": {},
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.ambix/ambix",
+   "title": null,
+   "repository": "https://github.com/ambix-ai/mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.analyticslegends/sap-analytics",
+   "title": null,
+   "repository": "https://github.com/analyticslegends/analytics-legends-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.anha/resolver",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.348Z"
+  },
+  {
+   "server": "ai.ankimcp/anki-mcp-server",
+   "title": null,
+   "repository": "https://github.com/ankimcp/anki-mcp-server",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@ankimcp/anki-mcp-server",
+     "version": "0.25.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.ankimcp/anki-mcp-server-addon",
+   "title": null,
+   "repository": "https://github.com/ankimcp/anki-mcp-server-addon",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.anomalyarmor/armor-mcp",
+   "title": null,
+   "repository": "https://github.com/anomalyarmor/agents",
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "armor-mcp",
+     "version": "0.6.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "pypi-install-time-unknown",
+       "severity": "unknown",
+       "evidence": "PyPI metadata exposes no install/build hook; wheels unpack without executing code, sdist builds do. files: bdist_wheel,sdist"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.6.1, PyPI latest is 0.9.1"
+      }
+     ]
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.anzenna/anzenna",
+   "title": null,
+   "repository": {},
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.apithreshold/apithreshold",
+   "title": null,
+   "repository": null,
+   "packages": [
+    {
+     "registry": "oci",
+     "name": "ghcr.io/apithreshold/apithreshold:0.1.0",
+     "version": "0.1.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.appdeploy/deploy-app",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.aqta/seal",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.arclan/registry",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.argushq/enforcement-database",
+   "title": null,
+   "repository": "https://github.com/andrewjgaber-commits/empire-distribution",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.arketo/arketo",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.arpi/arpi-mcp",
+   "title": null,
+   "repository": "https://github.com/arpi-ai/arpi-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.arsentev/contextburn",
+   "title": null,
+   "repository": "https://github.com/arsentev-ai/contextburn",
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "contextburn",
+     "version": "0.2.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "pypi-install-time-unknown",
+       "severity": "unknown",
+       "evidence": "PyPI metadata exposes no install/build hook; wheels unpack without executing code, sdist builds do. files: bdist_wheel,sdist"
+      }
+     ]
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.artidrop/artidrop",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.askline/askline",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.askmiles/catalog",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.assetlog/assetlog",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.astrofabric/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.atako/mcp",
+   "title": null,
+   "repository": "https://github.com/aiybiz/aiybiz-next",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.atdev/supershopping",
+   "title": null,
+   "repository": "https://github.com/alex-hoyeol-choi/headless-commerce",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.atlaso/mcp",
+   "title": null,
+   "repository": "https://github.com/atlaso-labs/mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.atlasverified/atlas-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.atlier/project-desk",
+   "title": null,
+   "repository": "https://github.com/Wildsdesign/Atlier",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.augenix/build",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.augmentev/paseo",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.augworlds/travel-world",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.auralogs/auralogs",
+   "title": null,
+   "repository": "https://github.com/auralogs-ai/auralogs-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.auteng/docs",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.auteng/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.authoryze/authoryze",
+   "title": null,
+   "repository": "https://github.com/kevinfee3/authoryze-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.autoblocks/contextlayer-mcp",
+   "title": null,
+   "repository": "https://github.com/autoblocksai/ctxl",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@contextlayer/mcp",
+     "version": "0.0.3"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.autoblocks/ctxl",
+   "title": null,
+   "repository": "https://github.com/autoblocksai/ctxl",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "ctxl",
+     "version": "0.0.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.autoblocks/ctxl-mcp",
+   "title": null,
+   "repository": "https://github.com/autoblocksai/ctxl",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "ctxl-mcp",
+     "version": "0.0.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.autonomad/computeback",
+   "title": null,
+   "repository": "https://github.com/Autonomad1/computeback-mcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@autonomad1/computeback-mcp",
+     "version": "1.1.3"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 1.1.3, npm latest is 1.1.4"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.autonomad/travel",
+   "title": null,
+   "repository": "https://github.com/Autonomad1/autonomad1",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "autonomad-travel",
+     "version": "1.4.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 1.4.0, npm latest is 1.4.4"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.autoposting/autoposting",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.autorfp/mcp",
+   "title": null,
+   "repository": "https://github.com/AutoRFP/mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.auxen/auxen",
+   "title": null,
+   "repository": "https://github.com/auxen-ai/auxen-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.avasis/quant-research",
+   "title": null,
+   "repository": "https://github.com/abhayjnayakk/quant-integrity",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.aviado/health",
+   "title": null,
+   "repository": "https://github.com/kipmcc/aviado-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.awardcast/federal-contracts",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.awraiter/telegram",
+   "title": null,
+   "repository": "https://github.com/MediaZione/AwrAiter",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.axonagentic/neuroautomata",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/ai-media-studio",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/apple-search-ads",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/chess-results",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/feedback",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/fibalo",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/file-storage",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/google-ads",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/google-news",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/google-search-console",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/kinnovis-storage",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/knowledge-base",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/nightscout",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/seo-content-factory",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/teamwork",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/time",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.b77/web-analytics",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.backengine/backengine-mcp",
+   "title": null,
+   "repository": "https://github.com/BackEngine-ai/backengine-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.backrow/backrow",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.balancos/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bankee/inferventis-mcp",
+   "title": null,
+   "repository": "https://github.com/Bankee-ai/inferventis",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bareun/bareun",
+   "title": null,
+   "repository": "https://github.com/gih2yun/bareun-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.baselight/baselight",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.basethread/basethread",
+   "title": null,
+   "repository": "https://github.com/navbuildz/basethread-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bassethound/bassethound",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.beatbandit/beatbandit",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.beket/audit",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.benroberts/b4-index",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.betslipdoctor/mcp",
+   "title": null,
+   "repository": "https://github.com/opspot-ai/betslipdoctor",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.betterpost/server",
+   "title": null,
+   "repository": "https://github.com/betterpost/betterpost-plugin",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bezal/local-commerce",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bidclub/bidclub",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.biddeed/biddeed-mcp",
+   "title": null,
+   "repository": "https://github.com/breverdbidder/cli-anything-biddeed",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.biel/biel-ai",
+   "title": null,
+   "repository": "https://github.com/TechDocsStudio/biel-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bitroad/bitroad",
+   "title": null,
+   "repository": "https://github.com/bitroadai/bitroad-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bittlebits/bittlebits",
+   "title": null,
+   "repository": "https://github.com/bittlebitsai/bittlebits-plugin",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bizmoon/regulatory",
+   "title": null,
+   "repository": "https://github.com/uofuonye/bizmoon-plugins",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bizmuse/bizmuse",
+   "title": null,
+   "repository": null,
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "bizmuse-mcp",
+     "version": "0.1.6"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.blast-radius/blast-radius",
+   "title": null,
+   "repository": "https://github.com/kipmcc/blast-radius-live",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bloopo/bloopo",
+   "title": null,
+   "repository": "https://github.com/BloopodotAI/bloopo-marketplace",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.blopus/search",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bluenexus/universal-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bodenrichtwert/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bolthub/mcp",
+   "title": null,
+   "repository": "https://github.com/signaltech-org/bolthub-sdk",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@bolthub/mcp",
+     "version": "0.7.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bolthub/registry",
+   "title": null,
+   "repository": "https://github.com/signaltech-org/bolthub-sdk",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@bolthub/mcp-registry",
+     "version": "0.1.6"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.boolsai/directory",
+   "title": null,
+   "repository": "https://github.com/Boolsai-ai/mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.boolsai/grep",
+   "title": null,
+   "repository": "https://github.com/Boolsai-ai/mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.boolsai/scan",
+   "title": null,
+   "repository": "https://github.com/Boolsai-ai/mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.boolsai/signals",
+   "title": null,
+   "repository": "https://github.com/Boolsai-ai/mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.borealhost/mcp",
+   "title": null,
+   "repository": "https://github.com/alainsvrd/borealhost-mcp",
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "borealhost-mcp",
+     "version": "0.4.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "no VCS URL in project_urls or home_page"
+      },
+      {
+       "rule": "pypi-install-time-unknown",
+       "severity": "unknown",
+       "evidence": "PyPI metadata exposes no install/build hook; wheels unpack without executing code, sdist builds do. files: bdist_wheel,sdist"
+      }
+     ]
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.boundaryai/boundaryai",
+   "title": null,
+   "repository": "https://github.com/skvcool-rgb/BoundaryAI",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bourdon/bourdon",
+   "title": null,
+   "repository": null,
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "bourdon",
+     "version": "0.19.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "pypi-install-time-unknown",
+       "severity": "unknown",
+       "evidence": "PyPI metadata exposes no install/build hook; wheels unpack without executing code, sdist builds do. files: bdist_wheel,sdist"
+      }
+     ]
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bowmark/bowmark",
+   "title": null,
+   "repository": "https://github.com/bowmark-ai/skill",
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "bowmark-mcp",
+     "version": "8.127.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "repository-mismatch",
+       "severity": "medium",
+       "evidence": "package repository github.com/bowmark-ai/mcp vs registry repository github.com/bowmark-ai/skill"
+      },
+      {
+       "rule": "declared-version-not-found",
+       "severity": "unknown",
+       "evidence": "declared version 8.127.0 has no files in releases"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 8.127.0, PyPI latest is 2.1.0"
+      }
+     ]
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.brainattic/knowledge-base",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bridgeapp/bridgeapp",
+   "title": null,
+   "repository": "https://github.com/MathAndMagic/bridgeapp-plugin",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bringyour/bringyour",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.buildwithorbit/orbit",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.bunzee/bunzee",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.buron/buron",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.butlerbrain/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.buyersense/buyersense",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.buywhere/buywhere-mcp",
+   "title": null,
+   "repository": "https://github.com/BuyWhere/buywhere-mcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@buywhere/mcp-server",
+     "version": "0.3.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "install-time-execution",
+       "severity": "high",
+       "evidence": "scripts.postinstall=\"node -e \\\"try{require('fs').existsSync(require('path').join(__dirname,'dist','index.js'))&&console.log('\\\\n  ✦ BuyWhere MCP server v0.3.0 installed\\\\n  › Set BUYWHERE_API_KEY and add to your MCP client config\\\\n  › Docs: https://github.com/BuyWhere/buywhere/tree/main/packages/mcp-server\\\\n')}catch(e){}\\\"\""
+      },
+      {
+       "rule": "repository-mismatch",
+       "severity": "medium",
+       "evidence": "package repository github.com/buywhere/buywhere vs registry repository github.com/buywhere/buywhere-mcp"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.3.1, npm latest is 0.4.0"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "findings",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": [
+      {
+       "rule": "AG-INSTALL-001",
+       "severity": "critical",
+       "file": "package.json",
+       "message": "the postinstall script evaluates inline code at install time"
+      }
+     ]
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.buywhere/catalog-api",
+   "title": null,
+   "repository": "https://github.com/BuyWhere/buywhere-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.byteask/embedded-docs",
+   "title": null,
+   "repository": "https://github.com/ByteAsk/ByteAsk-Embedded-MCP",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.byteray/byteray-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cabrini/market-data",
+   "title": null,
+   "repository": "https://github.com/nlapi/cabrini-py",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cactal/cactal",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.calaf/calaf",
+   "title": null,
+   "repository": "https://github.com/gallaghern51-art/calaf-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.calaf/seeds",
+   "title": null,
+   "repository": "https://github.com/gallaghern51-art/calaf-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.calendarmcp/server",
+   "title": null,
+   "repository": "https://github.com/Full-Vibe/calendarmcp-public",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.calfeed/calfeed",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.callmcp/server",
+   "title": null,
+   "repository": "https://github.com/CallMCP/callmcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@callmcp/server",
+     "version": "0.1.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "registry document has no repository field"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.2, npm latest is 0.1.5"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.canaryusers/canaryusers",
+   "title": null,
+   "repository": "https://github.com/CanaryUsers-ai/canaryusers-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.canivibe/status",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.canvora/canvora",
+   "title": null,
+   "repository": "https://github.com/canvora/canvora-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.caulo/caulo",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.ccapi/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cdbx/mcp-server",
+   "title": null,
+   "repository": "https://github.com/ChristopherHButler/cdbx.ai",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cerebrium/docs",
+   "title": null,
+   "repository": "https://github.com/CerebriumAI/cerebrium-skills",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.certscore/mcp",
+   "title": null,
+   "repository": "https://github.com/ergoveritas1-alt/certscore.ai",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@certscore/mcp",
+     "version": "0.2.4"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.2.4, npm latest is 0.2.21"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.certscore/mcp-light",
+   "title": null,
+   "repository": "https://github.com/ergoveritas1-alt/certscore.ai",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.chatthing/chat-thing",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.childadhd/library",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.childanxiety/library",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.childpsychiatry/library",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.chinamarketing/intelligence",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.chipp/alchemist-cloud-tickets",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.chipp/chipp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.chronary/mcp",
+   "title": null,
+   "repository": "https://github.com/Chronary/chronary-mcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@chronary/mcp",
+     "version": "1.5.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.circulara/plugin",
+   "title": null,
+   "repository": "https://github.com/CircularRoute/circulara-core",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@circulara/plugin",
+     "version": "0.1.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "findings",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": [
+      {
+       "rule": "AG-SUPPLY-002",
+       "severity": "low",
+       "file": "package.json",
+       "message": "devDependencies entry @circulara/schema floats on * (dev-only: cannot reach a consumer of this package)"
+      }
+     ]
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cirra/salesforce-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.citybook/citybook",
+   "title": null,
+   "repository": "https://github.com/yeunge-pawlo/citybook",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clarid/compliance",
+   "title": null,
+   "repository": "https://github.com/clarid-ai/compliance-checker",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clarid/hmda",
+   "title": null,
+   "repository": "https://github.com/clarid-ai/compliance-checker",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clarx/mcp",
+   "title": null,
+   "repository": "https://github.com/Gernika-Labs/clarx-cloud",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@clarxai/mcp",
+     "version": "0.2.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "registry document has no repository field"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clawfetch/mcp",
+   "title": null,
+   "repository": "https://github.com/clawfetch/clawfetch-mcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@clawfetch/mcp",
+     "version": "0.2.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.2.2, npm latest is 0.3.1"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "findings",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": [
+      {
+       "rule": "AG-SUPPLY-001",
+       "severity": "medium",
+       "file": "package.json",
+       "message": "devDependencies entry @clawfetch/sdk resolves to a mutable source: file:../clawfetch-sdk (dev-only: cannot reach a consumer of this package)"
+      }
+     ]
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clawterminal/markets",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cleanvector/cleanvector",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clelp/clelp",
+   "title": null,
+   "repository": "https://github.com/oscarsterling/clelp-skills",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "clelp-mcp-server",
+     "version": "1.1.8"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clize/clize",
+   "title": null,
+   "repository": "https://github.com/cooldk/clize-cli",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@clize/clize",
+     "version": "0.46.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clize/domains",
+   "title": null,
+   "repository": "https://github.com/cooldk/clize-cli",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@clize/domains",
+     "version": "0.35.5"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.35.5, npm latest is 0.36.0"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clize/inbox",
+   "title": null,
+   "repository": "https://github.com/cooldk/clize-cli",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@clize/inbox",
+     "version": "0.35.5"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.35.5, npm latest is 0.36.0"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clize/sites",
+   "title": null,
+   "repository": "https://github.com/cooldk/clize-cli",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@clize/sites",
+     "version": "0.35.5"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.35.5, npm latest is 0.36.0"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.clize/storefront",
+   "title": null,
+   "repository": "https://github.com/cooldk/clize-cli",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@clize/storefront",
+     "version": "0.35.5"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.35.5, npm latest is 0.36.0"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cnaps/studio",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cnpj/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cobbles/cobbles",
+   "title": null,
+   "repository": "https://github.com/Yu1586/cobbles",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.codenib/codenib",
+   "title": null,
+   "repository": "https://github.com/sysevol-ai/CodeNib",
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "codenib",
+     "version": "0.2.3"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "repository-mismatch",
+       "severity": "medium",
+       "evidence": "package repository github.com/sysevol-ai/codenib/issues vs registry repository github.com/sysevol-ai/codenib"
+      },
+      {
+       "rule": "pypi-install-time-unknown",
+       "severity": "unknown",
+       "evidence": "PyPI metadata exposes no install/build hook; wheels unpack without executing code, sdist builds do. files: bdist_wheel,sdist"
+      }
+     ]
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cofoundagent/cofound",
+   "title": null,
+   "repository": "https://github.com/cofound-agent/plugin",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/contabo",
+   "title": null,
+   "repository": "https://github.com/la-rebelion/hapimcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/hapi-mcp",
+   "title": null,
+   "repository": "https://github.com/larebelion/hapimcp",
+   "packages": [
+    {
+     "registry": "oci",
+     "name": "docker.io/hapimcp/hapi-cli:0.6.0",
+     "version": "0.6.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/lenny-rachitsky-podcast",
+   "title": null,
+   "repository": "https://github.com/la-rebelion/hapimcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/linkedin",
+   "title": null,
+   "repository": "https://github.com/la-rebelion/hapimcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/openai-tools",
+   "title": null,
+   "repository": "https://github.com/la-rebelion/hapimcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/petstore",
+   "title": null,
+   "repository": "https://github.com/la-rebelion/hapimcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/registry",
+   "title": null,
+   "repository": "https://github.com/modelcontextprotocol/registry",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/skills-search",
+   "title": null,
+   "repository": "https://github.com/agentskills/agentskills",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.com.mcp/strava",
+   "title": null,
+   "repository": "https://github.com/la-rebelion/hapimcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.compeller/compel",
+   "title": null,
+   "repository": "https://github.com/Compellerai/compeller-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.compelling/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.complyme.mcp/mcp",
+   "title": null,
+   "repository": {},
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.connectmachine/connectmachine",
+   "title": null,
+   "repository": "https://github.com/connectmachine/mcp-server",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.constellationfinance/constellation-finance-mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.context-link/context-link",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.contextstudios/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.contio/meetingos",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.contractorsnearme/contractors-near-me",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.conveo/conveo",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cookiy/cookiy",
+   "title": null,
+   "repository": "https://github.com/cookiy-ai/cookiy-skill",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.corduroy-labs/updates",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cosmonote/notes",
+   "title": null,
+   "repository": "https://github.com/cosmonote/pocketbase",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cotal/cotal",
+   "title": null,
+   "repository": "https://github.com/Cotal-AI/Cotal",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cralo/mcp",
+   "title": null,
+   "repository": "https://github.com/amrnth/opentooler",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.craneledger/crane-ledger",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.crayonz/mcp",
+   "title": null,
+   "repository": "https://github.com/iitian-vibes/AIDesign",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.createprints/createprints",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.creationloop/creationloop",
+   "title": null,
+   "repository": "https://github.com/marino129/creationloop-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.creativescope/creative-intelligence",
+   "title": null,
+   "repository": "https://github.com/creativescope/creativescope-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.creditpolicy/creditpolicy",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cueapi/mcp",
+   "title": null,
+   "repository": "https://github.com/cueapi/cueapi-mcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@cueapi/mcp",
+     "version": "0.1.3"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 0.1.3, npm latest is 0.4.1"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.cueframe/cueframe",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.customdomain/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.d50/d50-platform",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dablock/visibility-index",
+   "title": null,
+   "repository": "https://github.com/creanlab/ai-visibility-index",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dabyte/visibility-index",
+   "title": null,
+   "repository": "https://github.com/creanlab/ai-visibility-index",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.darkfunnels/docs",
+   "title": null,
+   "repository": "https://github.com/darkfunnels-ai/darkfunnels-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.darkfunnels/whatsapp-sales-agent",
+   "title": null,
+   "repository": "https://github.com/darkfunnels-ai/darkfunnels-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.datacenterindex/datacenterindex",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dataecho/mcp",
+   "title": null,
+   "repository": "https://github.com/mohocp/dataecho",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dataforb2b/dataforb2b",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.datamerge/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dataparrot/data-parrot",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.daystruct.api/daystruct",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dealfilter/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.decimal/registry",
+   "title": null,
+   "repository": "https://github.com/decimal-labs/decimalai-mcp",
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "decimalai-mcp",
+     "version": "0.1.3"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "pypi-install-time-unknown",
+       "severity": "unknown",
+       "evidence": "PyPI metadata exposes no install/build hook; wheels unpack without executing code, sdist builds do. files: bdist_wheel,sdist"
+      }
+     ]
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.decisionlog/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.deepledger/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.deinai/creator-skill",
+   "title": null,
+   "repository": "https://github.com/deinai/deinai_backend",
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "deinai-mcp",
+     "version": "1.0.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "no VCS URL in project_urls or home_page"
+      },
+      {
+       "rule": "pypi-install-time-unknown",
+       "severity": "unknown",
+       "evidence": "PyPI metadata exposes no install/build hook; wheels unpack without executing code, sdist builds do. files: bdist_wheel,sdist"
+      }
+     ]
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.deinai/creator-skill-v2",
+   "title": null,
+   "repository": "https://github.com/deinai/skill-service",
+   "packages": [
+    {
+     "registry": "pypi",
+     "name": "creator-skill-v2",
+     "version": "0.2.1"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "no VCS URL in project_urls or home_page"
+      },
+      {
+       "rule": "pypi-install-time-unknown",
+       "severity": "unknown",
+       "evidence": "PyPI metadata exposes no install/build hook; wheels unpack without executing code, sdist builds do. files: bdist_wheel,sdist"
+      }
+     ]
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.delega/aws-pricing-calculator",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.demanddiscovery/mcp",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.demomagic/interactive-video-guide",
+   "title": null,
+   "repository": null,
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@demomagic/mcp",
+     "version": "0.1.0"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "registry document has no repository field"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.deployit/product-expert",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.deskclone/deskclone",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.deskcrew/agentic",
+   "title": null,
+   "repository": "https://github.com/papperkash/ttf-website-v3",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.diagramzu/mcp",
+   "title": null,
+   "repository": "https://github.com/yenchieh/diagramzu-mcp",
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.diezx/diezx",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dimetrics/dimetrics",
+   "title": null,
+   "repository": null,
+   "packages": [],
+   "evidence": {
+    "registryDocument": {
+     "status": "clean",
+     "source": "mcp-census",
+     "findings": []
+    }
+   },
+   "verdict": "clean",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dinglebear/apprise-rmcp",
+   "title": null,
+   "repository": "https://github.com/jmagar/apprise-rmcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "apprise-rmcp",
+     "version": "0.1.3"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "registry document has no repository field"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "unmeasured",
+     "source": "guard-scan",
+     "reason": "metadata-unavailable",
+     "findings": []
+    }
+   },
+   "verdict": "incomplete",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dinglebear/arcane-rmcp",
+   "title": null,
+   "repository": "https://github.com/jmagar/arcane-rmcp",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "arcane-rmcp",
+     "version": "0.4.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "package-repository-missing",
+       "severity": "medium",
+       "evidence": "registry document has no repository field"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "unmeasured",
+     "source": "guard-scan",
+     "reason": "metadata-unavailable",
+     "findings": []
+    }
+   },
+   "verdict": "incomplete",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  },
+  {
+   "server": "ai.dinglebear/cortex",
+   "title": null,
+   "repository": "https://github.com/dinglebear-ai/cortex",
+   "packages": [
+    {
+     "registry": "npm",
+     "name": "@dinglebear/cortex",
+     "version": "3.13.2"
+    }
+   ],
+   "evidence": {
+    "registryDocument": {
+     "status": "findings",
+     "source": "mcp-census",
+     "findings": [
+      {
+       "rule": "stdio-transport",
+       "severity": "info",
+       "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+      },
+      {
+       "rule": "install-time-execution",
+       "severity": "high",
+       "evidence": "scripts.postinstall=\"node scripts/install.js\""
+      },
+      {
+       "rule": "install-hook-script-critical",
+       "severity": "critical",
+       "evidence": "scripts/install.js matches network-module"
+      },
+      {
+       "rule": "declared-version-not-latest",
+       "severity": "info",
+       "evidence": "registry declares 3.13.2, npm latest is 3.16.2"
+      }
+     ]
+    },
+    "packageManifest": {
+     "status": "clean",
+     "source": "guard-scan",
+     "reason": null,
+     "findings": []
+    }
+   },
+   "verdict": "findings",
+   "generatedAt": "2026-09-15T12:57:29.349Z"
+  }
+ ]
+}

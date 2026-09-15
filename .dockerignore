@@ -1,0 +1,6 @@
+node_modules
+.git
+data/index.json
+data/census.json
+data/guard-scan.json
+*.log

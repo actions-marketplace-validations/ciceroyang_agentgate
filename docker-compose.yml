@@ -1,0 +1,13 @@
+services:
+  agentgate:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+  refresh:
+    build: .
+    profiles: ["collect"]
+    command: ["node", "bin/agentgate.mjs", "refresh", "--max", "300"]
+    volumes:
+      - ./data:/app/data

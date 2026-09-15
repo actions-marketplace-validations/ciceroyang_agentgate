@@ -23,23 +23,39 @@ built so that cannot happen.
 
 ## Quickstart
 
-Node 20 or newer. No dependencies.
+Node 20 or newer, no dependencies. A repository clone already carries a sample index,
+so the service answers immediately; `refresh` replaces it with a current one.
 
 ```sh
-# 1. enumerate the registry and audit the packages it declares
-node packages/collect/mcp-audit.mjs --max 6000 --out census.json --markdown census.md
+node bin/agentgate.mjs serve
+# agentgate serving http://127.0.0.1:8080
 
-# 2. run the scanner over the packages the census resolved
-node packages/collect/scripts/guard-scan.mjs --census census.json --out guard-scan.json
+curl -s localhost:8080/health
+curl -s localhost:8080/v1/index/summary
+curl -s localhost:8080/v1/servers/<name>
+curl -s localhost:8080/badge/<name>.svg
+```
 
-# 3. join the evidence into the index
-node packages/collect/scripts/build-index.mjs --census census.json --guard guard-scan.json --out index.json
+Or with docker, which runs the same command in a container:
 
-# 4. scan a local project
+```sh
+docker compose up                            # the service on :8080
+docker compose --profile collect run --rm refresh   # rebuild data/index.json
+```
+
+## The pipelines behind the index
+
+```sh
+node packages/collect/mcp-audit.mjs --max 6000 --out data/census.json
+node packages/collect/scripts/guard-scan.mjs --census data/census.json --out data/guard-scan.json
+node packages/collect/scripts/build-index.mjs --census data/census.json --guard data/guard-scan.json --out data/index.json
+```
+
+And the scanner on a local project:
+
+```sh
 node packages/guard/bin/agent-guard.mjs . --fail-on high
-
-# 5. ask what adding a server would mean, before adding it
-node packages/collect/bin/agent-add.mjs --index index.json <server-name>
+node packages/collect/bin/agent-add.mjs --index data/index.json <server-name>
 ```
 
 ## Test
