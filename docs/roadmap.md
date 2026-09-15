@@ -28,7 +28,11 @@ curl -s localhost:8080/v1/servers/<name> | jq .verdict
 - acceptance: fresh clone, one command, a record for a known server within ten minutes
 - not included: authentication, multiple users, a UI
 
-## M2 - Policy as configuration
+## M2 - Policy as configuration   **done**
+
+*Status: accepted. `node scripts/acceptance-m2.mjs` runs in CI and is green: a forbidden
+rule fails, a compliant repository passes, and required-but-unmeasured evidence exits 2 at
+every threshold. The format is specified in `docs/spec/policy-v1.md`.*
 
 A company writes down what it refuses, and the tool evaluates it against evidence.
 

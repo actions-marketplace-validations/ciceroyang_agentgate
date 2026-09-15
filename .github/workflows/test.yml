@@ -16,6 +16,8 @@ jobs:
         run: npm test
       - name: M1 acceptance (the service answers what it claims to)
         run: node scripts/acceptance.mjs
+      - name: M2 acceptance (policy: fail, pass, and incomplete)
+        run: node scripts/acceptance-m2.mjs
       - name: Corpus regression (benign silent, positives fire)
         run: node packages/guard/scripts/regression.mjs
       - name: Self-scan (minus the intentional bad examples)

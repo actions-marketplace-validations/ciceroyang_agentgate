@@ -43,6 +43,34 @@ docker compose up                            # the service on :8080
 docker compose --profile collect run --rm refresh   # rebuild data/index.json
 ```
 
+## Policy
+
+A policy says what the company refuses. It is data, not code, and it is specified: see
+[docs/spec/policy-v1.md](docs/spec/policy-v1.md).
+
+```json
+{
+  "version": "agentgate.policy/v1",
+  "threshold": "high",
+  "required": { "pinnedPackages": true, "measuredEvidence": ["packageManifest"] },
+  "forbidden": { "rules": ["AG-INSTALL-001"], "servers": ["internal/*"] }
+}
+```
+
+```sh
+node bin/agentgate.mjs check --policy agentgate.policy.json --root .
+```
+
+Three outcomes, and `incomplete` outranks `findings`: if a check failed to run, or an
+evidence block the policy requires is `unmeasured`, the exit code is **2** however clean
+the findings look. No threshold can turn a partial answer into a pass.
+
+| exit | meaning |
+| --- | --- |
+| 0 | clean |
+| 1 | findings |
+| 2 | incomplete |
+
 ## The pipelines behind the index
 
 ```sh

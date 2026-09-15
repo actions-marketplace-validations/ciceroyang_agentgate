@@ -6,11 +6,16 @@
  *   agentgate refresh   rebuild the index from public sources
  *   agentgate version
  */
-import { existsSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
 import { start } from "../packages/service/src/start.mjs"
+import { runScan } from "../packages/guard/src/engine.mjs"
+import { makeReader } from "../packages/guard/src/fs-scan.mjs"
+import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
+import { loadPolicy } from "../packages/policy/src/policy.mjs"
+import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -49,13 +54,67 @@ function refresh(flags) {
   console.log("[refresh] done: " + join(dataDir, "index.json"))
 }
 
+function readPackageName(root) {
+  const p = join(root, "package.json")
+  if (!existsSync(p)) return null
+  try { return JSON.parse(readFileSync(p, "utf8")).name || null } catch (error) { return null }
+}
+
+function recordsFor(root, indexPath) {
+  if (!indexPath || !existsSync(indexPath)) return null
+  let index
+  try { index = JSON.parse(readFileSync(indexPath, "utf8")) } catch (error) { return null }
+  const name = readPackageName(root)
+  if (!name) return []
+  return (index.records || []).filter(function (r) {
+    return (r.packages || []).some(function (p) { return p.name === name })
+  })
+}
+
+function check(flags) {
+  const root = resolve(flags.root || ".")
+  let policy
+  try { policy = loadPolicy(flags.policy || join(root, "agentgate.policy.json")) } catch (error) {
+    console.error("policy: " + error.message)
+    process.exit(3)
+  }
+  const exclude = String(flags.exclude || "node_modules,.git").split(",").filter(Boolean)
+  const scan = runScan({ root: root, checks: ALL_CHECKS, readText: makeReader(), exclude: exclude })
+  const records = recordsFor(root, flags.index || process.env.AGENTGATE_INDEX)
+  const result = evaluate({ policy: policy, scan: scan, records: records })
+  const lines = []
+  lines.push("policy " + result.policyVersion + "   root " + root)
+  lines.push("")
+  for (const f of result.findings) {
+    lines.push("  " + String(f.severity).toUpperCase().padEnd(9) + f.rule + "  " + (f.file || "") + "  " + f.reason)
+    lines.push("            " + String(f.message).slice(0, 100))
+  }
+  if (result.findings.length === 0) lines.push("  nothing refused")
+  if (result.coverage.evidenceMissing.length > 0) {
+    lines.push("")
+    lines.push("  could not be measured:")
+    for (const m of result.coverage.evidenceMissing.slice(0, 10)) lines.push("    " + m.server + " / " + m.block + " -> " + m.reason)
+    if (result.coverage.evidenceMissing.length > 10) lines.push("    ... and " + (result.coverage.evidenceMissing.length - 10) + " more")
+  }
+  if (result.coverage.checksFailed.length > 0) {
+    lines.push("")
+    for (const c of result.coverage.checksFailed) lines.push("  CHECK FAILED: " + c.id + " -> " + c.error)
+  }
+  lines.push("")
+  lines.push("  verdict: " + result.verdict.toUpperCase() + (result.verdict === "incomplete" ? "  (this is not a pass)" : ""))
+  process.stdout.write(lines.join("\n") + "\n")
+  process.exit(exitCodeFor(result))
+}
+
 const args = parse(process.argv.slice(2))
-if (args.command === "serve") serve(args.flags)
+if (args.command === "check") check(args.flags)
+else if (args.command === "serve") serve(args.flags)
 else if (args.command === "refresh") refresh(args.flags)
 else if (args.command === "version") console.log("agentgate 0.1.0")
 else {
   console.log("agentgate <command>")
   console.log("")
+  console.log("  check     --policy policy.json [--root .] [--index data/index.json]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
   console.log("  refresh   [--max 300]   fetch public sources and rebuild data/index.json")
   console.log("  version")
