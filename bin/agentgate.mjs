@@ -110,11 +110,25 @@ function check(flags) {
     }
   }
   const exclude = String(flags.exclude || "node_modules,.git").split(",").filter(Boolean)
-  const scan = runScan({ root: root, checks: ALL_CHECKS, readText: makeReader(), exclude: exclude })
+  let checks = ALL_CHECKS
+  if (flags.checks) {
+    // A named check that does not exist is an error, not a silently skipped one: running three of
+    // four checks and reporting on the fourth is the failure this whole project is about.
+    const wanted = String(flags.checks).split(",").map(function (s) { return s.trim() }).filter(Boolean)
+    const known = ALL_CHECKS.map(function (c) { return c.id })
+    const unknown = wanted.filter(function (w) { return known.indexOf(w) === -1 })
+    if (unknown.length > 0) {
+      console.error("checks: no such check: " + unknown.join(", ") + "\nknown: " + known.join(", "))
+      process.exit(3)
+    }
+    checks = ALL_CHECKS.filter(function (c) { return wanted.indexOf(c.id) !== -1 })
+  }
+  const scan = runScan({ root: root, checks: checks, readText: makeReader(), exclude: exclude })
   const records = recordsFor(root, flags.index || process.env.AGENTGATE_INDEX)
   const result = evaluate({ policy: policy, scan: scan, records: records })
   const lines = []
   lines.push("policy " + result.policyVersion + "   root " + root)
+  if (checks !== ALL_CHECKS) lines.push("checks " + checks.map(function (c) { return c.id }).join(", ") + " (of the " + ALL_CHECKS.length + " available: this run measured less, and the verdict says so)")
   if (policyNote) lines.push(policyNote)
   lines.push("")
   for (const f of result.findings) {
