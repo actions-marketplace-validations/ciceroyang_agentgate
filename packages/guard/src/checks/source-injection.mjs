@@ -19,8 +19,8 @@ export const PATTERNS = [
 const EXTS = [".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".py"]
 
 /** Generated or vendored output: a bundler emits new Function() and eval() by design. */
-const GENERATED = /(^|\/)(\.smithery|out|coverage|vendor|generated|__generated__)\//
-const BUNDLED = /\.(min|bundle)\.js$/
+export const GENERATED = /(^|\/)(\.smithery|out|coverage|vendor|generated|__generated__)\//
+export const BUNDLED = /\.(min|bundle)\.js$/
 
 /** Shell interpolation in a dev script or a test is a real shape with a smaller reach. */
 const DEV_PATH = /(^|\/)(test|tests|scripts|bench|benchmarks|examples|e2e)(\/|$)/
@@ -151,6 +151,9 @@ export const check = {
     const findings = []
     const filesRead = []
     for (const file of walk(ctx.root, { exts: EXTS, maxFiles: 800 })) {
+      // Generated output is not read at all. Reading it first and discarding it afterwards is
+      // how a hundred-megabyte bundle becomes a memory problem for a scan that ignores it.
+      if (GENERATED.test(file.rel) || BUNDLED.test(file.rel)) continue
       filesRead.push(file.rel)
       findings.push.apply(findings, checkSource(file.rel, ctx.readText(file.abs)))
     }
