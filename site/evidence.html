@@ -23,6 +23,8 @@ pre{white-space:pre-wrap;word-break:break-word;background:rgba(127,127,127,.08);
 </style></head><body>
 <header>
   <h1>agentgate · 证据索引</h1>
+  <p class="meta" id="diffmeta"></p>
+  <pre id="diff" style="display:none;margin:10px 0"></pre>
   <p class="meta" id="meta"></p>
   <p class="meta" id="counts"></p>
 </header>
@@ -34,8 +36,10 @@ pre{white-space:pre-wrap;word-break:break-word;background:rgba(127,127,127,.08);
 <table><thead><tr><th>服务器</th><th>判定</th><th>包</th><th>证据</th></tr></thead><tbody id="rows"></tbody></table>
 <div id="detail"><span class="close" onclick="closeD()">关闭 ×</span><div id="body"></div></div>
 <script id="data" type="application/json">__DATA__</script>
+<script id="diffdata" type="application/json">__DIFFJSON__</script>
 <script>
 var DATA = JSON.parse(document.getElementById("data").textContent);
+var DIFF = JSON.parse(document.getElementById("diffdata").textContent || '""');
 var rows = document.getElementById("rows");
 var q = document.getElementById("q");
 var vf = document.getElementById("v");
@@ -74,6 +78,7 @@ function openD(i){
 }
 function closeD(){ document.getElementById("detail").classList.remove("open"); }
 q.oninput = render; vf.onchange = render;
+if (DIFF && DIFF.trim()) { document.getElementById("diff").textContent = DIFF; document.getElementById("diff").style.display = "block"; }
 document.getElementById("meta").textContent = "生成于 " + window.__GENERATED_AT__ + " · 共 " + DATA.length + " 条";
 document.getElementById("counts").innerHTML = window.__COUNTS__ + " — incomplete 表示有东西没查到,那不是通过";
 render();

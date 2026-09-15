@@ -1,8 +1,8 @@
 name: pages
 
-# Publish the evidence index as a browsable page, rebuilt daily from the live registry.
-# No server and no domain needed, which matters because the deployment waits on a filing
-# decision while this does not.
+# Publish the evidence index as a browsable page, rebuilt daily from the live registry, with
+# the changes since the previous snapshot. The snapshot lives on a history branch so the
+# record accumulates: nobody can back-fill what this saw today.
 on:
   push:
     branches: [main]
@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,18 +24,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
       - name: Refresh from the live registry
         run: |
           node bin/agentgate.mjs refresh --max 300 && echo "refreshed" || echo "refresh failed; falling back to the committed sample"
+      - name: Take the previous snapshot from the history branch
+        run: |
+          git fetch origin history --depth 1 2>/dev/null || true
+          if git show origin/history:previous.json > data/previous.json 2>/dev/null; then
+            echo "previous snapshot: $(node -e "console.log(require('./data/previous.json').count)") records"
+          else
+            echo "no history yet; comparing against the committed sample"
+            cp data/sample-index.json data/previous.json
+          fi
+      - name: What changed
+        run: |
+          INDEX=data/index.json
+          test -s "$INDEX" || INDEX=data/sample-index.json
+          node bin/agentgate.mjs diff --from data/previous.json --to "$INDEX" --out data/diff.md || echo "no diff produced"
+          cat data/diff.md 2>/dev/null | head -20 || true
       - name: Build the browsable index
         run: |
           INDEX=data/index.json
           test -s "$INDEX" || INDEX=data/sample-index.json
           echo "building from $INDEX"
-          node scripts/build-site.mjs --index "$INDEX" --out dist
+          node scripts/build-site.mjs --index "$INDEX" --out dist --diff data/diff.md
+      - name: Keep the snapshot on the history branch
+        run: |
+          INDEX=data/index.json
+          test -s "$INDEX" || INDEX=data/sample-index.json
+          WORK=$(mktemp -d)
+          cp "$INDEX" "$WORK/previous.json"
+          cp "$INDEX" "$WORK/$(date -u +%F).json"
+          if [ -f data/diff.md ]; then cp data/diff.md "$WORK/diff-$(date -u +%F).md"; fi
+          cd "$WORK"
+          git init -q -b history
+          git -c user.name="github-actions" -c user.email="actions@github.com" add -A
+          git -c user.name="github-actions" -c user.email="actions@github.com" commit -q -m "snapshot $(date -u +%F)" || echo "nothing to commit"
+          git push --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" history || echo "history push failed; the page is still correct"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

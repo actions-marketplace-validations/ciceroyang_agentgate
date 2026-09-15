@@ -18,6 +18,7 @@ const argOf = function (name, fallback) { const i = args.indexOf(name); return i
 const indexPath = argOf("--index", "data/sample-index.json")
 const outDir = argOf("--out", "dist")
 const templatePath = argOf("--template", join(ROOT, "site", "evidence.html"))
+const diffPath = argOf("--diff", null)
 if (!existsSync(indexPath)) { console.error("no index at " + indexPath); process.exit(2) }
 if (!existsSync(templatePath)) { console.error("no template at " + templatePath); process.exit(2) }
 
@@ -43,9 +44,11 @@ const counts = { clean: 0, findings: 0, incomplete: 0 }
 for (const r of records) counts[r.verdict] = (counts[r.verdict] || 0) + 1
 
 const data = JSON.stringify(records).replace(/</g, "\\u003c")
+const diffText = diffPath && existsSync(diffPath) ? readFileSync(diffPath, "utf8") : ""
 const page = readFileSync(templatePath, "utf8")
   .replace("__DATA__", data)
   .replace('window.__GENERATED_AT__', JSON.stringify(index.generatedAt || "unknown"))
+  .replace('__DIFFJSON__', JSON.stringify(diffText))
   .replace('window.__COUNTS__', JSON.stringify(
     '<span class="v clean">clean ' + (counts.clean || 0) + '</span> · <span class="v findings">findings ' + (counts.findings || 0) + '</span> · <span class="v incomplete">incomplete ' + (counts.incomplete || 0) + "</span>"
   ))
@@ -53,4 +56,4 @@ const page = readFileSync(templatePath, "utf8")
 mkdirSync(outDir, { recursive: true })
 writeFileSync(join(outDir, "index.html"), page)
 writeFileSync(join(outDir, ".nojekyll"), "")
-console.log("site written to " + join(outDir, "index.html") + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records)")
+console.log("site written to " + join(outDir, "index.html") + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records" + (diffText ? ", with a diff" : "") + ")")
