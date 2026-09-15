@@ -163,12 +163,11 @@ Caddy 会自动申请并续期证书；前提是 80/443 已放行且 DNS 已生�
 ## 定时任务
 
 ```sh
-# /etc/cron.d/agentgate  —— 每天 04:17 采集并留快照
-17 4 * * * root cd /opt/agentgate && docker compose --profile collect run --rm refresh \
-  && node bin/agentgate.mjs diff --from data/history/previous.json --to data/index.json \
-     --out data/history/diff-$(date +\%F).md \
-  && cp data/index.json data/history/$(date +\%F).json \
-  && cp data/index.json data/history/previous.json
+# /etc/cron.d/agentgate  —— 每天 04:17 采集、留快照、算 diff
+# 第一条命令就够了:第一次没有可比对象时,脚本把当天存下来当基准、不写 diff;第二天起才有 diff。
+# 之前的写法直接 diff previous.json,而它第一天还不存在,于是 diff 报错、&& 链断在写快照之前,
+# 历史永远是空的——这条在彩排里跑不出来,只有真机第一天会遇到。
+17 4 * * * root cd /opt/agentgate && node bin/agentgate.mjs refresh --max 300 >> /var/log/agentgate.log 2>&1 && node scripts/daily-snapshot.mjs >> /var/log/agentgate.log 2>&1
 ```
 
 ## 回滚

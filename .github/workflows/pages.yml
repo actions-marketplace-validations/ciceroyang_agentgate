@@ -38,14 +38,18 @@ jobs:
           if git show origin/history:previous.json > data/previous.json 2>/dev/null; then
             echo "previous snapshot: $(node -e "console.log(require('./data/previous.json').count)") records"
           else
-            echo "no history yet; comparing against the committed sample"
-            cp data/sample-index.json data/previous.json
+            echo "no history yet; nothing to compare against, so no diff will be produced"
           fi
       - name: What changed
         run: |
           INDEX=data/index.json
           test -s "$INDEX" || INDEX=data/sample-index.json
-          node bin/agentgate.mjs diff --from data/previous.json --to "$INDEX" --out data/diff.md || echo "no diff produced"
+          if [ -f data/previous.json ]; then
+            node bin/agentgate.mjs diff --from data/previous.json --to "$INDEX" --out data/diff.md || echo "no diff produced"
+          else
+            echo "first snapshot: no previous state, so no diff is written rather than inventing one"
+            rm -f data/diff.md
+          fi
           cat data/diff.md 2>/dev/null | head -20 || true
       - name: Build the browsable index
         run: |

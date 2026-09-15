@@ -83,6 +83,8 @@ if [ "$MODE" = "docker" ]; then
   echo "  then: cd $DIR && docker compose up -d agentgate"
 else
   run bash -c "cd $DIR && $NODE_BIN bin/agentgate.mjs refresh --max 300"
+  # 先把第一份快照落下,明天的定时任务才有可比的对象。第一次不写 diff 是正常的。
+  run bash -c "cd $DIR && $NODE_BIN scripts/daily-snapshot.mjs"
 fi
 
 # 主域是静态站，由仓库里的构建脚本生成。少了这一步，Caddy 起来也是空的。

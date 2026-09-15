@@ -43,7 +43,13 @@ try {
     "--format", "html", "--out", join(www, "report-sample.html")], { encoding: "utf8" })
   step("样例报告出得来", existsSync(join(www, "report-sample.html")))
 
-  // 3. 页面之间的链接
+  // 3. 定时任务的第一天:没有可比对象,也必须成功落下基线
+  const snap = spawnSync(process.execPath, [join(ROOT, "scripts", "daily-snapshot.mjs"),
+    "--index", join(ROOT, "data", "sample-index.json"), "--history", join(work, "history"), "--date", "2026-01-01"], { encoding: "utf8" })
+  step("第一份快照落得下来(定时任务第一天)", snap.status === 0, snap.stderr || snap.stdout)
+  step("第一次不写 diff,而不是拿样本编一个", !existsSync(join(work, "history", "diff-2026-01-01.md")))
+
+  // 4. 页面之间的链接
   const dead = []
   for (const name of ["index.html", "evidence.html", "pricing.html", "try.html", "report-sample.html"]) {
     if (!existsSync(join(www, name))) continue
