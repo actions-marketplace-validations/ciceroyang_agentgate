@@ -84,3 +84,28 @@ test("loadPolicy reads a file path or an object", function () {
   assert.equal(loadPolicy({ threshold: "medium" }).threshold, "medium")
   assert.throws(function () { loadPolicy("/no/such/policy.json") }, /could not be read/)
 })
+
+test("a forbidden severity fails the check even below the threshold", function () {
+  // The field is documented as "regardless of the threshold", which only means anything when the
+  // finding sits below it. This was the one documented policy field with no behavioural test: if
+  // it stopped working, a policy saying "never let a low finding through" would quietly become a
+  // policy that does, and every test would stay green.
+  const scan = { findings: [{ rule: "AG-X", severity: "low", file: "f", message: "m" }], coverage: {} }
+
+  const alone = evaluate({ policy: normalizePolicy({ threshold: "critical" }), scan: scan })
+  assert.equal(alone.verdict, "clean", "a low finding under a critical threshold fails on its own")
+  assert.equal(exitCodeFor(alone), 0)
+
+  const refused = evaluate({ policy: normalizePolicy({ threshold: "critical", forbidden: { severities: ["low"] } }), scan: scan })
+  assert.equal(refused.verdict, "findings", "the forbidden severity did nothing")
+  assert.equal(refused.findings[0].reason, "forbidden by policy")
+  assert.equal(exitCodeFor(refused), 1)
+})
+
+test("a forbidden rule fails the check even below the threshold", function () {
+  const scan = { findings: [{ rule: "AG-SPECIAL", severity: "info", file: "f", message: "m" }], coverage: {} }
+  assert.equal(evaluate({ policy: normalizePolicy({ threshold: "critical" }), scan: scan }).verdict, "clean")
+  const refused = evaluate({ policy: normalizePolicy({ threshold: "critical", forbidden: { rules: ["AG-SPECIAL"] } }), scan: scan })
+  assert.equal(refused.verdict, "findings")
+  assert.equal(refused.findings[0].reason, "forbidden by policy")
+})
