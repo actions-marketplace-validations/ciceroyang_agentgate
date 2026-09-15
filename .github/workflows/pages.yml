@@ -1,10 +1,13 @@
 name: pages
 
-# Publish the evidence index as a browsable page. No server and no domain needed, which
-# matters because the deployment waits on a filing decision while this does not.
+# Publish the evidence index as a browsable page, rebuilt daily from the live registry.
+# No server and no domain needed, which matters because the deployment waits on a filing
+# decision while this does not.
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "37 5 * * *"
   workflow_dispatch:
 
 permissions:
@@ -24,8 +27,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
+      - name: Refresh from the live registry
+        run: |
+          node bin/agentgate.mjs refresh --max 300 && echo "refreshed" || echo "refresh failed; falling back to the committed sample"
       - name: Build the browsable index
-        run: node scripts/build-site.mjs --index data/sample-index.json --out dist
+        run: |
+          INDEX=data/index.json
+          test -s "$INDEX" || INDEX=data/sample-index.json
+          echo "building from $INDEX"
+          node scripts/build-site.mjs --index "$INDEX" --out dist
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

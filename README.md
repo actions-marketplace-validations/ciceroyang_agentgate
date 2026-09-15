@@ -21,6 +21,12 @@ built so that cannot happen.
 | **policy** | scan configs, hooks, manifests and source for what a company would refuse | `packages/guard` |
 | **verification** | check a claim against something outside the claim | `packages/verify` |
 
+## Look at it without installing anything
+
+<https://ciceroyang.github.io/agentgate/> — the evidence index as one browsable page,
+rebuilt daily from the live registry. Records are embedded, filtering is local, and there
+is nothing to sign up for.
+
 ## Quickstart
 
 Node 20 or newer, no dependencies. A repository clone already carries a sample index,

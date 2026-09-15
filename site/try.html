@@ -20,8 +20,16 @@ footer{margin-top:64px;color:var(--muted);font-size:14px;border-top:1px solid va
 <h1>十分钟自己试</h1>
 <p class="muted">不需要注册，不需要给凭据。三种做法，按你愿意花的力气挑一种。</p>
 
-<h2>一、什么都不装：查一个已有的判定</h2>
-<p>我们知道 2,142 个 MCP server 的公开证据。随便挑一个查：</p>
+<h2>一、什么都不装：翻一遍索引</h2>
+
+<p>证据索引已经做成了一个可以直接翻的页面：</p>
+
+<p><a class="cta" href="https://ciceroyang.github.io/agentgate/">打开证据索引</a></p>
+
+<p>按判定或名字筛，点任意一行看它的证据块与结论。数据集里现在是 300 条样本；每天会自动换成当天的全量。</p>
+
+<h2>或者：查一个具体的判定</h2>
+<p>部署好之后，服务会提供同样的数据（当前由上面的静态页代替）：</p>
 <pre><code>curl -s https://api.智量.com/v1/servers/aistudiomcp/mcp | head -40</code></pre>
 <p>返回的是一条<b>记录</b>：它声明了哪个包、每个证据块查了没有、结论是 <code>clean</code>、<code>findings</code> 还是 <code>incomplete</code>。看到 <code>unmeasured</code> 不要跳过——那是我们没能查的部分，也是这个工具和"一切正常"最不一样的地方。</p>
 <p>也可以直接拿 badge：</p>
