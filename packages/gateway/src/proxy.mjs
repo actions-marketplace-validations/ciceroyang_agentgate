@@ -25,8 +25,29 @@ export function createProxy(options) {
   const stats = { allowed: 0, refused: 0, toolsRemoved: 0 }
 
   const handleClientLine = function (line) {
+    // A byte-order mark is not part of the JSON. Without this the line is unparseable and
+    // gets forwarded as-is, which is a fail-open path around the policy.
+    const text = line.charCodeAt(0) === 0xfeff ? line.slice(1) : line
     let msg = null
-    try { msg = JSON.parse(line) } catch (error) { child.stdin.write(line + "\n"); return }
+    try { msg = JSON.parse(text) } catch (error) { child.stdin.write(line + "\n"); return }
+    if (Array.isArray(msg)) {
+      // JSON-RPC allows a batch, and a batch has no .method, so a forbidden call inside one
+      // was forwarded and executed. A batch that contains one is refused whole: a partial
+      // answer would have to be assembled from two speakers, and guessing at the shape is
+      // how this was missed in the first place.
+      const refused = msg
+        .filter(function (m) { return m && m.method === "tools/call" })
+        .map(function (m) { return decideToolCall(policy, m.params && m.params.name) })
+        .filter(function (d) { return !d.allowed })
+      if (refused.length > 0) {
+        stats.refused += 1
+        log({ direction: "client", method: "batch", decision: "refused", reason: refused[0].reason })
+        out.write(JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32001, message: "agentgate refused a batch containing a forbidden call: " + refused[0].reason } }) + "\n")
+        return
+      }
+      child.stdin.write(line + "\n")
+      return
+    }
     if (msg && msg.method === "tools/call") {
       const name = msg.params && msg.params.name
       const decision = decideToolCall(policy, name)
@@ -42,19 +63,23 @@ export function createProxy(options) {
     child.stdin.write(line + "\n")
   }
 
+  /** Remove forbidden tools from one response, whichever shape it arrives in. */
+  const filterMessage = function (message) {
+    if (!message || !message.result || !Array.isArray(message.result.tools)) return message
+    const filtered = filterTools(policy, message.result.tools)
+    if (filtered.removed.length === 0) return message
+    stats.toolsRemoved += filtered.removed.length
+    for (const r of filtered.removed) log({ direction: "server", method: "tools/list", tool: r.name, decision: "removed", reason: r.reason })
+    const copy = JSON.parse(JSON.stringify(message))
+    copy.result.tools = filtered.kept
+    return copy
+  }
+
   const handleServerLine = function (line) {
     let msg = null
     try { msg = JSON.parse(line) } catch (error) { out.write(line + "\n"); return }
-    if (msg && msg.result && Array.isArray(msg.result.tools)) {
-      const filtered = filterTools(policy, msg.result.tools)
-      if (filtered.removed.length > 0) {
-        stats.toolsRemoved += filtered.removed.length
-        for (const r of filtered.removed) log({ direction: "server", method: "tools/list", tool: r.name, decision: "removed", reason: r.reason })
-        msg = JSON.parse(JSON.stringify(msg))
-        msg.result.tools = filtered.kept
-      }
-    }
-    out.write(JSON.stringify(msg) + "\n")
+    // a server may answer a batch with a batch; every member gets the same filter
+    out.write(JSON.stringify(Array.isArray(msg) ? msg.map(filterMessage) : filterMessage(msg)) + "\n")
   }
 
   const onClientData = function (chunk) {
