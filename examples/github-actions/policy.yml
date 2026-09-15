@@ -1,0 +1,26 @@
+# Copy into .github/workflows/ of the repository you want to gate.
+name: agentgate
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ciceroyang/agentgate@main
+        with:
+          path: .
+          policy: agentgate.policy.json
+          sarif-file: agentgate.sarif
+      - name: Upload to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: agentgate.sarif

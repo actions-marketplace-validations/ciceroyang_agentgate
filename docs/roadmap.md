@@ -46,7 +46,12 @@ agentgate check --policy policy.json --root .
 - acceptance: a repository with a forbidden server fails; the same repository with a
   pinned, allowed server passes; an artefact whose manifest is unmeasured exits 2, not 0
 
-## M3 - Enforcement where the work happens
+## M3 - Enforcement where the work happens   **done**
+
+*Status: accepted. `node scripts/acceptance-m3.mjs` runs in CI and is green: findings and
+unmeasured evidence both reach SARIF, unmeasured as an error; the CLI writes the same
+SARIF; and the index diff names the changes a version move would not explain. The action
+and the example workflow are YAML-validated in CI, which is now a step of its own.*
 
 A pull request that adds a forbidden tool does not merge.
 

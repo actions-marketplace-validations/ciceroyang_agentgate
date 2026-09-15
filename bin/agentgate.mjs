@@ -6,7 +6,7 @@
  *   agentgate refresh   rebuild the index from public sources
  *   agentgate version
  */
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
@@ -16,6 +16,8 @@ import { makeReader } from "../packages/guard/src/fs-scan.mjs"
 import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
 import { loadPolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
+import { toSarif } from "../packages/policy/src/sarif.mjs"
+import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -102,19 +104,40 @@ function check(flags) {
   }
   lines.push("")
   lines.push("  verdict: " + result.verdict.toUpperCase() + (result.verdict === "incomplete" ? "  (this is not a pass)" : ""))
-  process.stdout.write(lines.join("\n") + "\n")
+  const human = lines.join("\n")
+  const format = flags.format || "console"
+  const rendered = format === "sarif" ? toSarif(result, { version: "0.1.0" }) : format === "json" ? JSON.stringify(result, null, 2) : human
+  if (flags.out) {
+    writeFileSync(flags.out, rendered + "\n")
+    process.stdout.write(human + "\n")
+  } else {
+    process.stdout.write(rendered + "\n")
+  }
   process.exit(exitCodeFor(result))
+}
+
+function diff(flags) {
+  if (!flags.from || !flags.to) { console.error("usage: agentgate diff --from old-index.json --to new-index.json"); process.exit(3) }
+  const from = JSON.parse(readFileSync(flags.from, "utf8"))
+  const to = JSON.parse(readFileSync(flags.to, "utf8"))
+  const d = diffIndex(from, to)
+  const text = (flags.format === "json") ? JSON.stringify(d, null, 2) : renderDiff(d)
+  if (flags.out) writeFileSync(flags.out, text + "\n")
+  process.stdout.write(text + "\n")
+  process.exit(d.silent.length > 0 ? 1 : 0)
 }
 
 const args = parse(process.argv.slice(2))
 if (args.command === "check") check(args.flags)
+else if (args.command === "diff") diff(args.flags)
 else if (args.command === "serve") serve(args.flags)
 else if (args.command === "refresh") refresh(args.flags)
 else if (args.command === "version") console.log("agentgate 0.1.0")
 else {
   console.log("agentgate <command>")
   console.log("")
-  console.log("  check     --policy policy.json [--root .] [--index data/index.json]")
+  console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json] [--out file]")
+  console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
   console.log("  refresh   [--max 300]   fetch public sources and rebuild data/index.json")
   console.log("  version")

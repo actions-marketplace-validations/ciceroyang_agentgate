@@ -71,6 +71,43 @@ the findings look. No threshold can turn a partial answer into a pass.
 | 1 | findings |
 | 2 | incomplete |
 
+## Enforcement
+
+A pull request that adds something the policy refuses does not merge, and the reason is in
+the pull request rather than in a log nobody opens.
+
+```yaml
+- uses: ciceroyang/agentgate@main
+  with:
+    policy: agentgate.policy.json
+```
+
+See [examples/github-actions/policy.yml](examples/github-actions/policy.yml). The action
+runs the check, writes SARIF for code scanning, comments the human report on the pull
+request, and then exits with the check's own code, so an incomplete scan still fails the
+build at 2.
+
+## History
+
+The index is kept, so two builds can be compared, and the interesting column is the last
+one: changes that a release would have explained and did not.
+
+```sh
+node bin/agentgate.mjs diff --from previous-index.json --to data/index.json
+```
+
+```
+  added:           0
+  removed:         0
+  verdict changed: 1
+  package changed: 0
+  silent (no version move, different evidence): 1
+```
+
+A new finding on an unchanged version is the shape of a package replaced without a
+release, a repository edited in place, or a scan that has started seeing something. Nobody
+can back-fill that record; it only exists if someone kept looking.
+
 ## The pipelines behind the index
 
 ```sh

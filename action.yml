@@ -1,54 +1,89 @@
 name: agentgate
-description: Scan an agent project for MCP config, hook, injection and A2A issues, and never report clean about work it did not do.
+description: Inventory, evidence, policy and enforcement for the tools agents run. A partial scan can never pass.
 author: ciceroyang
 branding:
   icon: shield
   color: purple
 inputs:
   path:
-    description: Directory to scan.
+    description: Directory to check.
     required: false
     default: "."
+  policy:
+    description: Path to an agentgate policy file. When set, the policy check runs; otherwise the scanner runs.
+    required: false
+    default: ""
   fail-on:
-    description: Severity that fails the run. critical, high, medium, low or info.
+    description: Scanner severity that fails the run, used only when no policy is given.
     required: false
     default: "high"
   sarif-file:
     description: Where to write the SARIF report.
     required: false
-    default: "agent-guard.sarif"
-  checks:
-    description: Comma-separated check ids to run. Defaults to all of them.
+    default: "agentgate.sarif"
+  report-file:
+    description: Where to write the human report, which is what the pull request comment quotes.
     required: false
-    default: ""
+    default: "agentgate-report.txt"
+  comment:
+    description: Post the report as a pull request comment when running on a pull request.
+    required: false
+    default: "true"
 outputs:
+  exit-code:
+    description: 0 clean, 1 findings, 2 incomplete.
+    value: ${{ steps.run.outputs.exit-code }}
   sarif-file:
     description: Path to the SARIF report that was written.
     value: ${{ inputs.sarif-file }}
 runs:
   using: composite
   steps:
-    - id: scan
+    - id: run
       shell: bash
       run: |
         set +e
-        if [ -n "${{ inputs.checks }}" ]; then
-          node "$GITHUB_ACTION_PATH/packages/guard/bin/agent-guard.mjs" "${{ inputs.path }}" \
-            --format sarif -o "${{ inputs.sarif-file }}" \
-            --fail-on "${{ inputs.fail-on }}" \
-            --checks "${{ inputs.checks }}"
+        if [ -n "${{ inputs.policy }}" ]; then
+          node "$GITHUB_ACTION_PATH/bin/agentgate.mjs" check \
+            --root "${{ inputs.path }}" \
+            --policy "${{ inputs.policy }}" \
+            --format sarif \
+            --out "${{ inputs.sarif-file }}" > "${{ inputs.report-file }}" 2>&1
         else
           node "$GITHUB_ACTION_PATH/packages/guard/bin/agent-guard.mjs" "${{ inputs.path }}" \
             --format sarif -o "${{ inputs.sarif-file }}" \
-            --fail-on "${{ inputs.fail-on }}"
+            --fail-on "${{ inputs.fail-on }}" > "${{ inputs.report-file }}" 2>&1
         fi
         code=$?
         set -e
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        echo "agentgate exit code: $code"
+        cat "${{ inputs.report-file }}" || true
+    - name: Comment on the pull request
+      if: ${{ always() && inputs.comment == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        report="${{ inputs.report-file }}"
+        {
+          echo "<!-- agentgate-report -->"
+          echo "### agentgate"
+          echo ""
+          echo "Exit code: **${{ steps.run.outputs.exit-code }}** (0 clean, 1 findings, 2 incomplete)."
+          echo ""
+          echo '```'
+          cat "$report" 2>/dev/null || echo "(no report)"
+          echo '```'
+        } > agentgate-comment.md
+        gh pr comment "${{ github.event.pull_request.number }}" --body-file agentgate-comment.md --edit-last --create-if-none
+    - name: Fail when the check says so
+      shell: bash
+      run: |
+        code="${{ steps.run.outputs.exit-code }}"
         case "$code" in
-          0) echo "agent-guard: clean" ;;
-          1) echo "::error title=agent-guard::findings at or above --fail-on ${{ inputs.fail-on }}" ;;
-          2) echo "::error title=agent-guard::the scan is incomplete - a check did not run, so this is not a pass" ;;
-          *) echo "::error title=agent-guard::scan failed with exit code $code" ;;
+          0) echo "agentgate: clean" ;;
+          1) echo "::error title=agentgate::findings at or above the policy threshold"; exit 1 ;;
+          2) echo "::error title=agentgate::the scan is incomplete - this is not a pass"; exit 2 ;;
+          *) echo "::error title=agentgate::agentgate exited $code"; exit "$code" ;;
         esac
-        exit "$code"
