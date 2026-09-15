@@ -35,6 +35,8 @@ jobs:
         run: node scripts/bench.mjs 20000 100
       - name: Corpus regression (benign silent, positives fire)
         run: node packages/guard/scripts/regression.mjs
+      - name: Deploy rehearsal (everything except systemd and Caddy)
+        run: node scripts/rehearse-deploy.mjs
       - name: Self-scan (minus the intentional bad examples)
         run: node packages/guard/bin/agent-guard.mjs . --exclude packages/guard/corpus,node_modules --fail-on high
       - name: An incomplete scan exits 2 no matter what --fail-on says
