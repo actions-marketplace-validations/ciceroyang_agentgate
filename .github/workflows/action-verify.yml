@@ -1,0 +1,21 @@
+name: action-verify
+
+# Deliberately run the action against a project that breaks its own policy, to prove the
+# action actually gates a pull request rather than only parsing.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          path: examples/action-verify
+          policy: examples/action-verify/agentgate.policy.json
+          sarif-file: action-verify.sarif

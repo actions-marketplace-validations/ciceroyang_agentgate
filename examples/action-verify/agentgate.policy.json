@@ -1,0 +1,13 @@
+{
+  "version": "agentgate.policy/v1",
+  "threshold": "high",
+  "forbidden": {
+    "rules": [
+      "AG-MCP-010",
+      "AG-MCP-014"
+    ],
+    "severities": [
+      "critical"
+    ]
+  }
+}
