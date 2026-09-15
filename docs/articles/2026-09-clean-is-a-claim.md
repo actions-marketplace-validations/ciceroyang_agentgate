@@ -78,4 +78,4 @@ Then find its own test corpus and its own published numbers and check the method
 
 ---
 
-*agentgate is at [github.com/ciceroyang/agentgate](https://github.com/ciceroyang/agentgate) under AGPL-3.0. The browsable evidence index is at [ciceroyang.github.io/agentgate](https://ciceroyang.github.io/agentgate/), and there is a [sample report](https://ciceroyang.github.io/agentgate/report-sample.html) generated from a project that deliberately breaks its own policy.*
+*agentgate is at [github.com/ciceroyang/agentgate](https://github.com/ciceroyang/agentgate) under AGPL-3.0. The browsable evidence index is at [ciceroyang.github.io/agentgate/evidence.html](https://ciceroyang.github.io/agentgate/evidence.html), and there is a [sample report](https://ciceroyang.github.io/agentgate/report-sample.html) generated from a project that deliberately breaks its own policy.*

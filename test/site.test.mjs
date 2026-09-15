@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -10,7 +10,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 function buildPage(indexPath, diffText) {
   const out = mkdtempSync(join(tmpdir(), "ag-site-"))
-  const args = [join(ROOT, "scripts", "build-site.mjs"), "--index", indexPath, "--out", out]
+  const args = [join(ROOT, "scripts", "build-site.mjs"), "--index", indexPath, "--out", out, "--name", "index.html"]
   if (diffText !== undefined) {
     const diffPath = join(out, "diff.md")
     writeFileSync(diffPath, diffText)
@@ -72,7 +72,7 @@ test("a large index is capped and the page says so", function () {
   }
   writeFileSync(indexPath, JSON.stringify({ generatedAt: "T", threshold: "medium", count: records.length, records: records }))
   const out = mkdtempSync(join(tmpdir(), "ag-cap-out-"))
-  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", indexPath, "--out", out, "--max-records", "10"], { encoding: "utf8" })
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", indexPath, "--out", out, "--name", "index.html", "--max-records", "10"], { encoding: "utf8" })
   assert.equal(run.status, 0, run.stderr)
   const html = readFileSync(join(out, "index.html"), "utf8")
   const totals = JSON.parse(/<script id="totals" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1])
@@ -91,4 +91,34 @@ test("a small index is not marked truncated", function () {
   const totals = JSON.parse(/<script id="totals" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1])
   assert.equal(totals.truncated, false)
   assert.equal(totals.total, totals.shown)
+})
+
+
+test("the plain pages are published beside the index, and the index does not overwrite them", function () {
+  const out = mkdtempSync(join(tmpdir(), "ag-site-full-"))
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+
+  // The sample report is a separate step in the published workflow; generate it the same way so
+  // this test walks the site a visitor actually gets.
+  const sample = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check", "--root", join(ROOT, "examples", "action-verify"), "--policy", join(ROOT, "examples", "action-verify", "agentgate.policy.json"), "--format", "html", "--out", join(out, "report-sample.html")], { encoding: "utf8" })
+  assert.ok(existsSync(join(out, "report-sample.html")), "the sample report was not written: " + sample.stderr)
+
+  const landing = readFileSync(join(out, "index.html"), "utf8")
+  assert.match(landing, /智量/, "the landing page is what a visitor lands on")
+  assert.doesNotMatch(landing, /id="rows"/, "the landing page is not the data table")
+
+  const evidence = readFileSync(join(out, "evidence.html"), "utf8")
+  assert.match(evidence, /id="rows"/, "the browsable index still gets built")
+
+  assert.match(readFileSync(join(out, "pricing.html"), "utf8"), /29,800|29,?800|价格/)
+  assert.match(readFileSync(join(out, "try.html"), "utf8"), /自己试|十分钟/)
+
+  // every relative link between the published pages must resolve, or the site ships dead ends
+  for (const name of ["index.html", "evidence.html", "pricing.html", "try.html"]) {
+    const html = readFileSync(join(out, name), "utf8")
+    for (const m of html.matchAll(/href="([a-z0-9-]+\.html)"/g)) {
+      assert.ok(existsSync(join(out, m[1])), name + " links to a page that was not published: " + m[1])
+    }
+  }
 })

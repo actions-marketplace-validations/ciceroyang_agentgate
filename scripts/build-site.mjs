@@ -8,7 +8,7 @@
  *
  *   node scripts/build-site.mjs --index data/index.json --out dist
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs"
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, copyFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -20,6 +20,8 @@ const outDir = argOf("--out", "dist")
 const templatePath = argOf("--template", join(ROOT, "site", "evidence.html"))
 const diffPath = argOf("--diff", null)
 const maxRecords = Number(argOf("--max-records", 20000))
+const pagesDir = argOf("--pages", join(ROOT, "site"))
+const indexName = argOf("--name", "evidence.html")
 if (!existsSync(indexPath)) { console.error("no index at " + indexPath); process.exit(2) }
 if (!existsSync(templatePath)) { console.error("no template at " + templatePath); process.exit(2) }
 
@@ -72,6 +74,20 @@ const page = readFileSync(templatePath, "utf8")
   ))
 
 mkdirSync(outDir, { recursive: true })
-writeFileSync(join(outDir, "index.html"), page)
+writeFileSync(join(outDir, indexName), page)
+
+// The marketing pages are plain files, copied in rather than generated. Without this the
+// site was only the data table, which is not what a visitor should land on.
+let copied = 0
+if (pagesDir && existsSync(pagesDir)) {
+  for (const name of readdirSync(pagesDir)) {
+    if (!name.endsWith(".html")) continue
+    if (name === "evidence.html") continue
+    const target = name === "index.html" ? "index.html" : name
+    if (target === indexName) continue
+    copyFileSync(join(pagesDir, name), join(outDir, target))
+    copied += 1
+  }
+}
 writeFileSync(join(outDir, ".nojekyll"), "")
-console.log("site written to " + join(outDir, "index.html") + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records" + (diffText ? ", with a diff" : "") + ")")
+console.log("site written to " + join(outDir, indexName) + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records" + (diffText ? ", with a diff" : "") + ") and " + copied + " page(s) copied")

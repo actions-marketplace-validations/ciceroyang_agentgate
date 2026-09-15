@@ -27,9 +27,11 @@ built so that cannot happen.
 
 ## Look at it without installing anything
 
-<https://ciceroyang.github.io/agentgate/> — the evidence index as one browsable page,
-rebuilt daily from the live registry. Records are embedded, filtering is local, and there
-is nothing to sign up for.
+<https://ciceroyang.github.io/agentgate/> — the landing page. The evidence index is one
+browsable page at <https://ciceroyang.github.io/agentgate/evidence.html>, rebuilt daily from
+the live registry: records are embedded, filtering is local, and there is nothing to sign up for.
+Pricing is at [/pricing.html](https://ciceroyang.github.io/agentgate/pricing.html), and
+[/try.html](https://ciceroyang.github.io/agentgate/try.html) walks through using it in ten minutes.
 
 ## Quickstart
 
