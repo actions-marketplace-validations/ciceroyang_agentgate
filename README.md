@@ -67,6 +67,16 @@ A policy says what the company refuses. It is data, not code, and it is specifie
 node bin/agentgate.mjs check --policy agentgate.policy.json --root .
 ```
 
+The same evaluation can be handed to a person rather than a terminal:
+
+```sh
+node bin/agentgate.mjs check --policy agentgate.policy.json --root . --format html --out report.html
+```
+
+One static file, printable, no script. Anything that could not be measured gets its own
+section above the findings, because a report that buries what it did not check reads as
+more complete than it is. That file is the deliverable of the free checkup.
+
 Three outcomes, and `incomplete` outranks `findings`: if a check failed to run, or an
 evidence block the policy requires is `unmeasured`, the exit code is **2** however clean
 the findings look. No threshold can turn a partial answer into a pass.

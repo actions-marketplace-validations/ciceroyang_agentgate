@@ -17,6 +17,7 @@ import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
 import { loadPolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
 import { toSarif } from "../packages/policy/src/sarif.mjs"
+import { toHtmlReport } from "../packages/policy/src/html-report.mjs"
 import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
 import { createProxy } from "../packages/gateway/src/proxy.mjs"
 
@@ -109,7 +110,10 @@ function check(flags) {
   lines.push("  verdict: " + result.verdict.toUpperCase() + (result.verdict === "incomplete" ? "  (this is not a pass)" : ""))
   const human = lines.join("\n")
   const format = flags.format || "console"
-  const rendered = format === "sarif" ? toSarif(result, { version: "0.1.0" }) : format === "json" ? JSON.stringify(result, null, 2) : human
+  const rendered = format === "sarif" ? toSarif(result, { version: "0.1.0" })
+    : format === "json" ? JSON.stringify(result, null, 2)
+    : format === "html" ? toHtmlReport(result, { root: root, policy: policy, generatedAt: new Date().toISOString() })
+    : human
   if (flags.out) {
     writeFileSync(flags.out, rendered + "\n")
     process.stdout.write(human + "\n")
@@ -161,7 +165,7 @@ else if (args.command === "version") console.log("agentgate 0.1.0")
 else {
   console.log("agentgate <command>")
   console.log("")
-  console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json] [--out file]")
+  console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")
   console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
