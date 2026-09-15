@@ -18,14 +18,17 @@ import { loadPolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
 import { toSarif } from "../packages/policy/src/sarif.mjs"
 import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
+import { createProxy } from "../packages/gateway/src/proxy.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 function parse(argv) {
-  const args = { command: argv[0] || "help", flags: {} }
+  const args = { command: argv[0] || "help", flags: {}, rest: [] }
   for (let i = 1; i < argv.length; i += 1) {
     const a = argv[i]
+    if (a === "--") { args.rest = argv.slice(i + 1); break }
     if (a.indexOf("--") === 0) args.flags[a.slice(2)] = argv[i + 1] && argv[i + 1].indexOf("--") !== 0 ? argv[++i] : true
+    else args.rest.push(a)
   }
   return args
 }
@@ -128,7 +131,29 @@ function diff(flags) {
 }
 
 const args = parse(process.argv.slice(2))
+function proxy(flags, rest) {
+  if (rest.length === 0) { console.error("usage: agentgate proxy --policy policy.json [--log calls.jsonl] -- <server command> [args...]"); process.exit(3) }
+  let policy
+  try { policy = loadPolicy(flags.policy || "agentgate.policy.json") } catch (error) { console.error("policy: " + error.message); process.exit(3) }
+  const logPath = flags.log || "agentgate-calls.jsonl"
+  process.stderr.write("agentgate proxy: " + rest.join(" ") + "\n")
+  process.stderr.write("agentgate proxy: refusals logged to " + logPath + "\n")
+  createProxy({
+    command: rest[0],
+    args: rest.slice(1),
+    policy: policy,
+    logPath: logPath,
+    out: process.stdout,
+    input: process.stdin,
+    onExit: function (code, stats) {
+      process.stderr.write("agentgate proxy: " + JSON.stringify(stats) + "\n")
+      process.exit(code === null ? 0 : code)
+    },
+  })
+}
+
 if (args.command === "check") check(args.flags)
+else if (args.command === "proxy") proxy(args.flags, args.rest)
 else if (args.command === "diff") diff(args.flags)
 else if (args.command === "serve") serve(args.flags)
 else if (args.command === "refresh") refresh(args.flags)
@@ -138,6 +163,7 @@ else {
   console.log("")
   console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json] [--out file]")
   console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")
+  console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
   console.log("  refresh   [--max 300]   fetch public sources and rebuild data/index.json")
   console.log("  version")

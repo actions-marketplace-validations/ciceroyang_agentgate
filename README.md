@@ -87,6 +87,21 @@ runs the check, writes SARIF for code scanning, comments the human report on the
 request, and then exits with the check's own code, so an incomplete scan still fails the
 build at 2.
 
+## Runtime
+
+The same policy applies to what has already shipped, by putting a gateway in front of the
+server instead of pointing the client at it:
+
+```sh
+node bin/agentgate.mjs proxy --policy agentgate.policy.json --log calls.jsonl -- \
+  npx -y @modelcontextprotocol/server-filesystem /data
+```
+
+A tool call the policy refuses is answered locally with a reason and never reaches the
+server; a forbidden tool is removed from the advertised list so a client cannot ask for it
+at all. Every decision, allowed or refused, is appended to the log, because the log is
+what an audit reads.
+
 ## History
 
 The index is kept, so two builds can be compared, and the interesting column is the last

@@ -1,0 +1,83 @@
+/**
+ * A gateway in front of an MCP server over stdio.
+ *
+ * It spawns the real server, forwards the conversation, and intervenes in exactly two
+ * places: a tool call the policy refuses is answered locally with a reason and never
+ * reaches the server, and a forbidden tool is removed from the advertised list so a
+ * client cannot ask for it in the first place. Everything, allowed or refused, is
+ * appended to the log, because the log is what an audit reads.
+ */
+import { spawn } from "node:child_process"
+import { appendFileSync } from "node:fs"
+import { decideToolCall, filterTools } from "./decide.mjs"
+
+export function createProxy(options) {
+  const child = spawn(options.command, options.args || [], { stdio: ["pipe", "pipe", "inherit"] })
+  const logPath = options.logPath || null
+  const policy = options.policy
+  const out = options.out || process.stdout
+  const log = function (entry) {
+    if (!logPath) return
+    try { appendFileSync(logPath, JSON.stringify(Object.assign({ at: new Date().toISOString() }, entry)) + "\n") } catch (error) { /* never break the pipe for a log */ }
+  }
+  let clientBuffer = ""
+  let serverBuffer = ""
+  const stats = { allowed: 0, refused: 0, toolsRemoved: 0 }
+
+  const handleClientLine = function (line) {
+    let msg = null
+    try { msg = JSON.parse(line) } catch (error) { child.stdin.write(line + "\n"); return }
+    if (msg && msg.method === "tools/call") {
+      const name = msg.params && msg.params.name
+      const decision = decideToolCall(policy, name)
+      if (!decision.allowed) {
+        stats.refused += 1
+        log({ direction: "client", method: "tools/call", tool: name, decision: "refused", reason: decision.reason })
+        out.write(JSON.stringify({ jsonrpc: "2.0", id: msg.id, error: { code: -32001, message: "agentgate refused: " + decision.reason } }) + "\n")
+        return
+      }
+      stats.allowed += 1
+      log({ direction: "client", method: "tools/call", tool: name, decision: "allowed" })
+    }
+    child.stdin.write(line + "\n")
+  }
+
+  const handleServerLine = function (line) {
+    let msg = null
+    try { msg = JSON.parse(line) } catch (error) { out.write(line + "\n"); return }
+    if (msg && msg.result && Array.isArray(msg.result.tools)) {
+      const filtered = filterTools(policy, msg.result.tools)
+      if (filtered.removed.length > 0) {
+        stats.toolsRemoved += filtered.removed.length
+        for (const r of filtered.removed) log({ direction: "server", method: "tools/list", tool: r.name, decision: "removed", reason: r.reason })
+        msg = JSON.parse(JSON.stringify(msg))
+        msg.result.tools = filtered.kept
+      }
+    }
+    out.write(JSON.stringify(msg) + "\n")
+  }
+
+  const onClientData = function (chunk) {
+    clientBuffer += chunk.toString()
+    let at
+    while ((at = clientBuffer.indexOf("\n")) !== -1) {
+      const line = clientBuffer.slice(0, at)
+      clientBuffer = clientBuffer.slice(at + 1)
+      if (line.trim() !== "") handleClientLine(line)
+    }
+  }
+  const onServerData = function (chunk) {
+    serverBuffer += chunk.toString()
+    let at
+    while ((at = serverBuffer.indexOf("\n")) !== -1) {
+      const line = serverBuffer.slice(0, at)
+      serverBuffer = serverBuffer.slice(at + 1)
+      if (line.trim() !== "") handleServerLine(line)
+    }
+  }
+
+  if (options.input) options.input.on("data", onClientData)
+  child.stdout.on("data", onServerData)
+  child.on("exit", function (code) { log({ direction: "server", event: "exit", code: code }); if (options.onExit) options.onExit(code, stats) })
+  return { child: child, stats: stats }
+}

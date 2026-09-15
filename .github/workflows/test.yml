@@ -29,6 +29,8 @@ jobs:
         run: node scripts/acceptance-m2.mjs
       - name: M3 acceptance (SARIF, exit codes, and the silent-change diff)
         run: node scripts/acceptance-m3.mjs
+      - name: M4 acceptance (the gateway refuses, filters and logs)
+        run: node scripts/acceptance-m4.mjs
       - name: Corpus regression (benign silent, positives fire)
         run: node packages/guard/scripts/regression.mjs
       - name: Self-scan (minus the intentional bad examples)

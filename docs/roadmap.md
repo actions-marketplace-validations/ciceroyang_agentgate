@@ -60,7 +60,12 @@ A pull request that adds a forbidden tool does not merge.
 - acceptance: on this repository, a deliberately bad pull request fails the check with a
   message that says why, and a clean one passes
 
-## M4 - Runtime gateway (minimum viable)
+## M4 - Runtime gateway (minimum viable)   **done**
+
+*Status: accepted. `node scripts/acceptance-m4.mjs` runs in CI and is green: a real server
+process is started through the gateway, an allowed call is served, a forbidden call is
+refused with a reason and never reaches the server, the forbidden tool is absent from the
+advertised list, and all three decisions are in the log.*
 
 The same policy applies to what has already shipped.
 

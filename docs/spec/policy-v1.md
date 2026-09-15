@@ -15,7 +15,8 @@ does not read JSON for a living.
   "forbidden": {
     "rules": ["AG-INSTALL-001"],
     "severities": ["critical"],
-    "servers": ["internal/*", "acme/legacy-thing"]
+    "servers": ["internal/*", "acme/legacy-thing"],
+    "tools": ["delete_*", "send_money"]
   }
 }
 ```
@@ -31,6 +32,7 @@ does not read JSON for a living.
 | `forbidden.rules` | rule identifiers that fail the check regardless of severity. |
 | `forbidden.severities` | severities that fail the check regardless of the threshold. |
 | `forbidden.servers` | server-name patterns, exact or with a single `*`. |
+| `forbidden.tools` | tool-name patterns, exact or with a single `*`. Applied by the runtime gateway: a matching call is refused before the server sees it, and a matching tool is removed from the advertised list. |
 
 ## The evaluation rule
 

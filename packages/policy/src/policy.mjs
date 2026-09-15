@@ -35,6 +35,7 @@ export function normalizePolicy(doc) {
     forbiddenRules: asArray(forbidden.rules),
     forbiddenSeverities: asArray(forbidden.severities),
     forbiddenServers: asArray(forbidden.servers),
+    forbiddenTools: asArray(forbidden.tools),
   }
 }
 
