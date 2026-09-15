@@ -49,11 +49,30 @@ the action with `continue-on-error`, asserts the outcome was failure, asserts th
 was 1, and asserts the SARIF names both rules. The enforcement path is exercised on every
 push, and it goes red if the action ever lets a breaking project through.
 
+## The deployment itself, rehearsed from a fresh clone
+
+On 2026-09-15 the whole runbook was run against the published repository, not the working
+copy: clone, run the tests inside the clone, do a full refresh against the live registry,
+write the first history snapshot and diff, start the service, and smoke it with
+`--expect-min 1000` so that a service still reading the committed sample would fail.
+
+```
+cloned files:  130
+tests:         146 pass
+refresh:       243 packages, index 2127 records (2039 clean, 66 findings, 22 incomplete)
+history:       first snapshot + diff, 1827 added, 1 package changed
+smoke:         green, including --expect-min 1000
+elapsed:       2m 04s for the collection step
+```
+
+That is the deployment as far as it can be exercised without the target server. What it
+does not cover: the Docker layer build, TLS issuance, DNS, and the ICP question.
+
 ## Still not verified anywhere but on one machine
 
 | item | state |
 | --- | --- |
-| Docker image build | not run, no Docker on the machine this was written on |
+| Docker image build | not run, no Docker here; the build context and the image command were reproduced instead |
 
 | Scale | a 2,142-record index and a single 50,000-rule policy, nothing larger |
 | Retrieval quality in `packages/verify` | term overlap, never measured against a labelled set |
