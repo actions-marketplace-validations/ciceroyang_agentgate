@@ -1,8 +1,10 @@
 name: action-verify
 
-# Deliberately run the action against a project that breaks its own policy, to prove the
-# action actually gates a pull request rather than only parsing.
+# The enforcement path is only proven if the action actually fails a project that breaks
+# its own policy. This runs the action on purpose-broken input, expects the failure, and
+# goes red if the action ever lets it through.
 on:
+  push:
   pull_request:
 
 permissions:
@@ -14,8 +16,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./
+      - id: expected-failure
+        continue-on-error: true
+        uses: ./
         with:
           path: examples/action-verify
           policy: examples/action-verify/agentgate.policy.json
           sarif-file: action-verify.sarif
+      - name: The action was supposed to fail and did
+        run: |
+          test "${{ steps.expected-failure.outcome }}" = "failure" || {
+            echo "the action passed a project that breaks its own policy"; exit 1;
+          }
+      - name: It reported the exit code the policy implies
+        run: |
+          test "${{ steps.expected-failure.outputs.exit-code }}" = "1" || {
+            echo "expected exit code 1, got ${{ steps.expected-failure.outputs.exit-code }}"; exit 1;
+          }
+      - name: It wrote a SARIF report
+        run: |
+          test -s action-verify.sarif || { echo "no SARIF report was written"; ls -la; exit 1; }
+          python3 -c "import json; d=json.load(open('action-verify.sarif')); ids=[r['ruleId'] for r in d['runs'][0]['results']]; print('sarif rules:', ids); assert 'AG-MCP-010' in ids and 'AG-MCP-014' in ids, ids"
