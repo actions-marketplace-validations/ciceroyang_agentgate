@@ -14,6 +14,7 @@ export function esc(value) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
 }
 
 const COLORS = { critical: "#b62324", high: "#d13438", medium: "#d29922", low: "#5b6472", info: "#8b949e" }
@@ -54,7 +55,7 @@ export function toHtmlReport(result, meta) {
   const title = [
     "<h1>证据体检报告</h1>",
     '<p class="muted">对象:' + esc(m.root || "(未指定)") + "<br>生成时间:" + esc(m.generatedAt || new Date().toISOString()) + "<br>策略版本:" + esc(result.policyVersion || "unknown") + "</p>",
-    '<p><span class="verdict ' + verdict + '">' + esc(verdict.toUpperCase()) + "</span></p>",
+    '<p><span class="verdict ' + esc(verdict) + '">' + esc(verdict.toUpperCase()) + "</span></p>",
     verdict === "incomplete"
       ? '<div class="box warn"><b>这份结果不完整,不等于通过。</b>下面有检查没能跑完,或有证据块无法测量。它们列在发现之前。</div>'
       : "",

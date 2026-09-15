@@ -45,3 +45,30 @@ test("tables are balanced", function () {
   const html = toHtmlReport(base({ findings: [{ rule: "R", severity: "low", file: "a", message: "m", reason: "r" }] }), {})
   assert.equal((html.match(/<table>/g) || []).length, (html.match(/<\/table>/g) || []).length)
 })
+
+test("every field that can come from the repository under scan is escaped", function () {
+  // The report is the artefact the free checkup hands over, and it is built from names the
+  // repository chooses: file paths, server keys, package names. One payload in every field,
+  // including the ones the earlier test did not reach.
+  const p = "<script>alert(1)</script>"
+  const q = String.fromCharCode(34) + "><img onerror=1>"
+  const html = toHtmlReport({
+    verdict: p,
+    policyVersion: p,
+    findings: [{ rule: p, severity: "high", file: q, message: p, reason: q }],
+    coverage: {
+      checksRun: [p],
+      checksFailed: [{ id: p, error: q }],
+      evidenceMissing: [{ server: q, block: p, reason: q }],
+      filesRead: [q],
+      unparsedFiles: [p],
+      malformed: [{ source: p, detail: q }],
+    },
+  }, { root: q, generatedAt: p, policy: { note: p } })
+
+  assert.equal(html.indexOf("<script"), -1, "a script tag survived")
+  assert.equal(html.indexOf("<img onerror"), -1, "an image tag survived")
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/)
+  // the verdict lands inside a class attribute, where a quote is the dangerous character
+  assert.equal(html.indexOf("class=\"verdict " + q), -1, "a quote closed the class attribute")
+})
