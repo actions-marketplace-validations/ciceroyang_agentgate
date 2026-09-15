@@ -170,6 +170,8 @@ node scripts/verify-real-server.mjs
 - [docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md) — aliyun plus the 智量.com domain, with the ICP filing caveat called out.
 - [docs/operations/trademark-filing.md](docs/operations/trademark-filing.md) — the filing sheet, ready except for the applicant details.
 - [docs/operations/outreach-templates.md](docs/operations/outreach-templates.md) — how the first three design partners are approached.
+- [docs/operations/plan-b-no-icp.md](docs/operations/plan-b-no-icp.md) — what to do when a mainland server has no ICP filing, which is the one thing that can stop a deployment halfway.
+- [deploy/](deploy/) — the Caddyfile and a systemd unit, ready to copy to a server.
 - [docs/product/decisions-2026-09.md](docs/product/decisions-2026-09.md) — the four decisions, with numbers: npm, trademark, design partners, pricing.
 - [site/index.html](site/index.html) and [site/pricing.html](site/pricing.html) — the landing and pricing pages, self-contained, no external assets.
 - [scripts/onboard-server.sh](scripts/onboard-server.sh) — the deployment steps as a script that prints what it would do and only acts with `--apply`.

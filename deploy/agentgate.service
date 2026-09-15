@@ -1,0 +1,28 @@
+# 可选：不想用 Docker 时，用 systemd 直接跑。
+# 复制到 /etc/systemd/system/agentgate.service，然后：
+#   systemctl daemon-reload && systemctl enable --now agentgate
+[Unit]
+Description=agentgate evidence service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/agentgate
+Environment=AGENTGATE_INDEX=/opt/agentgate/data/index.json
+Environment=AGENTGATE_SAMPLE=/opt/agentgate/data/sample-index.json
+Environment=AGENTGATE_HOST=127.0.0.1
+Environment=AGENTGATE_PORT=8080
+ExecStart=/usr/bin/node bin/agentgate.mjs serve
+Restart=always
+RestartSec=5
+# 只读运行：服务不需要写任何东西
+ProtectSystem=strict
+ReadOnlyPaths=/opt/agentgate
+NoNewPrivileges=true
+PrivateTmp=true
+User=agentgate
+Group=agentgate
+
+[Install]
+WantedBy=multi-user.target

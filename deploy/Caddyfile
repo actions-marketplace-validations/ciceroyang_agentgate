@@ -1,0 +1,33 @@
+# 复制到服务器 /etc/caddy/Caddyfile。
+#
+# 智量.com 是中文域名，证书与路由都用 punycode 写，Caddy 不接受中文字面量。
+# 把 <服务器公网IP> 处不需要填——DNS 的 A 记录负责指向，这里只管域名。
+
+# 主域：产品/品牌页。若另一个站点要保留，把这一段挪到 me.xn--5kvo87g.com。
+xn--5kvo87g.com, www.xn--5kvo87g.com {
+	root * /var/www/zhiliang
+	encode gzip
+	file_server
+}
+
+# 控制台与 API：同一个服务，两个名字。
+app.xn--5kvo87g.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8080
+}
+
+api.xn--5kvo87g.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8080
+}
+
+# 文档（可选）：直接指向仓库里的 docs 或另建静态站。
+docs.xn--5kvo87g.com {
+	root * /var/www/zhiliang-docs
+	file_server
+}
+
+# 说明：
+# - Caddy 会自动申请并续期 Let's Encrypt 证书，前提是 80/443 已放行且 DNS 已生效。
+# - 中国大陆服务器必须先完成 ICP 备案，否则 80/443 会被拦截（见 docs/operations/plan-b-no-icp.md）。
+# - 不要把 8080 暴露到公网：安全组只开 22 / 80 / 443，Caddy 通过回环访问服务。

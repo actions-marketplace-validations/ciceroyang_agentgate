@@ -58,6 +58,15 @@ sudo docker compose up -d agentgate
 curl -s localhost:8080/health
 ```
 
+## 现成的部署文件
+
+- `deploy/Caddyfile` — 复制到 `/etc/caddy/Caddyfile`，域名已用 punycode 写好；
+- `deploy/agentgate.service` — 不用 Docker 时用 systemd 直接跑（只读运行）；
+- `scripts/onboard-server.sh` — 先预演再执行；
+- `scripts/smoke.mjs` — 部署后检查。
+
+**一个有用性质**：服务每次请求都重读索引文件，所以 `refresh` 之后**不需要重启服务**，新数据立刻生效。
+
 ## Caddy（自动 HTTPS）
 
 ```
