@@ -140,3 +140,34 @@ test("a custom --repo is what the clone actually uses", function () {
   assert.match(out.stdout, /git clone https:\/\/gitee\.com\/someone\/agentgate/)
   assert.doesNotMatch(out.stdout, /git clone https:\/\/github\.com/, "the mirror was ignored")
 })
+
+test("every name Caddy serves is a name the runbook tells the user to create", function () {
+  // The Caddyfile served five names and the runbook listed three. The two that were missing are
+  // the apex and www, so the brand domain would have come up without a certificate while every
+  // other step reported success.
+  const caddyText = readFileSync(join(ROOT, "deploy", "Caddyfile"), "utf8")
+  const served = new Set()
+  for (const raw of caddyText.split("\n")) {
+    const m = /^([^{]+?)\s*\{$/.exec(raw.trim())
+    if (!m) continue
+    for (const token of m[1].split(",")) {
+      const host = token.trim()
+      if (/^[a-z0-9.-]+\.[a-z0-9-]+$/.test(host)) served.add(host)
+    }
+  }
+  assert.ok(served.size >= 4, "the Caddyfile parse found too few names: " + Array.from(served).join(", "))
+
+  const runbook = readFileSync(join(ROOT, "docs", "operations", "deployment-runbook.md"), "utf8")
+  // Only the DNS section counts. The runbook also quotes the whole Caddyfile further down, so a
+  // check against the whole file stayed green even with the apex row deleted: the name was still
+  // somewhere on the page, just not where somebody would read it and create the record.
+  const section = /## 前置([\s\S]*?)\n## /.exec(runbook)
+  assert.ok(section, "the runbook has no 前置 section")
+  // Split into whole tokens. A substring check would count "www.xn--5kvo87g.com" as containing
+  // the apex, so deleting only the apex row would go unnoticed.
+  const tokens = section[1].split(/[^a-z0-9.-]+/)
+  const missing = Array.from(served).filter(function (host) { return tokens.indexOf(host) === -1 })
+  assert.deepEqual(missing, [], "Caddy serves names the runbook DNS section never tells the user to create")
+
+  assert.match(runbook, /没有 `try\.`/, "the runbook no longer says there is no try. subdomain")
+})

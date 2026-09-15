@@ -27,15 +27,20 @@
 
 - 服务器：Linux x86_64 或 arm64，2 vCPU / 4 GB 起（索引与历史都很小，瓶颈在网络）。
 - 安全组放行：22（或自定义 SSH 端口）、80、443。
-- DNS：`A` 记录指向服务器公网 IP。中文域名用 punycode。
+- DNS：`A` 记录指向服务器公网 IP。中文域名在配置里一律用 punycode，所以下面直接给 punycode。
+- **Caddy 服务这五个名字,五个都要有 A 记录。** 少配一个,那个名字的证书就签不下来,主域会是空的:
 
 ```
-app.智量.com   →  xn--5kvo87g.com 的子域，配 A 记录 →  <公网IP>
-api.智量.com   →  同上
-docs.智量.com  →  同上
+xn--5kvo87g.com          主机记录 @      类型 A   值 <公网IP>
+www.xn--5kvo87g.com      主机记录 www    类型 A   值 <公网IP>
+app.xn--5kvo87g.com      主机记录 app    类型 A   值 <公网IP>
+api.xn--5kvo87g.com      主机记录 api    类型 A   值 <公网IP>
+docs.xn--5kvo87g.com     主机记录 docs   类型 A   值 <公网IP>
 ```
 
-在阿里云云解析里，主机记录填 `app`、`api`、`docs`，记录类型 `A`，值填公网 IP。
+另一个站点(如果保留):把 `me.xn--5kvo87g.com` 用 CNAME 指向它现在所在的地方。这台服务器不管它。
+
+**没有 `try.`**:在线试用的页面就在主站的 `/try.html`,不需要单独的子域。
 
 **大陆服务器需要 ICP 备案才能用 80/443**，见 `what-i-need.md` 第三节。
 
