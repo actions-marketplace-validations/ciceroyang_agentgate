@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>价格 · 智量</title>
+<style>
+:root{--fg:#111;--muted:#5b6472;--line:#e6e8eb;--bg:#fff}
+@media (prefers-color-scheme: dark){:root{--fg:#e8eaed;--muted:#9aa4b2;--line:#2a2f36;--bg:#0f1115}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,-apple-system,"PingFang SC",sans-serif}
+main{max-width:860px;margin:0 auto;padding:56px 20px 96px}
+h1{font-size:30px;margin:0 0 8px}
+.sub{color:var(--muted);margin:0 0 32px}
+table{width:100%;border-collapse:collapse;margin:24px 0}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:15px}
+th{color:var(--muted);font-weight:600}
+.price{font-size:22px;font-weight:600}
+ul{margin:6px 0 0;padding-left:18px}
+li{color:var(--muted);font-size:14px}
+.cta{display:inline-block;margin-top:8px;padding:10px 16px;border:1px solid var(--fg);border-radius:8px;text-decoration:none;color:inherit}
+footer{margin-top:64px;color:var(--muted);font-size:14px;border-top:1px solid var(--line);padding-top:16px}
+</style></head><body><main>
+
+<h1>价格</h1>
+<p class="sub">开源内核免费自托管。收费的是"能把证据拿给审计"那部分。</p>
+
+<table>
+<tr><th>版本</th><th>价格</th><th>包含</th></tr>
+<tr>
+<td><b>Community</b><br><span style="color:var(--muted);font-size:14px">自托管</span></td>
+<td class="price">免费</td>
+<td>开源内核全部能力<ul><li>注册表与包清单采集、证据索引</li><li>策略语言与本地检查（CI 可用）</li><li>运行时网关（工具调用拦截与留痕）</li><li>历史 diff：版本没动、证据变了的东西</li><li>单机服务与 badge</li></ul></td>
+</tr>
+<tr>
+<td><b>Team</b><br><span style="color:var(--muted);font-size:14px">面向一个团队</span></td>
+<td class="price">¥29,800<br><span style="font-weight:400;color:var(--muted);font-size:14px">/ 年</span></td>
+<td><ul><li>最多 50 个仓库纳入治理</li><li>基础 SSO</li><li>180 天历史留存</li><li>SARIF / SIEM 导出</li><li>策略模板与技术邮件支持</li></ul></td>
+</tr>
+<tr>
+<td><b>Enterprise</b><br><span style="color:var(--muted);font-size:14px">面向全公司</span></td>
+<td class="price">¥158,000<br><span style="font-weight:400;color:var(--muted);font-size:14px">/ 年起</span></td>
+<td><ul><li>SSO / SAML、RBAC、多租户</li><li>不限历史留存</li><li>签名审计导出（对内审/合规交付）</li><li>SIEM 与工单系统对接</li><li>SLA 与部署协助</li></ul></td>
+</tr>
+</table>
+
+<p><b>为什么按组织收费，不按人头：</b>我们交付的是跨仓库、跨团队的一张账。按人头计费会惩罚你把更多人纳入治理——那正好和产品目的相反。</p>
+
+<h2 style="font-size:19px;margin-top:40px">先不买，也可以试</h2>
+<p>我们正在找 3 家公司做四周的<b>免费证据体检</b>：用你们的真实仓库跑一遍，交一份带证据的报告（哪些 MCP 配置不合规、安装期会执行什么、过去一周什么被静默改了）。不收费，只换一次一小时回访。</p>
+<p><a class="cta" href="mailto:hello@xn--5kvo87g.com?subject=%E7%94%B3%E8%AF%B7%E5%85%8D%E8%B4%B9%E8%AF%81%E6%8D%AE%E4%BD%93%E6%A3%80">申请免费体检</a></p>
+
+<footer>
+<p>价格含税与否、合同主体与付款方式以正式报价单为准。此页为方案草案。</p>
+<p><a href="index.html">返回首页</a> · <a href="https://github.com/ciceroyang/agentgate">GitHub</a></p>
+</footer>
+
+</main></body></html>

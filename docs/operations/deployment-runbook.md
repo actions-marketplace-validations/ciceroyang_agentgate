@@ -105,6 +105,19 @@ cd /opt/agentgate && git log --oneline -5 && git checkout <good-sha> && docker c
 
 索引格式是「只加字段」的，所以回滚代码不会让旧索引读不出来。
 
+## 自动化脚本
+
+```sh
+# 在服务器上，先预演，确认无误再 --apply
+bash scripts/onboard-server.sh
+sudo bash scripts/onboard-server.sh --apply
+
+# 部署后检查（把地址换成公网入口）
+node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000
+```
+
+`--expect-min 1000` 是关键的一条：样本索引只有 300 条，如果这里过了但数字还是 300，说明**采集没跑成功，服务在读样本**。
+
 ## 上线检查清单
 
 - [ ] `curl https://api.智量.com/health` 返回 200，且 `records` 不是样本的 300 条

@@ -171,7 +171,9 @@ node scripts/verify-real-server.mjs
 - [docs/operations/trademark-filing.md](docs/operations/trademark-filing.md) — the filing sheet, ready except for the applicant details.
 - [docs/operations/outreach-templates.md](docs/operations/outreach-templates.md) — how the first three design partners are approached.
 - [docs/product/decisions-2026-09.md](docs/product/decisions-2026-09.md) — the four decisions, with numbers: npm, trademark, design partners, pricing.
-- [site/index.html](site/index.html) — the landing page for the domain, self-contained, no external assets.
+- [site/index.html](site/index.html) and [site/pricing.html](site/pricing.html) — the landing and pricing pages, self-contained, no external assets.
+- [scripts/onboard-server.sh](scripts/onboard-server.sh) — the deployment steps as a script that prints what it would do and only acts with `--apply`.
+- [scripts/smoke.mjs](scripts/smoke.mjs) — the post-deployment check: reachable, index present, index recent, records real rather than the sample.
 
 ## Status, honestly
 
