@@ -49,9 +49,9 @@ app.xn--5kvo87g.com {
 	}
 }
 
-# 访问日志:默认进 journald(含 IP 与 UA)。不用于画像,也不共享。
-# 保留期建议 7 天,依据见 docs/operations/legal/data-handling.md:
-#   /etc/systemd/journald.conf.d/agentgate.conf 里设 MaxRetentionSec=7day
+# 此模板未显式启用 HTTP 访问日志（没有 log 指令）；进程日志不等于访问日志。
+# 若运营者另行启用访问日志，应说明 IP/UA 等字段、输出位置和保留期。
+# 线上实际配置与保留期需单独核验，不能以此模板推定；见 docs/operations/legal/data-handling.md。
 
 # 说明:
 # - Caddy 会自动申请并续期 Let's Encrypt 证书,前提是 80/443 已放行且 DNS 已生效。

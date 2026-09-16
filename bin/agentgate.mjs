@@ -6,7 +6,7 @@
  *   agentgate refresh   rebuild the index from public sources
  *   agentgate version
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync, writeFileSync, statSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { execFileSync, spawnSync } from "node:child_process"
@@ -21,6 +21,8 @@ import { toSarif } from "../packages/policy/src/sarif.mjs"
 import { toHtmlReport } from "../packages/policy/src/html-report.mjs"
 import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
 import { createProxy } from "../packages/gateway/src/proxy.mjs"
+import { parseInventory, createInventoryReport } from "../packages/inventory/src/inventory.mjs"
+import { renderInventoryReport } from "../packages/inventory/src/report.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -67,6 +69,7 @@ function serve(flags) {
       const bound = server.address() && server.address().port
       console.log("agentgate serving http://" + host + ":" + bound)
       console.log("index: " + which)
+      console.log("my tools: http://" + host + ":" + bound + "/inventory.html")
       console.log("routes: /health /v1/index/summary /v1/servers /v1/servers/:name /badge/:name.svg")
     },
   })
@@ -189,6 +192,35 @@ function diff(flags) {
 }
 
 const args = parse(process.argv.slice(2))
+function inventory(flags) {
+  try {
+    if (typeof flags.input !== "string") throw new Error("请用 --input 指定工具清单（文本或 JSON），不会自动读取你的配置。")
+    const format = flags.format || "html"
+    if (!["html", "json"].includes(format)) throw new Error("清单报告格式只支持 html 或 json。")
+    if (flags.out !== undefined && typeof flags.out !== "string") throw new Error("--out 需要一个输出文件路径。")
+    if (flags.index !== undefined && typeof flags.index !== "string") throw new Error("--index 需要一个索引文件路径。")
+    const chosen = resolveIndex(flags)
+    // An explicit index must never silently fall back to the committed sample.
+    const indexPath = flags.index || process.env.AGENTGATE_INDEX || chosen.path
+    if (statSync(flags.input).size > 1024 * 1024) throw new Error("工具清单不能超过 1 MB。")
+    const entries = parseInventory(readFileSync(flags.input, "utf8"))
+    const index = JSON.parse(readFileSync(indexPath, "utf8"))
+    if (!index || !Array.isArray(index.records)) throw new Error("证据索引缺少 records 列表，无法生成报告。")
+    const report = createInventoryReport(entries, index, { generatedAt: new Date().toISOString() })
+    const rendered = format === "json" ? JSON.stringify(report, null, 2) : renderInventoryReport(report)
+    if (flags.out) {
+      if ([flags.input, indexPath].some(function (p) { return resolve(p) === resolve(flags.out) })) throw new Error("报告不能覆盖输入清单或证据索引。")
+      // Reports can contain a private inventory. Do not overwrite a previous report implicitly.
+      writeFileSync(flags.out, rendered + "\n", { flag: "wx", mode: 0o600 })
+      console.log("清单报告已保存：" + resolve(flags.out))
+      console.log("共 " + report.summary.total + " 项；需要补充或确认 " + report.summary.needsAttention + " 项。报告生成不代表安全通过。")
+    } else process.stdout.write(rendered + "\n")
+    // This is report generation, not the policy check command: unknowns are retained in the report.
+  } catch (error) {
+    console.error("inventory: " + error.message)
+    process.exitCode = 2
+  }
+}
 function proxy(flags, rest) {
   if (rest.length === 0) { console.error("usage: agentgate proxy --policy policy.json [--log calls.jsonl] -- <server command> [args...]"); process.exit(3) }
   let policy
@@ -210,7 +242,8 @@ function proxy(flags, rest) {
   })
 }
 
-if (args.command === "check") check(args.flags)
+if (args.command === "inventory") inventory(args.flags)
+else if (args.command === "check") check(args.flags)
 else if (args.command === "proxy") proxy(args.flags, args.rest)
 else if (args.command === "diff") diff(args.flags)
 else if (args.command === "serve") serve(args.flags)
@@ -219,6 +252,7 @@ else if (args.command === "version") console.log("agentgate 0.1.0")
 else {
   console.log("agentgate <command>")
   console.log("")
+  console.log("  inventory --input tools.txt [--index data/index.json] [--format html|json] [--out report.html]")
   console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")
   console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")

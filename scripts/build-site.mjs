@@ -11,6 +11,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, copyFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+import { renderInventoryPage } from "../packages/inventory/src/web.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const args = process.argv.slice(2)
@@ -225,12 +226,22 @@ if (pagesDir && existsSync(pagesDir)) {
   for (const name of readdirSync(pagesDir)) {
     // the plain pages plus the small assets a real site needs (favicon, robots, sitemap, 404)
     if (!/\.[a-z0-9]+$/.test(name)) continue
-    if (name === "evidence.html" || name === "server.html" || name === "owner.html") continue
+    if (name === "evidence.html" || name === "server.html" || name === "owner.html" || name === "inventory.html") continue
     const target = name === "index.html" ? "index.html" : name
     if (target === indexName) continue
     copyFileSync(join(pagesDir, name), join(outDir, target))
     copied += 1
   }
+}
+// The personal inventory never leaves the browser. Ship the public snapshot and the same
+// matching/report modules used by the offline CLI, not a name-querying upload endpoint.
+const inventoryTemplate = join(ROOT, "site", "inventory.html")
+if (existsSync(inventoryTemplate)) {
+  const inventoryIndex = { ...index, records: kept, count: kept.length, total: all.length, truncated }
+  writeFileSync(join(outDir, "inventory.html"), renderInventoryPage(readFileSync(inventoryTemplate, "utf8"), inventoryIndex))
+  copyFileSync(join(ROOT, "site", "inventory-page.mjs"), join(outDir, "inventory-page.mjs"))
+  copyFileSync(join(ROOT, "packages", "inventory", "src", "inventory.mjs"), join(outDir, "inventory.mjs"))
+  copyFileSync(join(ROOT, "packages", "inventory", "src", "report.mjs"), join(outDir, "inventory-report.mjs"))
 }
 if (existsSync(SERVER_TEMPLATE)) {
   const serverTpl = readFileSync(SERVER_TEMPLATE, "utf8")

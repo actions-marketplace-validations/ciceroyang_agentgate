@@ -1,0 +1,13 @@
+{
+  "tools": [
+    {
+      "name": "演示：已提供版本（不是本机安装清单）",
+      "server": "agency.kesey/pretrip",
+      "package": "pretrip-mcp",
+      "registry": "npm",
+      "version": "1.0.1"
+    },
+    { "name": "演示：尚未确认版本", "package": "@adeu/mcp-server", "registry": "npm" },
+    { "name": "example-not-in-the-catalog" }
+  ]
+}

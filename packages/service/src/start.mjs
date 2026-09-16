@@ -15,7 +15,7 @@ export function start(options) {
       res.end(JSON.stringify({ error: "the service failed to answer, which is not a pass", detail: String((error && error.message) || error) }) + "\n")
       return
     }
-    res.writeHead(out.status, { "content-type": out.type })
+    res.writeHead(out.status, Object.assign({ "content-type": out.type }, out.headers || {}))
     res.end(out.body)
   })
   // 0 is a valid port that asks the operating system for a free one. "options.port || 8080"

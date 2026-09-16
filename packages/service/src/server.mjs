@@ -6,6 +6,7 @@
  * cannot answer must not look like one that answered "nothing wrong".
  */
 import { readFileSync, existsSync, statSync } from "node:fs"
+import { inventoryResource } from "../../inventory/src/web.mjs"
 
 const COLORS = { clean: "#2ea043", findings: "#d29922", incomplete: "#8b949e" }
 
@@ -88,6 +89,8 @@ export function createService(options) {
       const url = new URL(rawPath, "http://localhost")
       const path = url.pathname
       if (method !== "GET") return json(405, { error: "only GET is served" })
+      const inventory = inventoryResource(path, load)
+      if (inventory) return inventory
       if (path === "/health") {
         const loaded = load()
         if (!loaded) return json(503, { ok: false, reason: "no usable index is present", hint: "run: node bin/agentgate.mjs refresh" })

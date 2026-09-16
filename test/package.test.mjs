@@ -63,7 +63,7 @@ function runCli(pkgDir, cwd, args, opts) {
 
 test("the published tarball carries every module the CLI imports", function () {
   const { files } = pack()
-  for (const required of ["bin/agentgate.mjs", "data/sample-index.json", "README.md", "LICENSE"]) {
+  for (const required of ["bin/agentgate.mjs", "data/sample-index.json", "README.md", "LICENSE", "site/inventory.html", "site/inventory-page.mjs", "site/favicon.svg", "examples/inventory/tools.json"]) {
     assert.ok(files.indexOf(required) !== -1, "the tarball is missing " + required)
   }
   const missing = []
@@ -132,6 +132,12 @@ test("installed from a tarball, serve answers for the snapshot it was published 
     assert.ok(body, "the service never answered on port " + port + "\n" + output)
     assert.ok(body.index, "something that is not this service answered on port " + port)
     assert.ok(body.records > 0, "the service answered with an empty index: " + JSON.stringify(body))
+    const inventory = await fetch("http://127.0.0.1:" + port + "/inventory.html")
+    assert.equal(inventory.status, 200, "the installed package must ship the inventory page")
+    assert.doesNotMatch(await inventory.text(), /__INVENTORY_INDEX__/)
+    for (const asset of ["inventory.mjs", "inventory-report.mjs", "inventory-page.mjs"]) {
+      assert.equal((await fetch("http://127.0.0.1:" + port + "/" + asset)).status, 200, asset)
+    }
   } finally {
     child.kill("SIGKILL")
   }

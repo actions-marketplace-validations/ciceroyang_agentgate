@@ -23,9 +23,10 @@ built so that cannot happen.
 
 ## Starting the deployment
 
-If you are the person this was built for, read
-[docs/operations/START-HERE.md](docs/operations/START-HERE.md) first: one fact is needed
-from you, three decisions are already made, and it ends with a reply template to fill in.
+Deployment instructions are in
+[docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md).
+[docs/verification.md](docs/verification.md) records the first deployment on 2026-09-16,
+along with what was checked and what remains unverified.
 
 ## Reading
 
@@ -77,6 +78,37 @@ Or with docker, which runs the same command in a container:
 docker compose up                            # the service on :8080
 docker compose --profile collect run --rm refresh   # rebuild data/index.json and seed the first snapshot
 ```
+
+## My tool inventory
+
+Start `node bin/agentgate.mjs serve` and open `/inventory.html` on the printed local
+address. Paste a tool-name list or choose a text/JSON file, resolve ambiguous matches,
+enter the version you actually use, and download a standalone HTML evidence report.
+The page compares the list in browser memory against its embedded index snapshot:
+it does not upload the list, store it, scan your machine, or execute tools.
+
+For the same workflow without a browser:
+
+```sh
+node bin/agentgate.mjs inventory --input examples/inventory/tools.json --out my-tools.html
+node bin/agentgate.mjs inventory --input tools.json --index data/index.json --format json
+```
+
+An input can be one name per line, a JSON array, or `{ "tools": [...] }`. Each object
+accepts only `name`, `server`, `package`, `registry`, and `version`; complete client
+configurations and credentials are deliberately not accepted. See the
+[inventory input and report guide](docs/spec/inventory-v1.md).
+
+Unmatched, ambiguous, missing-version, different-version, and incomplete-evidence
+items stay in the report. A matching version is not proof of what is installed.
+The committed sample is explicitly historical and cannot provide a confirmed match;
+neither can old evidence without an exact content binding. Even a confirmed evidence
+match is not a safety certification or a new scan. Review the checked scopes, findings,
+snapshot date, and gaps before deciding what to use.
+
+The command exits zero when it produces a report, **not** when all tools pass; malformed
+input or unreadable data exits 2. `--out` refuses to overwrite an existing file.
+Use `check`, not `inventory`, for policy enforcement in CI.
 
 ## Policy
 
@@ -206,6 +238,10 @@ node packages/guard/scripts/regression.mjs   # benign must stay silent, positive
 ```
 packages/guard     the scanner: engine, eight checks, CLI, corpus, GitHub Action
 packages/collect   census, package and repository scanning, the evidence index
+packages/policy    policy evaluation and human-readable reports
+packages/gateway   runtime policy enforcement for MCP servers over stdio
+packages/history   index snapshots and change comparisons
+packages/service   the read-only evidence API
 packages/verify    cross-model claim checking
 docs/              architecture and product notes
 ```
@@ -219,6 +255,14 @@ wrote: a real MCP server through the gateway, and the list of what is still unve
 ```sh
 node scripts/verify-real-server.mjs
 ```
+
+To check whether the index's `high` and `critical` findings still match recorded human
+reviews, run `node scripts/review-criticals.mjs` (the command keeps its original name).
+Each review must bind the finding's identity and evidence to an exact package version
+and complete scanned-content provenance, including its SHA-256 digest and scope.
+Missing or changed bindings require another human review. Legacy approval records are
+not automatically upgraded. `--accept` records a completed human review and refuses
+incomplete provenance; it does not perform the review or certify third-party code.
 
 ## Operating this
 
@@ -236,11 +280,21 @@ node scripts/verify-real-server.mjs
 
 ## Status, honestly
 
-This is an open-source core in pieces, not yet a product. There is no runtime gateway,
-no SSO or multi-tenancy, and no deployment story. What works is the evidence half: the
-collection pipelines run on a schedule, the index derives its verdicts instead of
-asserting them, and the scanner has a suite that includes the one that says a crashed check
-can never produce `clean`. It prints its own count; this page does not repeat it.
+This is an early open-source core. It includes collection, an evidence index, scanning,
+policy checks in CI, a runtime gateway for MCP servers over stdio, historical diffs and
+a read-only service. Deployment scripts and a runbook exist; the first server deployment
+and its checks are recorded in [docs/verification.md](docs/verification.md). That record
+does not establish the current health of the hosted service, and the Docker image build
+remains unverified there.
+
+The enterprise capabilities described in the pricing proposal — SSO/SAML, RBAC,
+multi-tenancy and signed audit export — are not implemented. Team and Enterprise prices
+are hypotheses that have not been validated with customers; the free pilot is intended
+to test that demand. See [the product decisions](docs/product/decisions-2026-09.md) and
+[the pilot scope](docs/operations/pilot-package.md).
+
+The scanner's suite includes the invariant that a crashed check can never produce
+`clean`. Run `npm test` for the current results; this page does not repeat a test count.
 
 ## Licence
 

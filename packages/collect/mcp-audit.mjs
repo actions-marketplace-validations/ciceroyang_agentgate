@@ -14,6 +14,7 @@
  */
 import { writeFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
+import { contentProvenance, exactNpmManifest, isExactNpmVersion, isNpmPackageName, normalizeHookScriptPath } from './provenance.mjs'
 
 export const VERSION = '0.1.0'
 export const SCHEMA = 'mcp-supply-audit/v1'
@@ -21,7 +22,7 @@ export const REGISTRY = 'https://registry.modelcontextprotocol.io/v0/servers'
 
 export function defaultHttp(url, headers) {
   return fetch(url, { headers: headers || {}, redirect: 'follow', signal: AbortSignal.timeout(30000) })
-    .then(async (res) => ({ status: res.status, text: res.status === 200 ? await res.text() : '' }))
+    .then(async (res) => ({ status: res.status, url: res.url, text: res.status === 200 ? await res.text() : '' }))
     .catch(() => ({ status: 0, text: '' }))
 }
 
@@ -271,8 +272,13 @@ export function hookScriptRefs(scripts) {
   for (const hook of INSTALL_HOOKS) {
     const value = scripts?.[hook]
     if (typeof value !== 'string') continue
-    const match = /\bnode\s+(?:"|')?([\w./@-]+\.(?:c?js|mjs))/.exec(value)
-    if (match) refs.add(match[1])
+    // Keep the entire argument, including unsafe URL/path syntax, so a truncated
+    // safe-looking prefix cannot be fetched and reported as the referenced file.
+    const match = /\bnode\s+((?:"[^"]*"|'[^']*'|[^\s;&|])+)/.exec(value)
+    if (!match) continue
+    let ref = match[1]
+    if (/^"[^"]*"$|^'[^']*'$/.test(ref)) ref = ref.slice(1, -1)
+    if (!ref.startsWith('-')) refs.add(ref)
   }
   return [...refs]
 }
@@ -302,15 +308,22 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
   }
 
   const declaredVersion = declared.version ?? packages[0]?.version ?? null
-  const versionDoc = declaredVersion && pkgMeta.versions ? pkgMeta.versions[declaredVersion] : null
+  const versionDoc = exactNpmManifest(pkgMeta, declaredVersion, packages[0]?.identifier)
   const latest = pkgMeta['dist-tags']?.latest ?? null
 
-  const scripts = versionDoc?.scripts ?? pkgMeta.scripts ?? null
+  if (!versionDoc) {
+    add('declared-version-not-found', 'unknown', 'exact declared npm version ' + JSON.stringify(declaredVersion) + ' has no matching manifest; no latest fallback was scanned')
+    return findings
+  }
+
+  const scripts = versionDoc.scripts ?? null
   if (scripts) {
     for (const hook of INSTALL_HOOKS) {
       const value = scripts[hook]
       if (typeof value !== 'string' || value.trim() === '') continue
-      const ownRefs = hookScriptRefs({ [hook]: value }).map(function (ref) { return { ref: ref, content: hookScripts[ref] } })
+      const ownRefs = hookScriptRefs({ [hook]: value }).map(function (ref) {
+        return { ref, content: normalizeHookScriptPath(ref) !== null ? hookScripts[ref] : undefined }
+      })
       const read = installHookReads(value, ownRefs)
       add('install-time-execution', read.severity, 'scripts.' + hook + '=' + JSON.stringify(value) + read.note)
       const label = criticalPatternOf(value, 'hook')
@@ -319,8 +332,8 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
         continue
       }
       for (const ref of hookScriptRefs(scripts)) {
-        const content = hookScripts[ref]
-        if (content === undefined || content === null) {
+        const content = normalizeHookScriptPath(ref) !== null ? hookScripts[ref] : undefined
+        if (typeof content !== 'string') {
           add('install-hook-script-unavailable', 'unknown', 'hook runs ' + ref + '; content could not be fetched')
           continue
         }
@@ -339,7 +352,7 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
     }
   }
 
-  const repoUrl = versionDoc?.repository?.url ?? (typeof pkgMeta.repository === 'string' ? pkgMeta.repository : pkgMeta.repository?.url) ?? null
+  const repoUrl = typeof versionDoc.repository === 'string' ? versionDoc.repository : versionDoc.repository?.url ?? null
   const registryRepo = server?.repository?.url ?? server?.repository ?? null
   // Whether the registry names a repository is not whether the field is truthy. A registry entry
   // with "repository": {} is truthy and names nothing, and repoKey answers null for it — which
@@ -368,8 +381,9 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
   if (latest && declaredVersion && latest !== declaredVersion) {
     add('declared-version-not-latest', 'info', 'registry declares ' + declaredVersion + ', npm latest is ' + latest)
   }
-  if (pkgMeta.deprecated) {
-    add('package-deprecated', 'info', 'npm deprecation message: ' + JSON.stringify(String(pkgMeta.deprecated).slice(0, 160)))
+  const deprecated = versionDoc.deprecated ?? pkgMeta.deprecated
+  if (deprecated) {
+    add('package-deprecated', 'info', 'npm deprecation message: ' + JSON.stringify(String(deprecated).slice(0, 160)))
   }
 
   const deps = Object.assign({}, versionDoc?.dependencies ?? {}, versionDoc?.optionalDependencies ?? {})
@@ -387,14 +401,18 @@ function npmUrl(name) {
 /** Fetch one npm document; returns null on any failure (the caller records unknown). */
 /** Fetch a file from a published package (unpkg, then jsdelivr). Read-only. */
 export async function fetchHookScript(name, version, path, http = defaultHttp) {
-  const clean = String(path).replace(/^\.\//, '')
+  const clean = normalizeHookScriptPath(path)
+  if (!isNpmPackageName(name) || !isExactNpmVersion(version) || clean === null) return null
   const candidates = [
     'https://unpkg.com/' + name + '@' + version + '/' + clean,
     'https://cdn.jsdelivr.net/npm/' + name + '@' + version + '/' + clean,
   ]
   for (const url of candidates) {
     const res = await http(url)
-    if (res.status === 200 && typeof res.text === 'string' && res.text.length > 0) return res.text
+    // defaultHttp exposes the final URL. Do not bind a redirected package,
+    // version, path or origin to the package/version that was requested.
+    if (res.url !== undefined && res.url !== url) continue
+    if (res.status === 200 && typeof res.text === 'string') return res.text
   }
   return null
 }
@@ -424,7 +442,7 @@ export function auditPypiPackage(server, doc, declared = {}) {
     add('package-metadata-unavailable', 'unknown', 'PyPI JSON metadata unavailable')
     return findings
   }
-  const declaredVersion = declared.version ?? info.version ?? null
+  const declaredVersion = declared.version ?? server?.packages?.[0]?.version ?? null
   const urls = Object.assign({}, info.project_urls || {})
   const vcsEntry = Object.entries(urls).find(([, url]) => /github\.com|gitlab\.com|codeberg\.org|bitbucket\.org/i.test(String(url)))
   const homeIsVcs = /github\.com|gitlab\.com/i.test(String(info.home_page || ''))
@@ -458,6 +476,7 @@ export function auditPypiPackage(server, doc, declared = {}) {
 }
 
 export async function fetchNpmDocument(name, http = defaultHttp) {
+  if (!isNpmPackageName(name)) return null
   const res = await http(npmUrl(name))
   if (res.status !== 200) return null
   try {
@@ -465,6 +484,68 @@ export async function fetchNpmDocument(name, http = defaultHttp) {
   } catch {
     return null
   }
+}
+
+/** Provenance covers the same metadata and direct script texts used by this scan. */
+export function registryProvenance(server, doc = null, hookScripts = {}) {
+  const pkg = Array.isArray(server?.packages) ? server.packages[0] : null
+  const identity = { registry: pkg?.registryType ?? null, name: pkg?.identifier ?? null, version: pkg?.version ?? null }
+  if (identity.registry !== 'npm') {
+    return contentProvenance({
+      package: identity,
+      scope: 'registryDocument/v1: registry server and available package metadata only; exact package manifest and install script content not measured for this registry',
+      input: { registryServer: server, packageMetadata: doc === null ? { status: 'missing' } : { status: 'present', value: doc } },
+      complete: false,
+    })
+  }
+  const manifest = exactNpmManifest(doc, identity.version, identity.name)
+  const scripts = hookScriptRefs(manifest?.scripts).map((path) => normalizeHookScriptPath(path) !== null && typeof hookScripts[path] === 'string'
+    ? { path, status: 'present', content: hookScripts[path] }
+    : { path, status: 'missing' })
+  return contentProvenance({
+    package: identity,
+    scope: 'registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents',
+    input: {
+      registryServer: server,
+      registryMetadata: doc ? { status: 'present', latest: doc['dist-tags']?.latest ?? null, deprecated: doc.deprecated ?? null } : { status: 'missing' },
+      versionManifest: manifest ? { status: 'present', value: manifest } : { status: 'missing' },
+      hookScripts: scripts,
+    },
+    complete: !!manifest && scripts.every((script) => script.status === 'present'),
+  })
+}
+
+/** One server's declared first package, with injectable reads for offline verification. */
+export async function auditRegistryServer(server, { http = defaultHttp } = {}) {
+  const pkg = Array.isArray(server.packages) ? server.packages[0] : null
+  const row = {
+    server: server.name,
+    serverVersion: server.version ?? null,
+    version: pkg?.version ?? null,
+    package: pkg?.identifier ?? null,
+    registryType: pkg?.registryType ?? null,
+    repository: server.repository?.url ?? server.repository ?? null,
+    audited: false,
+    findings: [],
+    provenance: registryProvenance(server),
+  }
+  if (row.registryType === 'npm' && row.package) {
+    const doc = await fetchNpmDocument(row.package, http)
+    const manifest = exactNpmManifest(doc, row.version, row.package)
+    const hookScripts = {}
+    for (const ref of hookScriptRefs(manifest?.scripts)) hookScripts[ref] = await fetchHookScript(row.package, row.version, ref, http)
+    row.findings = auditPackage(server, doc, { version: row.version }, hookScripts)
+    row.provenance = registryProvenance(server, doc, hookScripts)
+    row.audited = true
+    row.auditKind = 'npm'
+  } else if (row.registryType === 'pypi' && row.package) {
+    const doc = await fetchPypiDocument(row.package, http)
+    row.findings = auditPypiPackage(server, doc, { version: row.version })
+    row.provenance = registryProvenance(server, doc)
+    row.audited = true
+    row.auditKind = 'pypi'
+  }
+  return row
 }
 
 function severityRank(severity) {
@@ -552,53 +633,16 @@ async function main() {
 
   const uniqueServers = newestPerServer(registry.servers)
   process.stderr.write('unique servers: ' + uniqueServers.length + '\n')
-  const rows = uniqueServers.map((server) => ({
-    server: server.name,
-    version: server.version ?? null,
-    package: Array.isArray(server.packages) && server.packages.length > 0 ? server.packages[0].identifier : null,
-    registryType: Array.isArray(server.packages) && server.packages.length > 0 ? server.packages[0].registryType : null,
-    repository: server.repository?.url ?? server.repository ?? null,
-    audited: false,
-    findings: [],
-  }))
-
-  const npmRows = rows.filter((row) => row.registryType === 'npm' && row.package)
+  const rows = new Array(uniqueServers.length)
   let cursor = 0
   const worker = async () => {
-    while (cursor < npmRows.length) {
+    while (cursor < uniqueServers.length) {
       const index = cursor
       cursor += 1
-      const row = npmRows[index]
-      const server = uniqueServers.find((s) => s.name === row.server)
-      const doc = await fetchNpmDocument(row.package)
-      const declaredVersion = row.version ?? doc?.['dist-tags']?.latest ?? ''
-      const scripts = doc ? (doc.versions?.[declaredVersion]?.scripts ?? doc.scripts ?? null) : null
-      const hookScripts = {}
-      for (const ref of hookScriptRefs(scripts)) {
-        hookScripts[ref] = await fetchHookScript(row.package, declaredVersion, ref)
-      }
-      row.findings = auditPackage(server, doc, { version: row.version }, hookScripts)
-      row.audited = true
-      row.auditKind = 'npm'
+      rows[index] = await auditRegistryServer(uniqueServers[index])
     }
   }
   await Promise.all(Array.from({ length: Math.max(1, args.concurrency) }, worker))
-
-  const pypiRows = rows.filter((row) => row.registryType === 'pypi' && row.package)
-  let pypiCursor = 0
-  const pypiWorker = async () => {
-    while (pypiCursor < pypiRows.length) {
-      const index = pypiCursor
-      pypiCursor += 1
-      const row = pypiRows[index]
-      const server = uniqueServers.find((s) => s.name === row.server)
-      const doc = await fetchPypiDocument(row.package)
-      row.findings = auditPypiPackage(server, doc, { version: row.version })
-      row.audited = true
-      row.auditKind = 'pypi'
-    }
-  }
-  await Promise.all(Array.from({ length: Math.max(1, args.concurrency) }, pypiWorker))
 
   const payload = {
     schema: SCHEMA,

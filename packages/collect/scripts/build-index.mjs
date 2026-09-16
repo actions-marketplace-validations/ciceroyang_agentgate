@@ -19,7 +19,12 @@ export const UNMEASURED = ["unknown"]
 
 export function deriveVerdict(blocks, threshold) {
   const values = Object.keys(blocks).map(function (k) { return blocks[k] })
-  if (values.some(function (b) { return b.status === "unmeasured" })) return VERDICT.INCOMPLETE
+  // Only known, completed states can support a verdict. New failure states must not
+  // silently acquire the meaning of "clean" just because their findings are empty.
+  if (values.length === 0 || values.some(function (b) {
+    return !b || (b.status !== "clean" && b.status !== "findings") || !Array.isArray(b.findings)
+      || (b.status === "findings" && b.findings.length === 0)
+  })) return VERDICT.INCOMPLETE
   // "unknown" and any severity this code does not recognise mean the same thing: we cannot call
   // the record clean, because we do not know what the finding says. RANK has no entry for
   // either, and ranking an unrankable severity as 0 is how thirty-two records whose only finding
@@ -46,6 +51,13 @@ function asJson(value) {
   try { return JSON.parse(readFileSync(value, "utf8")) } catch (error) { return null }
 }
 
+// A result belongs to the exact server/package/version that was scanned, not to
+// every registration that happens to name the same package.
+function packageKey(row) {
+  if (!row || ![row.server, row.package, row.version].every(function (v) { return typeof v === "string" && v.length > 0 })) return null
+  return JSON.stringify([row.server, row.package, row.version])
+}
+
 export function buildIndex(options) {
   const census = asJson(options.census)
   const guard = asJson(options.guard)
@@ -54,12 +66,21 @@ export function buildIndex(options) {
   const threshold = options.threshold || "medium"
 
   const guardByPackage = new Map()
-  for (const r of (guard && guard.results) || []) guardByPackage.set(r.package, r)
+  for (const r of (guard && guard.results) || []) {
+    const key = packageKey(r)
+    if (!key) continue
+    // Ambiguous duplicate input cannot establish which result is authoritative.
+    guardByPackage.set(key, guardByPackage.has(key)
+      ? { status: "duplicate-results", findings: [] }
+      : r)
+  }
   const repoBySlug = new Map()
   for (const r of (repos && repos.results) || []) {
+    if (!r || typeof r.slug !== "string") continue
     const slug = r.slug.toLowerCase()
-    repoBySlug.set(slug, r)
-    repoBySlug.set(slug.split("/").pop(), r)
+    repoBySlug.set(slug, repoBySlug.has(slug)
+      ? { status: "duplicate-results", findings: [] }
+      : r)
   }
 
   const records = []
@@ -68,18 +89,25 @@ export function buildIndex(options) {
     if (!row || typeof row !== "object" || typeof row.server !== "string") { skipped.push("a row without a server name"); continue }
     const blocks = {}
     blocks.registryDocument = {
-      status: (row.findings || []).length > 0 ? "findings" : "clean",
+      status: row.audited === false ? "unmeasured" : (row.findings || []).length > 0 ? "findings" : "clean",
       source: "mcp-census",
+      reason: row.audited === false ? "not-audited" : null,
       findings: (row.findings || []).map(function (f) { return { rule: f.rule, severity: f.severity, evidence: f.evidence } }),
+      provenance: row.provenance || null,
     }
     if (row.package && row.registryType === "npm") {
-      const pkg = guardByPackage.get(row.package)
+      const pkg = guardByPackage.get(packageKey(row))
       if (pkg) {
+        const knownStatus = pkg.status === "clean" || pkg.status === "findings"
+        const validFindings = Array.isArray(pkg.findings) && (pkg.status !== "findings" || pkg.findings.length > 0)
+        const complete = knownStatus && validFindings
         blocks.packageManifest = {
-          status: pkg.status === "metadata-unavailable" ? "unmeasured" : (pkg.findings || []).length > 0 ? "findings" : "clean",
+          status: !complete ? "unmeasured" : pkg.findings.length > 0 ? "findings" : "clean",
           source: "guard-scan",
-          reason: pkg.status === "metadata-unavailable" ? "metadata-unavailable" : null,
-          findings: (pkg.findings || []).map(function (f) { return { rule: f.rule, severity: f.severity, file: f.file, message: f.message } }),
+          reason: !knownStatus ? (typeof pkg.status === "string" && pkg.status || "missing-status") : !validFindings ? "invalid-findings" : null,
+          error: typeof pkg.error === "string" ? pkg.error : null,
+          findings: (Array.isArray(pkg.findings) ? pkg.findings : []).map(function (f) { return { rule: f.rule, severity: f.severity, file: f.file, message: f.message } }),
+          provenance: pkg.provenance || null,
         }
       } else {
         blocks.packageManifest = { status: "unmeasured", source: "guard-scan", reason: "not-in-run", findings: [] }
@@ -90,12 +118,18 @@ export function buildIndex(options) {
       const slug = m ? (m[1] + "/" + m[2].replace(/\.git$/, "")).toLowerCase() : null
       const repo = slug ? repoBySlug.get(slug) : null
       if (repo) {
+        const knownStatus = repo.status === "clean" || repo.status === "findings"
+        const validFindings = Array.isArray(repo.findings) && (repo.status !== "findings" || repo.findings.length > 0)
         blocks.repository = {
-          status: repo.status === "clean" || repo.status === "findings" ? repo.status : "unmeasured",
+          status: !knownStatus || !validFindings ? "unmeasured" : repo.findings.length > 0 ? "findings" : "clean",
           source: "scan-repos",
-          reason: repo.status === "fetch-failed" ? "fetch-failed" : null,
-          findings: (repo.findings || []).map(function (f) { return { rule: f.rule, severity: f.severity, file: f.file, message: f.message } }),
+          reason: !knownStatus ? (typeof repo.status === "string" && repo.status || "missing-status") : !validFindings ? "invalid-findings" : null,
+          findings: (Array.isArray(repo.findings) ? repo.findings : []).map(function (f) { return { rule: f.rule, severity: f.severity, file: f.file, message: f.message } }),
         }
+      } else if (options.repos) {
+        // Repository scanning is optional. Once requested, however, missing or
+        // truncated results are missing coverage, not permission to omit the block.
+        blocks.repository = { status: "unmeasured", source: "scan-repos", reason: slug ? "not-in-run" : "unsupported-repository", findings: [] }
       }
     }
     records.push({

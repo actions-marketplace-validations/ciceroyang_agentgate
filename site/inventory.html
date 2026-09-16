@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'self'; frame-src 'self' about:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>我的工具清单 · agentgate</title>
+<meta name="description" content="在浏览器本地，将自己的工具清单对照已有证据目录，确认版本与未知项，导出一份静态报告。">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<style>
+:root{--ink:#191c20;--muted:#626b75;--line:#dce1e5;--paper:#fff;--canvas:#f5f6f7;--soft:#edf0f2;--accent:#274a61;--warn:#8a601c;--warn-bg:#fffbf1;--error:#a62a32}
+@media(prefers-color-scheme:dark){:root{--ink:#e9edf0;--muted:#a8b1bb;--line:#3c444c;--paper:#1d2227;--canvas:#14181c;--soft:#272e35;--accent:#a0c4dd;--warn:#e3be79;--warn-bg:#30291e;--error:#ff9ba0}}
+*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:15px/1.7 system-ui,-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}button,input,textarea,select{font:inherit;color:inherit}button,a,input,textarea,select,summary{-webkit-tap-highlight-color:transparent}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}:focus-visible{outline:3px solid var(--accent);outline-offset:3px}a{color:var(--accent)}.skip{position:absolute;top:-100px;left:16px;background:var(--paper);padding:10px 16px;z-index:5}.skip:focus{top:12px}header,main,footer{max-width:1120px;margin:auto;padding-left:28px;padding-right:28px}header{padding-top:28px;padding-bottom:24px;display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{font-weight:600;letter-spacing:.03em;font-size:15px}.brand span{color:var(--muted);font-weight:400;margin-left:8px}.local-mark{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:3px 8px}main{padding-bottom:24px}h1{font-size:32px;line-height:1.25;letter-spacing:-.02em;margin:16px 0 12px}h2{font-size:19px;line-height:1.4;margin:0}h3{font-size:16px;line-height:1.5;margin:0}p{margin:8px 0}.intro{max-width:760px;color:var(--muted);font-size:16px}.boundary{display:flex;gap:12px;align-items:flex-start;max-width:870px;margin:18px 0 24px}.boundary-mark{flex:none;color:var(--accent);font-size:16px}.boundary p{margin:0;font-size:13px;color:var(--muted)}.steps{display:flex;gap:22px;padding:0;margin:24px 0 28px;list-style:none;color:var(--muted);font-size:13px}.steps li{display:flex;gap:8px;align-items:center}.steps span{display:grid;place-items:center;width:23px;height:23px;border:1px solid var(--line);border-radius:50%;font-size:11px}.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:24px;margin:20px 0}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}.eyebrow{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}.meta{font-size:12px;color:var(--muted);line-height:1.65}.snapshot{padding:11px 14px;margin-bottom:20px;background:var(--soft);border-radius:5px;font-size:12px;color:var(--muted);overflow-wrap:anywhere}.snapshot strong{color:var(--ink)}.snapshot p{margin:2px 0}.sample{border-left:3px solid var(--warn);background:var(--warn-bg)}.input-grid{display:grid;grid-template-columns:minmax(0,1fr) 225px;gap:24px}label{display:block;font-weight:500;font-size:13px;margin:0 0 7px}.help{font-size:12px;color:var(--muted);margin:6px 0 12px}textarea{resize:vertical;width:100%;min-height:208px;border:1px solid var(--line);border-radius:6px;padding:13px 14px;background:var(--paper);font:13px/1.85 ui-monospace,SFMono-Regular,Menlo,monospace}textarea::placeholder{color:var(--muted);opacity:.7}.format-note{border-left:1px solid var(--line);padding-left:22px;font-size:13px}.format-note p{color:var(--muted)}.format-note code{font-size:12px;overflow-wrap:anywhere}details{margin-top:14px}summary{cursor:pointer;font-size:12px;color:var(--accent)}pre{font:12px/1.65 ui-monospace,SFMono-Regular,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--soft);border-radius:4px;padding:12px}.actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}.btn{min-height:41px;padding:8px 15px;border:1px solid var(--line);border-radius:6px;background:var(--paper);font-size:13px;line-height:1.6}.btn-primary{color:var(--paper);background:var(--ink);border-color:var(--ink);font-weight:500}.btn-quiet{border-color:transparent;color:var(--muted);background:transparent}.file-area{margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.file-area label{margin:0;font-weight:400;color:var(--muted);font-size:12px}.file-area input{font-size:12px;max-width:100%}.file-area input::file-selector-button{background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 9px;margin-right:8px;cursor:pointer}.error{color:var(--error);border-left:3px solid var(--error);padding:8px 12px;background:var(--paper);margin:16px 0;font-size:13px}.status{font-size:13px;color:var(--muted);min-height:22px;margin-top:14px}.demo-note{padding:10px 14px;background:var(--warn-bg);border-left:3px solid var(--warn);color:var(--warn);font-size:13px;margin:12px 0}.counts{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px}.counts p{margin:0;font-size:13px;color:var(--muted)}.counts b{font-size:20px;font-weight:600;color:var(--ink);margin-right:5px}.item-card{border:1px solid var(--line);border-radius:7px;padding:18px;margin-top:14px;overflow-wrap:anywhere}.item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.item-number{font-size:11px;color:var(--muted);display:block;margin-bottom:4px}.state{display:inline-block;flex:none;padding:2px 8px;border-radius:4px;background:var(--soft);border:1px solid var(--line);font-size:11px}.state.attention{color:var(--warn);background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 40%,var(--line))}.item-reason{color:var(--muted);font-size:13px;margin:12px 0}.item-controls{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:18px;margin-top:14px}.item-controls select,.item-controls input{width:100%;min-height:40px;border:1px solid var(--line);border-radius:5px;padding:8px 10px;background:var(--paper);font-size:12px}.version-reference{font-size:12px;color:var(--muted);margin:6px 0 0}.item-next{font-size:12px;color:var(--muted);padding-left:18px;margin:12px 0 0}.evidence-note{font-size:12px;color:var(--muted);margin-top:16px;border-top:1px solid var(--line);padding-top:12px}.report-frame{width:100%;height:700px;border:1px solid var(--line);border-radius:6px;background:#fff;margin-top:18px}.preview-state{font-size:12px;color:var(--muted);margin:10px 0 0}.section-note{font-size:13px;color:var(--muted);max-width:720px}footer{padding-top:18px;padding-bottom:40px;font-size:12px;color:var(--muted)}[hidden]{display:none!important}@media(max-width:700px){header,main,footer{padding-left:16px;padding-right:16px}header{padding-top:20px}h1{font-size:28px}.panel{padding:18px}.input-grid{grid-template-columns:1fr;gap:14px}.format-note{border-left:0;border-top:1px solid var(--line);padding:14px 0 0}.item-controls{grid-template-columns:1fr;gap:12px}.item-top{gap:8px}.state{max-width:125px}.steps{gap:13px;font-size:12px}.steps span{width:21px;height:21px}.panel-head{flex-wrap:wrap}.report-frame{height:580px}.local-mark{font-size:11px}.counts{gap:14px}}@media(prefers-reduced-motion:no-preference){button{transition:background-color .12s,border-color .12s}html{scroll-behavior:smooth}}
+</style></head><body>
+<a class="skip" href="#inventory-input">跳到清单输入</a>
+<header><div class="brand">智量<span>/ agentgate</span></div><span class="local-mark">本地处理 · 无需账号</span></header>
+<main>
+<h1>我的工具清单</h1>
+<p class="intro">把你们在用的工具，对照已有的公开证据。先确认名称与实际版本，再带走一份说清已知与未知的报告。</p>
+<div class="boundary"><span class="boundary-mark" aria-hidden="true">◉</span><p><strong>清单只在当前页面内存中处理，不上传、不写入浏览器存储。</strong><br>不会读取本地配置、扫描本机、执行工具或连接工具服务。关掉或重置页面后需重新填写；主动下载的报告会留在你的设备上。</p></div>
+<ol class="steps" aria-label="操作步骤"><li><span>1</span>导入清单</li><li><span>2</span>确认对应</li><li><span>3</span>预览与下载</li></ol>
+
+<div id="index-status" class="snapshot" role="status"><strong>正在读取此页面中的目录…</strong></div>
+<noscript><p class="error">需要启用 JavaScript 才能在本地核对清单。页面不会将清单发送到服务器。</p></noscript>
+<div id="page-error" class="error" role="alert" tabindex="-1" hidden></div>
+
+<section class="panel" aria-labelledby="input-heading">
+<div class="panel-head"><div><p class="eyebrow">01 / Your inventory</p><h2 id="input-heading">先告诉我们，你在用什么</h2></div><span class="meta">TXT / JSON · 最大 1 MB</span></div>
+<form id="inventory-form">
+<div class="input-grid"><div>
+<label for="inventory-input">工具清单</label>
+<textarea id="inventory-input" name="inventory" spellcheck="false" autocomplete="off" autocapitalize="off" aria-describedby="input-help" placeholder="每行一个名称，例如：&#10;你使用的 server 名称&#10;@组织/包名"></textarea>
+<p id="input-help" class="help">可以先只填名称，下一步再补实际使用的版本。不要填密钥、内部地址或尚未获准外发的内容。</p>
+<div class="file-area"><label for="inventory-file">或从本机选择文件</label><input id="inventory-file" type="file" accept=".txt,.json,text/plain,application/json"></div>
+</div><aside class="format-note" aria-label="填写说明"><strong>先从一份短清单开始</strong><p>名称可能对应多个发布者。遇到候选时，我们会请你确认，不会替你猜。</p><p>目录版本只作参考。实际版本需要你从自己的配置或安装记录中确认。</p><details><summary>查看 JSON 格式</summary><pre>[
+  { "name": "@组织/包名",
+    "version": "1.2.3" }
+]</pre></details></aside></div>
+<p id="demo-note" class="demo-note" hidden>正在使用演示清单，不代表你的实际安装。导出的报告也会标明“演示报告”。</p>
+<div class="actions"><button id="compare-button" class="btn btn-primary" type="submit" disabled>核对清单</button><button id="example-button" class="btn" type="button" disabled>试用演示清单</button><button id="reset-button" class="btn btn-quiet" type="button">重置</button></div>
+</form><p id="work-status" class="status" role="status" aria-live="polite">加载目录后即可开始。</p>
+</section>
+
+<section id="results-section" class="panel" aria-labelledby="results-heading" hidden>
+<div class="panel-head"><div><p class="eyebrow">02 / Resolve & confirm</p><h2 id="results-heading" tabindex="-1">确认工具身份与版本</h2></div></div>
+<p class="section-note">“证据已对应”只表示对应条件满足，不代表安全、已安装或已获组织批准。未完成的条目也会完整保留在报告里。</p>
+<div id="report-summary" class="counts" aria-live="polite"></div>
+<div id="inventory-items"></div>
+<div class="actions"><button id="preview-button" class="btn btn-primary" type="button">生成报告预览</button></div>
+<p class="help">即使还有未知项，也可以生成报告，用它向同事说明下一步需要补什么材料。</p>
+</section>
+
+<section id="preview-section" class="panel" aria-labelledby="preview-heading" hidden>
+<div class="panel-head"><div><p class="eyebrow">03 / Evidence report</p><h2 id="preview-heading" tabindex="-1">预览，再决定是否分享</h2></div><button id="download-button" type="button" class="btn btn-primary" disabled>下载 HTML 报告</button></div>
+<p class="section-note">单个文件、无脚本、无外部资源，可独立打开或通过浏览器打印。报告含你填写的工具名称与版本，分享前请确认可外发。</p>
+<p id="preview-status" class="preview-state" role="status"></p>
+<iframe id="report-preview" class="report-frame" title="工具清单证据报告预览" sandbox="" referrerpolicy="no-referrer"></iframe>
+</section>
+</main>
+<footer>这份目录是页面加载时已有的历史快照。生成报告不会刷新上游资料，也无法证明你的实际安装和运行行为。未知的部分始终保留为未知。</footer>
+<script type="application/json" id="inventory-index">__INVENTORY_INDEX__</script>
+<script type="module" src="./inventory-page.mjs"></script>
+</body></html>

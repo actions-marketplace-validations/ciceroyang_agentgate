@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { auditPackage, auditPypiPackage, summarize, renderMarkdown, newestPerServer, hookScriptRefs, stripStringsAndComments, criticalPatternOf } from '../mcp-audit.mjs'
+import { auditPackage, auditPypiPackage, auditRegistryServer, registryProvenance, fetchHookScript, fetchNpmDocument, defaultHttp, summarize, renderMarkdown, newestPerServer, hookScriptRefs, stripStringsAndComments, criticalPatternOf } from '../mcp-audit.mjs'
 
 const server = {
   name: 'acme/server',
@@ -265,4 +265,166 @@ test('auditPypiPackage: unavailable metadata is unknown, never clean', () => {
   const findings = auditPypiPackage(server, null, { version: '1.0.0' })
   assert.deepEqual(findings.map((f) => f.rule), ['package-metadata-unavailable'])
   assert.equal(findings[0].severity, 'unknown')
+})
+
+test('registry provenance changes when same-version hook bytes change but findings do not', () => {
+  const doc = pkg('node install.js')
+  doc.versions['1.0.0'].dist = { integrity: 'sha512-same-registry-claim' }
+  const first = { 'install.js': "console.log('one')" }
+  const second = { 'install.js': "console.log('two')" }
+  assert.deepEqual(auditPackage(server, doc, { version: '1.0.0' }, first), auditPackage(server, doc, { version: '1.0.0' }, second))
+  const a = registryProvenance(server, doc, first)
+  const b = registryProvenance(server, doc, second)
+  assert.equal(a.complete, true)
+  assert.equal(b.complete, true)
+  assert.notEqual(a.content.digest, b.content.digest)
+  assert.notEqual(a.content.digest, doc.versions['1.0.0'].dist.integrity)
+})
+
+test('registry provenance binds server fields, exact manifest, version and missing script markers', () => {
+  const doc = pkg('node install.js')
+  const scripts = { 'install.js': "console.log('ok')" }
+  const a = registryProvenance(server, doc, scripts)
+  assert.notEqual(a.content.digest, registryProvenance({ ...server, description: 'changed' }, doc, scripts).content.digest)
+  assert.notEqual(a.content.digest, registryProvenance(server, { ...doc, versions: { '1.0.0': { ...doc.versions['1.0.0'], dependencies: { x: '2' } } } }, scripts).content.digest)
+  const missing = registryProvenance(server, doc, {})
+  assert.equal(missing.complete, false)
+  assert.notEqual(a.content.digest, missing.content.digest)
+  assert.notEqual(registryProvenance(server, doc, { 'install.js': '' }).content.digest, missing.content.digest)
+  assert.equal(registryProvenance(server, null).complete, false)
+  assert.equal(registryProvenance(server, { versions: { '2.0.0': {} } }).complete, false)
+  const version2 = { ...server, packages: [{ ...server.packages[0], version: '2.0.0' }] }
+  assert.notEqual(a.content.digest, registryProvenance(version2, { versions: { '2.0.0': doc.versions['1.0.0'] } }, scripts).content.digest)
+  assert.equal(registryProvenance({ ...server, packages: [{ registryType: 'pypi', identifier: 'p', version: '1.0.0' }] }, { info: { version: '1.0.0' } }).complete, false)
+})
+
+test('registry scan uses the package version when server document version differs', async () => {
+  const mismatched = { ...server, version: '9.9.9' }
+  const doc = pkg('node install.js')
+  const requests = []
+  const row = await auditRegistryServer(mismatched, { http: async (url) => {
+    requests.push(url)
+    if (url.startsWith('https://registry.npmjs.org/')) return { status: 200, text: JSON.stringify(doc) }
+    return { status: 200, text: "console.log('ok')" }
+  } })
+  assert.equal(row.version, '1.0.0')
+  assert.equal(row.serverVersion, '9.9.9')
+  assert.equal(row.provenance.package.version, '1.0.0')
+  assert.equal(row.provenance.complete, true)
+  assert.equal(requests.length, 2)
+  assert.ok(requests[1].includes('acme-mcp@1.0.0/install.js'))
+})
+
+test('missing exact version never falls back to latest or top-level scripts', async () => {
+  const doc = { 'dist-tags': { latest: '2.0.0' }, scripts: { postinstall: 'node wrong.js' }, versions: { '2.0.0': { scripts: { postinstall: 'node latest.js' } } } }
+  for (const version of ['1.0.0', 'latest', '^2.0.0', '~2.0.0', '', null]) {
+    const declared = { ...server, packages: [{ ...server.packages[0], version }] }
+    const requests = []
+    const row = await auditRegistryServer(declared, { http: async (url) => { requests.push(url); return { status: 200, text: JSON.stringify(doc) } } })
+    assert.equal(row.version, version)
+    assert.equal(row.provenance.complete, false)
+    assert.ok(row.findings.some((finding) => finding.rule === 'declared-version-not-found'))
+    assert.ok(!row.findings.some((finding) => finding.rule === 'install-time-execution'))
+    assert.equal(requests.length, 1, 'no script is fetched for another package version')
+  }
+})
+
+test('mismatched manifest identity cannot become complete census evidence', async () => {
+  for (const manifest of [{ name: 'acme-mcp', version: '2.0.0' }, { name: 'other-package', version: '1.0.0' }]) {
+    const row = await auditRegistryServer(server, { http: async () => ({ status: 200, text: JSON.stringify({ versions: { '1.0.0': manifest } }) }) })
+    assert.equal(row.provenance.complete, false)
+    assert.ok(row.findings.some((finding) => finding.rule === 'declared-version-not-found'))
+  }
+})
+
+test('failed metadata or script reads are incomplete, while a fetched empty script is content', async () => {
+  const missingMetadata = await auditRegistryServer(server, { http: async () => ({ status: 404, text: '' }) })
+  assert.equal(missingMetadata.provenance.complete, false)
+  assert.ok(missingMetadata.findings.some((finding) => finding.rule === 'package-metadata-unavailable'))
+  const doc = pkg('node install.js')
+  for (const status of [404, 200]) {
+    const row = await auditRegistryServer(server, { http: async (url) => url.startsWith('https://registry.npmjs.org/')
+      ? { status: 200, text: JSON.stringify(doc) }
+      : { status, text: '' } })
+    assert.equal(row.provenance.complete, status === 200)
+    assert.equal(row.findings.some((finding) => finding.rule === 'install-hook-script-unavailable'), status === 404)
+  }
+})
+
+test('unsupported registries emit incomplete provenance without adding network reads', async () => {
+  let calls = 0
+  const row = await auditRegistryServer({ ...server, packages: [{ registryType: 'oci', identifier: 'acme/image', version: '1.0.0' }] }, {
+    http: async () => { calls += 1; throw new Error('must not be called') },
+  })
+  assert.equal(calls, 0)
+  assert.equal(row.audited, false)
+  assert.equal(row.provenance.complete, false)
+})
+
+test('hook reads accept package-relative paths and scoped npm names', async () => {
+  const requested = []
+  const text = await fetchHookScript('@acme/server', '1.0.0', './scripts/a.js', async (url) => {
+    requested.push(url)
+    return { status: 200, url, text: 'console.log(1)' }
+  })
+  assert.equal(text, 'console.log(1)')
+  assert.deepEqual(requested, ['https://unpkg.com/@acme/server@1.0.0/scripts/a.js'])
+  assert.deepEqual(hookScriptRefs({ postinstall: 'node "./scripts/a.js"' }), ['./scripts/a.js'])
+  const scopedServer = { ...server, packages: [{ ...server.packages[0], identifier: '@acme/server' }] }
+  assert.equal(registryProvenance(scopedServer, pkg('node ./scripts/a.js'), { './scripts/a.js': text }).complete, true)
+})
+
+test('unsafe hook paths remain missing even when supplied content looks harmless', async () => {
+  const paths = ['../other@2.0.0/install.js', '/tmp/install.js', '//evil.example/install.js', 'scripts/../install.js',
+    'scripts/%2e%2e/install.js', '%2e%2e%2fother%402.0.0%2finstall.js', 'scripts/install.js?version=2',
+    'scripts/install.js#other', String.raw`scripts\install.js`, 'C:/install.js', 'https://evil.example/install.js']
+  let requests = 0
+  for (const path of paths) {
+    assert.equal(await fetchHookScript('acme-mcp', '1.0.0', path, async () => { requests += 1; return { status: 200, text: 'wrong' } }), null, path)
+    const doc = pkg('node ' + path)
+    assert.deepEqual(hookScriptRefs(doc.versions['1.0.0'].scripts), [path], 'keep unsafe input intact: ' + path)
+    const supplied = { [path]: "console.log('ok')" }
+    assert.equal(registryProvenance(server, doc, supplied).complete, false, path)
+    const findings = auditPackage(server, doc, { version: '1.0.0' }, supplied)
+    assert.ok(findings.some((finding) => finding.rule === 'install-hook-script-unavailable'), path)
+    assert.ok(!findings.some((finding) => finding.rule === 'install-hook-script-inspected'), path)
+    assert.equal(findings.find((finding) => finding.rule === 'install-time-execution').severity, 'high', path)
+  }
+  assert.equal(requests, 0)
+})
+
+test('invalid npm identifiers cannot produce network reads or complete provenance', async () => {
+  let requests = 0
+  const http = async () => { requests += 1; return { status: 200, text: '{}' } }
+  for (const name of ['../other', '@acme/../other', 'acme/other', '/absolute', 'acme?other', 'acme#other', 'acme%2fother', String.raw`acme\other`]) {
+    assert.equal(await fetchHookScript(name, '1.0.0', 'install.js', http), null, name)
+    assert.equal(await fetchNpmDocument(name, http), null, name)
+    const invalidServer = { ...server, packages: [{ ...server.packages[0], identifier: name }] }
+    assert.equal(registryProvenance(invalidServer, pkg('node install.js'), { 'install.js': 'console.log(1)' }).complete, false, name)
+    const row = await auditRegistryServer(invalidServer, { http })
+    assert.equal(row.provenance.complete, false, name)
+  }
+  assert.equal(requests, 0)
+})
+
+test('CDN redirects cannot bind a different origin, package, version or path', async () => {
+  for (const finalUrl of ['https://evil.example/acme-mcp@1.0.0/install.js', 'https://unpkg.com/other@1.0.0/install.js',
+    'https://unpkg.com/acme-mcp@2.0.0/install.js', 'https://unpkg.com/acme-mcp@1.0.0/other.js',
+    'https://unpkg.com/acme-mcp@1.0.0/install.js?raw=1']) {
+    assert.equal(await fetchHookScript('acme-mcp', '1.0.0', 'install.js', async () => ({ status: 200, url: finalUrl, text: 'wrong' })), null)
+  }
+  assert.equal(await fetchHookScript('acme-mcp', '1.0.0', 'install.js', async (url) => ({ status: 200, url, text: 'same file' })), 'same file')
+  assert.equal(await fetchHookScript('acme-mcp', '1.0.0', 'install.js', async () => ({ status: 200, text: 'offline mock' })), 'offline mock')
+})
+
+test('default HTTP exposes the final response URL for binding checks without a live request', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async () => ({ status: 200, url: 'https://unpkg.com/other@2.0.0/install.js', text: async () => 'redirected' })
+  try {
+    const result = await defaultHttp('https://unpkg.com/acme-mcp@1.0.0/install.js')
+    assert.equal(result.url, 'https://unpkg.com/other@2.0.0/install.js')
+    assert.equal(await fetchHookScript('acme-mcp', '1.0.0', 'install.js'), null)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
 })
