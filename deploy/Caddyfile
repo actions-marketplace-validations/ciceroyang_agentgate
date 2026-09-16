@@ -19,6 +19,13 @@ app.xn--5kvo87g.com {
 		-Server
 	}
 
+	# HTML 是每天重建的(证据页尤其),让浏览器每次回源校验,而不是拿一份过期的副本。
+	# 只对 HTML 生效:静态资源和 badge 不碰。
+	@html {
+		path *.html /
+	}
+	header @html Cache-Control "no-cache"
+
 	handle /health {
 		reverse_proxy 127.0.0.1:8080
 	}
