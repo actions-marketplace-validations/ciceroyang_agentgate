@@ -25,11 +25,9 @@ app.xn--5kvo87g.com {
 	}
 }
 
-# 纯 API:给脚本和 CI 用。
-api.xn--5kvo87g.com {
-	encode gzip
-	reverse_proxy 127.0.0.1:8080
-}
+# 没有 api. 子域:接口就在 app. 下面(/v1/*、/health、/badge/*)。
+# 一个声明了却没有 DNS 记录的名字会让 Caddy 反复申请证书并失败,所以这里只写真实存在的名字。
+
 
 # 访问日志:默认进 journald(含 IP 与 UA)。不用于画像,也不共享。
 # 保留期建议 7 天,依据见 docs/operations/legal/data-handling.md:

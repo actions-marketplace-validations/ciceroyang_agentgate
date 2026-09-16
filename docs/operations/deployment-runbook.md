@@ -35,12 +35,11 @@
 xn--5kvo87g.com          主机记录 @      类型 A   值 <公网IP>
 www.xn--5kvo87g.com      主机记录 www    类型 A   值 <公网IP>
 
-# 需要新增的两条(agentgate 服务在这些名字上):
+# 需要新增的一条(agentgate 服务在这个名字上;接口也在它下面):
 app.xn--5kvo87g.com      主机记录 app    类型 A   值 <公网IP>
-api.xn--5kvo87g.com      主机记录 api    类型 A   值 <公网IP>
 ```
 
-**没有 `docs.` 和 `try.`**:文档先留在仓库里;在线试用页面在主站的 `/try.html`(即 `app.xn--5kvo87g.com/try.html`)。
+**没有 `api.`、`docs.` 和 `try.`**:文档先留在仓库里;在线试用页面在主站的 `/try.html`(即 `app.xn--5kvo87g.com/try.html`)。
 等有了内容再加子域,不要为了占位建一条指向空目录的记录。
 
 

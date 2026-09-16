@@ -1,7 +1,7 @@
 import { DEFAULT_PORT } from "../packages/service/src/defaults.mjs"
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { readFileSync, existsSync, mkdtempSync, writeFileSync, symlinkSync, rmSync, mkdirSync, copyFileSync } from "node:fs"
+import { readFileSync, existsSync, mkdtempSync, writeFileSync, symlinkSync, rmSync, mkdirSync, copyFileSync, readdirSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -156,7 +156,7 @@ test("every name Caddy serves is a name the runbook tells the user to create", f
       if (/^[a-z0-9.-]+\.[a-z0-9-]+$/.test(host)) served.add(host)
     }
   }
-  assert.ok(served.size >= 2, "the Caddyfile parse found too few names: " + Array.from(served).join(", "))
+  assert.ok(served.has("app.xn--5kvo87g.com"), "the product host app. is not served: " + Array.from(served).join(", "))
   // The apex already serves the personal site on that machine. A Caddyfile that claims it would
   // take the site over the moment it is installed, which is not a deploy script\u0027s call to make.
   assert.equal(served.has("xn--5kvo87g.com"), false, "the Caddyfile claims the apex, which is in use")
@@ -289,4 +289,25 @@ test("--port reaches the smoke check, the unit and the Caddyfile block", functio
   assert.match(out.stdout, /AGENTGATE_PORT=9099/, "the unit still binds 8080")
   rmSync(bin, { recursive: true, force: true })
   rmSync(repo, { recursive: true, force: true })
+})
+
+test("no public page points at a 智量.com host that nothing serves", function () {
+  // try.html told readers to curl https://api.智量.com while the Caddyfile serves app. and api. was
+  // never created. A page that sends somebody to a dead host is worse than a page that says
+  // nothing, because they conclude the product is broken rather than the instruction.
+  const served = new Set(["xn--5kvo87g.com", "www.xn--5kvo87g.com"])   // the personal site already there
+  const caddy = readFileSync(join(ROOT, "deploy", "Caddyfile"), "utf8")
+  for (const m of caddy.matchAll(/^[a-z0-9.,-]*xn--[a-z0-9-]+\.com[^{]*\{/gm)) {
+    for (const h of m[0].replace("\{", "").split(",")) served.add(h.trim())
+  }
+  const bad = []
+  for (const name of readdirSync(join(ROOT, "site"))) {
+    if (!name.endsWith(".html")) continue
+    const text = readFileSync(join(ROOT, "site", name), "utf8")
+    for (const m of text.matchAll(/([a-z0-9-]+\.)?(?:智量\.com|xn--5kvo87g\.com)/g)) {
+      const host = m[0].replace("智量.com", "xn--5kvo87g.com")
+      if (!served.has(host)) bad.push(name + " -> " + host)
+    }
+  }
+  assert.deepEqual(bad, [], "a public page points at a host nothing serves")
 })

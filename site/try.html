@@ -26,14 +26,14 @@ footer{margin-top:64px;color:var(--muted);font-size:14px;border-top:1px solid va
 
 <p><a class="cta" href="https://ciceroyang.github.io/agentgate/evidence.html">打开证据索引</a></p>
 
-<p>按判定或名字筛，点任意一行看它的证据块与结论。数据集里现在是 300 条样本；每天会自动换成当天的全量。</p>
+<p>按判定或名字筛，点任意一行看它的证据块与结论。这份索引每天从实时注册表重建,所以它现在是当天的全量;仓库里另有一份 300 条的样本索引,断网时也能跑。</p>
 
 <h2>或者：查一个具体的判定</h2>
-<p>自托管的服务会提供同样的数据。**我们的服务还没上线**,所以现在用上面的静态页代替;上线后下面这条命令就可以用了:</p>
-<pre><code>curl -s https://api.智量.com/v1/servers/&lt;server-name&gt; | head -40</code></pre>
+<p>自托管的服务提供同样的数据。下面这条命令连不上,说明部署还没完成:</p>
+<pre><code>curl -s https://app.智量.com/v1/servers/&lt;server-name&gt; | head -40</code></pre>
 <p>返回的是一条<b>记录</b>：它声明了哪个包、每个证据块查了没有、结论是 <code>clean</code>、<code>findings</code> 还是 <code>incomplete</code>。看到 <code>unmeasured</code> 不要跳过——那是我们没能查的部分，也是这个工具和"一切正常"最不一样的地方。</p>
 <p>也可以直接拿 badge：</p>
-<pre><code>https://api.智量.com/badge/&lt;server-name&gt;.svg</code></pre>
+<pre><code>https://app.智量.com/badge/&lt;server-name&gt;.svg</code></pre>
 
 <h2>二、扫你自己的仓库（最推荐）</h2>
 <p>装 Node 20+，不用建任何账号：</p>
