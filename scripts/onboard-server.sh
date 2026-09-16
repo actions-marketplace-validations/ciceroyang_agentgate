@@ -218,6 +218,14 @@ if [ "$MODE" = "node" ]; then
 fi
 
 if [ "$APPLY" = "1" ]; then
+  # Wait for the socket before asking. systemd returns from "enable --now" as soon as the process
+  # exists, and the first deploy failed here: a healthy service was reported down, which also
+  # skipped the Caddy step below.
+  for i in $(seq 1 30); do
+    if curl -fsS -o /dev/null --max-time 2 "http://127.0.0.1:$PORT/health" 2>/dev/null; then break; fi
+    [ "$i" = "30" ] && echo "  等了 30 秒,http://127.0.0.1:$PORT/health 还是没有应答"
+    sleep 1
+  done
   if ! "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:$PORT --expect-min 1000; then
     echo
     echo "== smoke 没通过,先看这三个原因 =="

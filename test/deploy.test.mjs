@@ -311,3 +311,15 @@ test("no public page points at a 智量.com host that nothing serves", function 
   }
   assert.deepEqual(bad, [], "a public page points at a host nothing serves")
 })
+
+test("smoke waits for the service instead of failing on the first try", function () {
+  // The first real deploy failed here: systemd had started the process, listen() had not returned,
+  // and the check reported a healthy service as down. Giving up on the first request is the bug,
+  // so this asserts that it keeps trying rather than just that it eventually fails.
+  const port = 59900 + Math.floor(Math.random() * 90)
+  const t0 = Date.now()
+  const out = spawnSync(process.execPath, [join(ROOT, "scripts", "smoke.mjs"), "http://127.0.0.1:" + port, "--expect-min", "1"], { encoding: "utf8", timeout: 60000 })
+  const elapsed = Date.now() - t0
+  assert.notEqual(out.status, 0, "smoke passed against a closed port")
+  assert.ok(elapsed > 2000, "it gave up after " + elapsed + "ms, so it did not wait")
+})

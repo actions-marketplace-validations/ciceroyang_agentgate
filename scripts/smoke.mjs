@@ -24,7 +24,15 @@ const get = async function (path) {
 }
 
 try {
-  const health = await get("/health")
+  // systemd Type=simple considers the unit started as soon as the process is forked, which is
+  // before listen() has necessarily returned. Firing the first request immediately reports a
+  // healthy service as down, so wait for it instead of racing it.
+  let health = null
+  for (let i = 0; i < 40 && !health; i += 1) {
+    try { const probe = await get("/health"); if (probe.status !== 0) health = probe } catch (error) { /* not up yet */ }
+    if (!health) await new Promise(function (r) { setTimeout(r, 500) })
+  }
+  if (!health) health = { status: 0, text: "" }
   const h = JSON.parse(health.text)
   check("服务可达且 /health 是 200", health.status === 200, String(health.status))
   check("索引存在", typeof h.records === "number", JSON.stringify(h).slice(0, 120))
