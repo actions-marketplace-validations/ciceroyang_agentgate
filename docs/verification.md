@@ -306,3 +306,39 @@ YAML 解析步骤被跳过；未运行线上验收，也没有验证 Node 最低
 
 发布备份和逐文件回执保存在服务器 `/var/backups/agentgate-inventory-g0KBcH/`，不由网站提供。
 本地原有采集器、复核机制和命令行等其他修改没有随本次静态网页发布部署。
+
+## 安装脚本的临时文件与环境复验（2026-09-17）
+
+服务器只读复验发现 `onboard-server.sh` 把生成的 unit 与 Caddy 片段写到 `/tmp` 下的**固定名字**。
+这个脚本的用法就是以 root 在别人的机器上跑：预先存在的同名文件会变成拒绝服务（真机上出现过
+`Permission denied`，一次全新 clone 的 7 个测试全红），而指向
+`/etc/systemd/system/agentgate.service` 的符号链接会把写入变成对该路径的 root 写入。
+两个文件现在都由 `mktemp` 生成、由 `EXIT` trap 删除，失败退出也不留文件。
+
+同一轮里还查出测试自己的问题，两个都会让“本机通过”与“目标机通过”不一致：
+
+- 假 PATH 给了脚本 `mktemp` 却没给 `rm`，trap 因此执行不了：每次彩排都在共享临时目录留下
+  一份 unit 和一个空文件。本机没发现是因为检查的是 `/tmp`，而 macOS 的 `TMPDIR` 在
+  `/var/folders` 下；服务器上则一直堆在 `/tmp`。假 PATH 现在带 `rm`，并新增一条测试：
+  给脚本一个自己的 `TMPDIR`，退出后该目录必须为空。
+- `--repo` 测试用的是默认目标 `/opt/agentgate`：笔记本上该目录不存在，脚本打印 clone，测试通过；
+  部署机上它已存在，脚本打印 pull，测试失败。现在显式传入不存在的 `--dir`，测试不再读取
+  它所在的机器。
+
+已完成的复验：
+
+- macOS / Node v26.4.0 / npm 11.17.0：`bash scripts/verify.sh` 345 项测试、343 通过、0 失败、
+  2 跳过，M1–M4 验收、彩排、语料回归、规模检查全部通过。
+- macOS / Node v20.20.2 / npm 10.8.2（与服务器同版本）：同一套 345/343/0/2，全部通过。
+- 服务器（Linux 6.8 x86_64 / Node v20.20.2）全新 clone `9b2e86f`：345 项测试、343 通过、
+  0 失败、2 跳过，`VERIFY_EXIT=0`，全部检查通过；运行后 `/tmp/agentgate.*` 为空。
+  这次运行是在两个 root 所属的旧固定名文件**仍然存在**的情况下跑通的，随后才删除它们，
+  说明修复不依赖“先把机器清理干净”。`/opt/agentgate` 有意保留的未提交改动没有被触碰，
+  本轮没有执行 `--apply`、没有重启服务、没有重建公开索引。
+- CI（ubuntu-latest / Node 24）在 `9b2e86f` 上 test、action-verify 通过（pages 被随后的推送
+  取消，不是失败）。新增两个作业：`minimum-node`（Node 20 跑测试与彩排）和 `docker`
+  （`docker compose up --build` 后用 `scripts/smoke.mjs --expect-min 300 --allow-stale` 验收）。
+
+仍然没有验证的边界：Windows（部署相关测试依赖 `bash`）；服务器上真正的 `systemd` 与
+`caddy validate`/`reload`（本轮只跑彩排，没有 `--apply`）；公网页面本轮没有改动。
+

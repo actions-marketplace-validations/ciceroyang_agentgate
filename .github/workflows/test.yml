@@ -42,6 +42,28 @@ jobs:
       - name: An incomplete scan exits 2 no matter what --fail-on says
         run: node -e "import('./packages/guard/test/invariant.mjs')"
 
+  docker:
+    # The compose path had never been run anywhere: there is no docker on the laptop or on the
+    # deployment server, so its only evidence was a test that read the YAML. Zero runtime
+    # dependencies make the image a copy of the repository, so building it here and asking it
+    # for health is cheap. The mount brings the sample index, hence the lower --expect-min.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Build the image and serve from it
+        run: |
+          docker compose up -d --build agentgate
+          node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 300 --allow-stale
+      - name: The container's own log, when something above failed
+        if: failure()
+        run: docker compose logs --no-log-prefix agentgate
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
   minimum-node:
     # package.json says node >= 20 and the deployment target runs 20.20.2, while the job above
     # tracks 24. This job keeps the floor a fact instead of a claim, the way the source scan
