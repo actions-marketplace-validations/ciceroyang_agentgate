@@ -338,6 +338,7 @@ YAML 解析步骤被跳过；未运行线上验收，也没有验证 Node 最低
 - CI（ubuntu-latest / Node 24）在 `9b2e86f` 上 test、action-verify 通过（pages 被随后的推送
   取消，不是失败）。新增两个作业：`minimum-node`（Node 20 跑测试与彩排）和 `docker`
   （`docker compose up --build` 后用 `scripts/smoke.mjs --expect-min 300 --allow-stale` 验收）。
+  两者在 `e3b7738` 上首次运行即通过，同一提交的 test、pages、action-verify 也全绿。
 
 仍然没有验证的边界：Windows（部署相关测试依赖 `bash`）；服务器上真正的 `systemd` 与
 `caddy validate`/`reload`（本轮只跑彩排，没有 `--apply`）；公网页面本轮没有改动。
