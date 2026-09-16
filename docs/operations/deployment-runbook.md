@@ -250,14 +250,20 @@ RHEL 系(SELinux)下 Caddy 会被挡住,见本文开头那一节。
 ## 定时任务
 
 ```sh
-# /etc/cron.d/agentgate  —— 每天 04:17 采集、留快照、算 diff
-# 第一条命令就够了:第一次没有可比对象时,脚本把当天存下来当基准、不写 diff;第二天起才有 diff。
+# /etc/cron.d/agentgate  —— 每天 04:17 采集、留快照、重建静态站、查岗
+# 由 agentgate 用户跑:数据目录与 /var/www/zhiliang 都归它。root 跑会把新文件变成 root 所有,
+# 第二天的 agentgate 就写不动了。安装前先 sudo chown -R agentgate:agentgate /var/www/zhiliang。
+# 顺序有讲究:review-criticals 查到没读过的 critical 会返回 1,在 && 链里它后面的一切都被跳过。
+# 站点重建必须排在它前面,否则一个新 critical 就会让公开页面冻结——那比晚一天发现更糟。
+# 第一条命令:第一次没有可比对象时,脚本把当天存下来当基准、不写 diff;第二天起才有 diff。
 # 之前的写法直接 diff previous.json,而它第一天还不存在,于是 diff 报错、&& 链断在写快照之前,
 # 历史永远是空的——这条在彩排里跑不出来,只有真机第一天会遇到。
+# 倒数第二条只重建索引是不够的:evidence.html、每台 server 的页面、厂商页、sitemap 都是构建时快照,
+# 不重建它们,站点就会停在最后一次手工构建——而页面本身写着"每天重建"。这正是漏掉过的一步。
 # 最后一条是查岗:索引每天重建成别人最新的样子,新的 critical 会在没人读过的情况下直接上公开页。
 # 它跟 data/reviewed-criticals.json 比对,有没读过的就返回 1(证据串变了也算没读过),日志里留痕。
 # 处理办法是去读代码,读完 node scripts/review-criticals.mjs --accept。
-17 4 * * * root cd /opt/agentgate && node bin/agentgate.mjs refresh --max 300 >> /var/log/agentgate.log 2>&1 && node scripts/daily-snapshot.mjs >> /var/log/agentgate.log 2>&1 && node scripts/review-criticals.mjs >> /var/log/agentgate.log 2>&1
+17 4 * * * agentgate cd /opt/agentgate && /usr/bin/node bin/agentgate.mjs refresh --max 300 >> /var/log/agentgate.log 2>&1 && /usr/bin/node scripts/daily-snapshot.mjs >> /var/log/agentgate.log 2>&1 && /usr/bin/node scripts/build-site.mjs --index /opt/agentgate/data/index.json --out /var/www/zhiliang --name evidence.html --pages /opt/agentgate/site >> /var/log/agentgate.log 2>&1 && /usr/bin/node scripts/review-criticals.mjs >> /var/log/agentgate.log 2>&1
 ```
 
 ## 回滚

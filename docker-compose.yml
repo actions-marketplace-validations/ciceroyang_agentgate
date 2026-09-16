@@ -8,7 +8,10 @@ services:
   refresh:
     build: .
     profiles: ["collect"]
-    # 采集之后落第一份快照:Node 路径会做这一步,docker 路径原本不做,历史就永远是空的
-    command: ["sh", "-c", "node bin/agentgate.mjs refresh --max 300 && node scripts/daily-snapshot.mjs"]
+    # 采集之后落第一份快照:Node 路径会做这一步,docker 路径原本不做,历史就永远是空的。
+    # 静态站也在这里重建:只刷新索引的话,evidence.html、每台 server 的页面、厂商页、sitemap
+    # 都停在最后一次手工构建,而页面自己写着"每天重建"。宿主机的站点目录挂进来当输出。
+    command: ["sh", "-c", "node bin/agentgate.mjs refresh --max 300 && node scripts/daily-snapshot.mjs && node scripts/build-site.mjs --index data/index.json --out /www --name evidence.html --pages site"]
     volumes:
       - ./data:/app/data
+      - /var/www/zhiliang:/www
