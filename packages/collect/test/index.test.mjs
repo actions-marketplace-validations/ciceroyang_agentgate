@@ -11,6 +11,17 @@ test("an unmeasured block makes the verdict incomplete, never clean", function (
   assert.equal(deriveVerdict(blocks, "low"), "incomplete")
 })
 
+test("a finding that says unknown is incomplete, not clean", function () {
+  const only = { a: { status: "findings", findings: [{ rule: "X", severity: "unknown" }] } }
+  assert.equal(deriveVerdict(only, "medium"), "incomplete")
+  assert.equal(deriveVerdict(only, "high"), "incomplete")
+
+  // It also outranks a real finding: "we could not measure part of this" is the dominant truth,
+  // the same way an unmeasured block outranks findings.
+  const mixed = { a: { status: "findings", findings: [{ rule: "X", severity: "unknown" }, { rule: "Y", severity: "medium" }] } }
+  assert.equal(deriveVerdict(mixed, "medium"), "incomplete")
+})
+
 test("a finding at the threshold decides, below it does not", function () {
   const blocks = { a: { status: "findings", findings: [{ severity: "medium" }] } }
   assert.equal(deriveVerdict(blocks, "medium"), "findings")

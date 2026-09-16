@@ -15,6 +15,15 @@ const RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 }
 export function deriveVerdict(blocks, threshold) {
   const values = Object.keys(blocks).map(function (k) { return blocks[k] })
   if (values.some(function (b) { return b.status === "unmeasured" })) return VERDICT.INCOMPLETE
+  // A finding at severity "unknown" says the check ran and could not determine the answer:
+  // metadata that would not load, a hook script that would not fetch, a declared version with
+  // no files. That is the same claim as an unmeasured block, and it has to be caught here
+  // because RANK has no entry for "unknown" — it fell through the threshold arithmetic as 0,
+  // so a record whose only finding was "unknown" was published as clean. Thirty-two of them
+  // were, on a site whose first principle is that unmeasured is never written as clean.
+  if (values.some(function (b) {
+    return (b.findings || []).some(function (f) { return f.severity === "unknown" })
+  })) return VERDICT.INCOMPLETE
   const min = RANK[threshold] === undefined ? 2 : RANK[threshold]
   const notable = values.some(function (b) {
     return (b.findings || []).some(function (f) { return (RANK[f.severity] || 0) >= min })
