@@ -204,3 +204,34 @@ GET /nope.html              404                     兜底是文件服务,不是
 
 还有一条与前四项无关但同样真实:这台 Mac 的代理**按域名分流**,裸 IP 走直连(被墙),
 所以 `~/.ssh/config` 里那台机器的主机名必须是域名。
+
+## 证据索引的抽屉被吸顶搜索栏压住（用户报告，2026-09-16）
+
+现象:点开一条记录,右侧抽屉的顶部(标题和"关闭"按钮)被**吸顶的搜索栏**盖住,搜索栏浮在最上面。
+
+原因:`.bar` 是 `position:sticky; top:0; z-index:2`,而 `#detail` 是 `position:fixed` **但没有自己的
+z-index**,于是带 z-index 的搜索栏在绘制顺序上赢了。
+
+**它只在页面滚动之后出现**:不滚动时吸顶元素还在页头下面,和抽屉不重叠。我最初两次复现都失败,
+就是因为我在 `scrollY=0` 测量——这也是这个 bug 容易被漏过的原因。
+
+用真实 Chrome 在 `scrollY=600` 下测量 `elementsFromPoint`(线上,修复前 / 修复后):
+
+```
+                修复前                      修复后
+y=8      bar > detail > …            detail > bar > …
+y=30     q  > bar > detail            close > detail > q
+关闭按钮可点   false                     true
+drawer z-index auto                     10
+```
+
+修复:`#detail` 加 `z-index:10`;关闭按钮在抽屉内吸顶(抽屉会滚动);并支持 Esc 与点击外部关闭。
+测试断言"抽屉的 z-index 必须大于搜索栏的",把 `z-index` 去掉就会红。
+
+另外两件顺带发现的事:
+
+- 浏览器会缓存这一页(有 ETag 但没有 cache 策略),导致一次已部署的修复看起来"没生效"。现在 HTML 带
+  `Cache-Control: no-cache`(回源校验),静态资源不受影响。
+- **我手工 `cat Caddyfile >> /etc/caddy/Caddyfile` 部署过一次,绕过了脚本写的标记,把线上那份配置的
+  begin/end 标记弄丢了。** 还好发现了:否则下一次 onboard 会找不到可替换的标记、追加第二份 site 块、
+  校验失败。已补回标记,并确认 `begin:1 end:1`、`app.` 块只有一个。教训:部署只能走脚本。
