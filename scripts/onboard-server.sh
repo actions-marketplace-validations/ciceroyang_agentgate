@@ -11,6 +11,7 @@ set -euo pipefail
 APPLY=0
 MODE=node
 SKIP_NET=0
+WITH_CADDY=0
 DIR=/opt/agentgate
 REPO=https://github.com/ciceroyang/agentgate
 # Caddyfile 里 serve 的目录。必须有人创建它，否则主域上线就是一个空页面。
@@ -23,6 +24,7 @@ while [ "$#" -gt 0 ]; do
     --docker) MODE=docker ;;
     --node) MODE=node ;;
     --skip-network) SKIP_NET=1 ;;
+    --with-caddy) WITH_CADDY=1 ;;
     --dir) DIR="$2"; shift ;;
     --repo) REPO="$2"; shift ;;
     --repo=*) REPO="${1#--repo=}" ;;
@@ -187,9 +189,33 @@ if [ "$APPLY" = "1" ]; then
 else
   run "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:8080 --expect-min 1000
 fi
+
+if [ "$WITH_CADDY" = "1" ]; then
+  echo
+  echo "== Caddy（--with-caddy）=="
+  if command -v caddy >/dev/null 2>&1; then
+    if [ -f /etc/caddy/Caddyfile ]; then run cp /etc/caddy/Caddyfile "/etc/caddy/Caddyfile.bak.$(date +%s)"; fi
+    run cp "$DIR/deploy/Caddyfile" /etc/caddy/Caddyfile
+    run caddy validate --config /etc/caddy/Caddyfile
+    run bash -c "systemctl reload caddy 2>/dev/null || systemctl restart caddy"
+    echo "  已配置。证书在 DNS 生效后自动签发,看 journalctl -u caddy -n 50。"
+  else
+    echo "  Caddy 还没装。按你的发行版执行,然后重跑: sudo bash $0 --apply --with-caddy"
+    if [ "$PKG" = "apt" ]; then
+      echo "    sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https"
+      echo "    curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg"
+      echo "    curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt | sudo tee /etc/apt/sources.list.d/caddy-stable.list"
+      echo "    sudo apt-get update && sudo apt-get install -y caddy"
+    elif [ "$PKG" = "dnf" ] || [ "$PKG" = "yum" ]; then
+      echo "    sudo $PKG install -y dnf-command(copr) && sudo $PKG copr enable -y @caddy/caddy && sudo $PKG install -y caddy"
+    else
+      echo "    https://caddyserver.com/docs/install"
+    fi
+  fi
+fi
 echo
 
-if [ "$MODE" = "node" ]; then
+if [ "$MODE" = "node" ] && [ "$WITH_CADDY" != "1" ]; then
   echo "== 这一步没做,要你(或我)接着做 =="
   echo "  对外 HTTPS 还没配。服务只在回环上跑,公网访问不了。"
   if [ "$PKG" = "apt" ]; then echo "    sudo apt-get install -y caddy"; elif [ "$PKG" = "dnf" ] || [ "$PKG" = "yum" ]; then echo "    sudo $PKG install -y caddy"; else echo "    # 装 Caddy:按你的发行版(apt-get / dnf / yum)"; fi

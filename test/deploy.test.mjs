@@ -193,3 +193,21 @@ test("the docker refresh writes the index the docker service reads", function ()
   assert.equal(new Set(mounts).size, 1, "the two services mount different directories: " + mounts.join(", "))
   assert.match(compose, /daily-snapshot\.mjs/, "the docker path never builds history")
 })
+
+test("--with-caddy still installs the service, and puts the TLS step last", function () {
+  // The first version of this flag narrowed the wrong "if node mode" block, so --with-caddy
+  // skipped installing the systemd unit entirely. That is the failure this asserts against:
+  // adding a step must not remove one.
+  const script = join(ROOT, "scripts", "onboard-server.sh")
+  const withCaddy = spawnSync("bash", [script, "--skip-network", "--with-caddy"], { encoding: "utf8", timeout: 60000 })
+  assert.equal(withCaddy.status, 0, withCaddy.stderr)
+  assert.match(withCaddy.stdout, /systemctl enable --now agentgate/, "the service install was skipped")
+  assert.match(withCaddy.stdout, /smoke\.mjs http/, "the smoke check was skipped")
+  assert.match(withCaddy.stdout, /Caddy（--with-caddy）/, "the Caddy step is missing")
+  assert.doesNotMatch(withCaddy.stdout, /这一步没做/, "it still says the TLS step was not done")
+  assert.ok(withCaddy.stdout.indexOf("smoke.mjs http") < withCaddy.stdout.indexOf("Caddy（--with-caddy）"),
+    "the Caddy step must come after the service is verified")
+
+  const plain = spawnSync("bash", [script, "--skip-network"], { encoding: "utf8", timeout: 60000 })
+  assert.match(plain.stdout, /这一步没做/, "without the flag the outstanding step must still be stated")
+})
