@@ -48,9 +48,12 @@ export function diffIndex(from, to) {
     }
   }
   for (const server of before.keys()) if (!after.has(server)) removed.push(server)
+  const scannerFrom = (from && from.scanner) || null
+  const scannerTo = (to && to.scanner) || null
   return {
     fromGeneratedAt: (from && from.generatedAt) || null,
     toGeneratedAt: (to && to.generatedAt) || null,
+    scanner: { from: scannerFrom, to: scannerTo, changed: scannerFrom !== scannerTo },
     counts: { before: before.size, after: after.size },
     added: added.sort(),
     removed: removed.sort(),
@@ -71,6 +74,11 @@ export function renderDiff(d) {
   lines.push("  verdict changed: " + d.verdictChanged.length)
   lines.push("  package changed: " + d.packageChanged.length)
   lines.push("  silent (no version move, different evidence): " + d.silent.length)
+  if (d.scanner && d.scanner.changed) {
+    lines.push("")
+    lines.push("  the scanner changed between these two snapshots: " + (d.scanner.from || "(none)") + " -> " + (d.scanner.to || "(none)"))
+    lines.push("  so some of what follows may be ours rather than theirs, and nothing here says which.")
+  }
   if (d.silent.length > 0) {
     lines.push("")
     lines.push("  silent changes, where a version change would have explained it and did not:")

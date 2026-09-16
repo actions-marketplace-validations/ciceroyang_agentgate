@@ -9,7 +9,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { spawnSync } from "node:child_process"
+import { execFileSync, spawnSync } from "node:child_process"
 import { start } from "../packages/service/src/start.mjs"
 import { DEFAULT_PORT, DEFAULT_HOST } from "../packages/service/src/defaults.mjs"
 import { runScan } from "../packages/guard/src/engine.mjs"
@@ -84,7 +84,11 @@ function refresh(flags) {
   }
   run("census", join(ROOT, "packages", "collect", "mcp-audit.mjs"), ["--max", "6000", "--out", join(dataDir, "census.json"), "--markdown", join(dataDir, "census.md")])
   run("guard-scan", join(ROOT, "packages", "collect", "scripts", "guard-scan.mjs"), ["--census", join(dataDir, "census.json"), "--max", max, "--out", join(dataDir, "guard-scan.json")])
-  run("index", join(ROOT, "packages", "collect", "scripts", "build-index.mjs"), ["--census", join(dataDir, "census.json"), "--guard", join(dataDir, "guard-scan.json"), "--out", join(dataDir, "index.json")])
+  // The deployed commit is the cheapest honest identifier of "which scanner ran". It moves when
+  // the rules move, which is what a later diff needs to know.
+  let scanner = "unknown"
+  try { scanner = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim() } catch (error) { scanner = "unknown" }
+  run("index", join(ROOT, "packages", "collect", "scripts", "build-index.mjs"), ["--census", join(dataDir, "census.json"), "--guard", join(dataDir, "guard-scan.json"), "--scanner", scanner, "--out", join(dataDir, "index.json")])
   console.log("[refresh] done: " + join(dataDir, "index.json"))
 }
 

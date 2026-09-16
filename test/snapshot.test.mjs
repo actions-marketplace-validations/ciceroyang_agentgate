@@ -57,6 +57,30 @@ test("the second run produces a diff against the first", function () {
   rmSync(dir, { recursive: true, force: true })
 })
 
+test("a diff says when the scanner itself changed, so its own fixes are not read as theirs", function () {
+  const dir = mkdtempSync(join(tmpdir(), "ag-snap4-"))
+  const history = join(dir, "history")
+  const index = join(dir, "index.json")
+  const build = function (scanner) {
+    return JSON.stringify({ generatedAt: new Date().toISOString(), scanner: scanner, count: 1, records: [{ server: "a/b", verdict: "clean", packages: [], evidence: [] }] })
+  }
+
+  writeFileSync(index, build("aaaaaaa"))
+  assert.equal(run(["--index", index, "--history", history, "--date", "2026-09-15"]).status, 0)
+
+  writeFileSync(index, build("bbbbbbb"))
+  assert.equal(run(["--index", index, "--history", history, "--date", "2026-09-16"]).status, 0)
+  const diff = readFileSync(join(history, "diff-2026-09-16.md"), "utf8")
+  assert.match(diff, /the scanner changed between these two snapshots: aaaaaaa -> bbbbbbb/)
+  assert.match(diff, /may be ours rather than theirs/)
+
+  // Same scanner, so a diff is about the world and says nothing extra.
+  writeFileSync(index, build("bbbbbbb"))
+  assert.equal(run(["--index", index, "--history", history, "--date", "2026-09-17"]).status, 0)
+  assert.doesNotMatch(readFileSync(join(history, "diff-2026-09-17.md"), "utf8"), /the scanner changed/)
+  rmSync(dir, { recursive: true, force: true })
+})
+
 test("a missing index is an error, not a silent no-op", function () {
   const dir = mkdtempSync(join(tmpdir(), "ag-snap3-"))
   const out = run(["--index", join(dir, "nope.json"), "--history", join(dir, "history")])

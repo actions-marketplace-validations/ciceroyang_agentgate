@@ -92,11 +92,21 @@ export function buildIndex(options) {
       generatedAt: options.generatedAt || new Date().toISOString(),
     })
   }
-  return { generatedAt: options.generatedAt || new Date().toISOString(), threshold: threshold, count: records.length, skipped: skipped, records: records }
+  return {
+    generatedAt: options.generatedAt || new Date().toISOString(),
+    threshold: threshold,
+    // Which build of the scanner produced this. A diff compares two snapshots, and without
+    // this it cannot tell "their package changed" from "our rules changed" — so every rule fix
+    // is reported as a silent change in someone else's package.
+    scanner: options.scanner || null,
+    count: records.length,
+    skipped: skipped,
+    records: records,
+  }
 }
 
 function parse(argv) {
-  const args = { census: null, guard: null, repos: null, out: null, threshold: "medium" }
+  const args = { census: null, guard: null, repos: null, out: null, threshold: "medium", scanner: null }
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i]
     if (a === "--census") args.census = argv[++i]
@@ -104,6 +114,7 @@ function parse(argv) {
     else if (a === "--repos") args.repos = argv[++i]
     else if (a === "--out") args.out = argv[++i]
     else if (a === "--threshold") args.threshold = argv[++i]
+    else if (a === "--scanner") args.scanner = argv[++i]
     else { console.error("unknown option " + a); process.exit(2) }
   }
   if (!args.census) { console.error("--census <census.json> is required"); process.exit(2) }
@@ -113,7 +124,7 @@ function parse(argv) {
 const isMain = process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).href
 if (isMain) {
   const args = parse(process.argv.slice(2))
-  const index = buildIndex({ census: args.census, guard: args.guard, repos: args.repos, threshold: args.threshold })
+  const index = buildIndex({ census: args.census, guard: args.guard, repos: args.repos, threshold: args.threshold, scanner: args.scanner })
   const counts = {}
   for (const r of index.records) counts[r.verdict] = (counts[r.verdict] || 0) + 1
   if (args.out) writeFileSync(args.out, JSON.stringify(index, null, 2) + "\n")
