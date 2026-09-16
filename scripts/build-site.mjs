@@ -180,5 +180,36 @@ if (existsSync(SERVER_TEMPLATE)) {
   }
   console.log("wrote " + bySlug.size + " per-server page(s) into " + dir)
 }
+
+// Every server page belongs in the sitemap, otherwise the only way to reach a record is to
+// already know its URL. A sitemap holds 50,000 URLs, so past that it has to become an index,
+// and the main pages are carried over from the plain sitemap so there is still one source
+// for them rather than two lists that drift.
+if (existsSync(SERVER_TEMPLATE)) {
+  const base = "https://app.xn--5kvo87g.com"
+  const main = (readFileSync(join(ROOT, "site", "sitemap.xml"), "utf8").match(/<url>[\s\S]*?<\/url>/g) || [])
+  const serverUrls = all.map(function (r) {
+    return "<url><loc>" + esc(base + "/s/" + slugOf(r.server) + ".html") + "</loc><priority>0.4</priority></url>"
+  })
+  const head = '<?xml version="1.0" encoding="UTF-8"?>'
+  const urlset = function (urls) {
+    return head + '\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.map(function (u) { return "  " + u }).join("\n") + "\n</urlset>\n"
+  }
+  const LIMIT = 45000
+  if (main.length + serverUrls.length <= LIMIT) {
+    writeFileSync(join(outDir, "sitemap.xml"), urlset(main.concat(serverUrls)))
+  } else {
+    const files = []
+    for (let i = 0; i < serverUrls.length; i += LIMIT) {
+      const name = "sitemap-servers-" + (files.length + 1) + ".xml"
+      writeFileSync(join(outDir, name), urlset(serverUrls.slice(i, i + LIMIT)))
+      files.push(name)
+    }
+    writeFileSync(join(outDir, "sitemap-main.xml"), urlset(main))
+    files.unshift("sitemap-main.xml")
+    writeFileSync(join(outDir, "sitemap.xml"), head + '\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + files.map(function (f) { return "  <sitemap><loc>" + base + "/" + f + "</loc></sitemap>" }).join("\n") + "\n</sitemapindex>\n")
+  }
+  console.log("sitemap: " + (main.length + serverUrls.length) + " url(s)")
+}
 writeFileSync(join(outDir, ".nojekyll"), "")
 console.log("site written to " + join(outDir, indexName) + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records" + (diffText ? ", with a diff" : "") + ") and " + copied + " page(s) copied")

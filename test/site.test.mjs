@@ -144,6 +144,15 @@ test("every server gets a page of its own, and the page says what it did not mea
   assert.match(page, /发现是/, "the page has to say what a finding is and is not")
   assert.doesNotMatch(page, /\*\*/, "markdown emphasis must not survive into HTML")
 
+  // A page nobody can find is not published. The sitemap carries every record, and it still
+  // carries the plain pages it was built from.
+  const sitemap = readFileSync(join(out, "sitemap.xml"), "utf8")
+  assert.ok(sitemap.indexOf("<loc>https://app.xn--5kvo87g.com/</loc>") !== -1, "the sitemap lost the plain pages")
+  assert.match(sitemap.trim(), /<\/urlset>$/, "the sitemap is malformed")
+  for (const record of index.records) {
+    assert.ok(sitemap.indexOf("/s/" + slugOf(record.server) + ".html") !== -1, "the sitemap is missing " + record.server)
+  }
+
   // The template is a build input, not a page.
   assert.ok(!existsSync(join(out, "server.html")), "the template was published as a page")
 })
