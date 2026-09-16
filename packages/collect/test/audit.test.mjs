@@ -122,6 +122,21 @@ test('a hook that runs a program is install-time execution at high', () => {
   assert.equal(findings.find((f) => f.rule === 'install-time-execution').severity, 'high')
 })
 
+test('a hook that runs a script which only prints is listed, not execution', () => {
+  const banner = "if (process.stdout.isTTY) { console.log('installed') }"
+  const findings = auditPackage(server, pkg('node scripts/postinstall.cjs'), { version: '1.0.0' }, { 'scripts/postinstall.cjs': banner })
+  const exec = findings.find((f) => f.rule === 'install-time-execution')
+  assert.equal(exec.severity, 'info')
+  assert.match(exec.evidence, /only prints/)
+})
+
+test('a hook that runs a script requiring a local module stays execution', () => {
+  const script = "const { getBinaryPath } = require('./lib/main'); getBinaryPath()"
+  const findings = auditPackage(server, pkg('node install.js'), { version: '1.0.0' }, { 'install.js': script })
+  assert.equal(findings.find((f) => f.rule === 'install-time-execution').severity, 'high')
+  assert.match(findings.find((f) => f.rule === 'install-hook-script-inspected').evidence, /local module/)
+})
+
 test('a hook that spawns a fixed command is execution, not an incident', () => {
   const findings = auditPackage(server, pkg("node -e \"require('child_process').execSync('npm run build')\""), { version: '1.0.0' })
   assert.ok(findings.some((f) => f.rule === 'install-time-execution'))

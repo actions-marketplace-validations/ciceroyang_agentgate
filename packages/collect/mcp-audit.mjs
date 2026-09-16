@@ -179,6 +179,25 @@ const INERT_TOKENS = new Set(["console", "log", "error", "warn", "info", "debug"
 /** Anything in inline code that can reach out or change the machine. */
 const ACTIVE_INLINE = /child_process|execSync|execFileSync|spawnSync|\bspawn\s*\(|\.exec\s*\(|\bfetch\s*\(|XMLHttpRequest|\baxios\b|\bundici\b|\bwriteFile|appendFile|rmSync|unlinkSync|\beval\s*\(|new\s+Function|Buffer\.from\s*\([^)]*['"]base64|require\s*\(\s*['"](?!(?:node:)?(?:fs|path)['"])/
 
+const ANY_REQUIRE = /\brequire\s*\(|\bimport\s*[({'"]/
+const LOCAL_REQUIRE = /require\s*\(\s*['"]\.{1,2}\//
+const PRINTS = /\bconsole\s*\.\s*(?:log|error|warn|info)\b|process\s*\.\s*(?:stdout|stderr)\s*\.\s*write/
+
+/**
+ * Whether a referenced install script cannot do anything but print.
+ *
+ * This decides install-time-execution for a hook that only runs one local file: "it runs a
+ * program" is not true of a file that logs a notice. A script that requires anything, local
+ * or not, is not print-only, because requiring a sibling module runs code we have not read —
+ * that is precisely the surface that matters.
+ */
+export function scriptOnlyPrints(content) {
+  const text = String(content)
+  if (ANY_REQUIRE.test(text)) return false
+  if (spawnCapabilityOf(text) || networkCapabilityOf(text) || ACTIVE_INLINE.test(text)) return false
+  return PRINTS.test(text)
+}
+
 /**
  * What an install hook does, as far as its command text shows.
  *
@@ -187,7 +206,7 @@ const ACTIVE_INLINE = /child_process|execSync|execFileSync|spawnSync|\bspawn\s*\
  * not an execution risk: an install-time-execution row at high should mean a program the
  * consumer's machine will actually run.
  */
-export function installHookReads(command) {
+export function installHookReads(command, refs) {
   const text = String(command).trim()
   if (SHELL_PRINT_ONLY.test(text) && !/[;&|]/.test(text.replace(/'[^']*'|"[^"]*"/g, ""))) {
     return { severity: "info", note: " (prints a message: it runs no program)" }
@@ -202,6 +221,10 @@ export function installHookReads(command) {
       const unknown = (stripped.match(/[A-Za-z_$][\w$]*/g) || []).filter(function (t) { return !INERT_TOKENS.has(t) })
       if (unknown.length === 0) return { severity: "info", note: " (evaluates inline code that only prints)" }
     }
+  }
+  const list = Array.isArray(refs) ? refs : []
+  if (list.length > 0 && list.every(function (r) { return typeof r.content === "string" && scriptOnlyPrints(r.content) })) {
+    return { severity: "info", note: " (runs a local script that only prints)" }
   }
   return { severity: "high", note: "" }
 }
@@ -278,7 +301,8 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
     for (const hook of INSTALL_HOOKS) {
       const value = scripts[hook]
       if (typeof value !== 'string' || value.trim() === '') continue
-      const read = installHookReads(value)
+      const ownRefs = hookScriptRefs({ [hook]: value }).map(function (ref) { return { ref: ref, content: hookScripts[ref] } })
+      const read = installHookReads(value, ownRefs)
       add('install-time-execution', read.severity, 'scripts.' + hook + '=' + JSON.stringify(value) + read.note)
       const label = criticalPatternOf(value, 'hook')
       if (label) {
@@ -299,7 +323,8 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
         } else if (spawnCapabilityOf(content)) {
           add('install-hook-script-spawn', 'medium', ref + ' spawns a command at install time, but the command reads as a fixed literal')
         } else {
-          add('install-hook-script-inspected', 'info', 'hook runs ' + ref + ' (' + content.length + ' bytes): no fetch/spawn/decode pattern found')
+          const partial = LOCAL_REQUIRE.test(content) ? '; it also requires a local module, so the inspected surface is only part of what runs' : ''
+          add('install-hook-script-inspected', 'info', 'hook runs ' + ref + ' (' + content.length + ' bytes): no fetch/spawn/decode pattern found' + partial)
         }
       }
     }
