@@ -340,6 +340,14 @@ YAML 解析步骤被跳过；未运行线上验收，也没有验证 Node 最低
   （`docker compose up --build` 后用 `scripts/smoke.mjs --expect-min 300 --allow-stale` 验收）。
   两者在 `e3b7738` 上首次运行即通过，同一提交的 test、pages、action-verify 也全绿。
 
+版本边界：本轮没有部署。服务器 `/opt/agentgate` 仍是 `5b06c01` 加上它有意保留的未提交改动，
+公开索引、公开页面、systemd 单元和人工复核基线都没有变化；`packages/collect/provenance.mjs`、
+复核基线的 `BASELINE_VERSION = 2`、guard 的可靠性修正目前只在 GitHub 与本机。因此复核基线
+v1→v2 的迁移**尚未发生**：`data/reviewed-criticals.json` 里的 11 条没有 `schemaVersion`，
+新代码会打印 `LEGACY BASELINE`，不复用这 11 条（`for (const entry of legacy ? [] : oldEntries)`），
+当前的高/危发现全部按新发现处理并退出非零，直到人工重读后 `--accept` 重新记录
+（绑定 finding 身份 + 精确版本 + 扫描输入 SHA-256）。在那之前不声称迁移完成。
+
 仍然没有验证的边界：Windows（部署相关测试依赖 `bash`）；服务器上真正的 `systemd` 与
 `caddy validate`/`reload`（本轮只跑彩排，没有 `--apply`）；公网页面本轮没有改动。
 
