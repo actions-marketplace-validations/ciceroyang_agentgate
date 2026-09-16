@@ -3,13 +3,22 @@
 #
 # 这里刻意不声明主域 xn--5kvo87g.com:那台机器的主域上已经跑着另一个站点(Next.js,由 Caddy
 # 提供 HTTPS)。声明主域会把站点从另一个站点抢过来,而那不该由部署脚本单方面决定。
-# 要把产品挪到主域时,先把另一个站点迁走,再把下面的 app. 段复制一份改成主域。
 #
 # 智量.com 是中文域名,证书与路由都用 punycode 写,Caddy 不接受中文字面量。
 
 # 站 + API:同一个服务,静态页走文件,接口转发到本地 8080。
 app.xn--5kvo87g.com {
 	encode gzip
+
+	# 浏览器侧的默认防线。这些不是"安全功能",是没有理由不带的几行。
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
 	handle /health {
 		reverse_proxy 127.0.0.1:8080
 	}
@@ -23,11 +32,15 @@ app.xn--5kvo87g.com {
 		root * /var/www/zhiliang
 		file_server
 	}
+
+	# 404 要是页面,不是一行纯文本。
+	handle_errors {
+		@notfound expression {http.error.status_code} == 404
+		rewrite @notfound /404.html
+		root * /var/www/zhiliang
+		file_server
+	}
 }
-
-# 没有 api. 子域:接口就在 app. 下面(/v1/*、/health、/badge/*)。
-# 一个声明了却没有 DNS 记录的名字会让 Caddy 反复申请证书并失败,所以这里只写真实存在的名字。
-
 
 # 访问日志:默认进 journald(含 IP 与 UA)。不用于画像,也不共享。
 # 保留期建议 7 天,依据见 docs/operations/legal/data-handling.md:

@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs"
+import { mkdtempSync, readFileSync, writeFileSync, existsSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -181,4 +181,25 @@ test("the pricing page says which tiers exist yet", function () {
   assert.match(pricing, /现在能用的只有/, "it no longer says what is available today")
   const index = readFileSync(join(ROOT, "site", "index.html"), "utf8")
   assert.match(index, /这些还在做/, "the landing page presents the enterprise features as shipped")
+})
+
+test("the built site carries the pieces a public site needs", function () {
+  // No favicon (a browser tab shows a default globe), no preview when the link is shared, no 404
+  // page, a plain 404 body from Caddy -- each of those reads as unfinished to somebody opening the
+  // URL for the first time, which is exactly what the first outreach asks them to do.
+  const out = mkdtempSync(join(tmpdir(), "ag-assets-"))
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+  for (const name of ["favicon.svg", "robots.txt", "sitemap.xml", "404.html", "index.html", "pricing.html", "try.html", "evidence.html"]) {
+    assert.ok(existsSync(join(out, name)), "the published site is missing " + name)
+  }
+  const home = readFileSync(join(out, "index.html"), "utf8")
+  assert.match(home, /rel="canonical"/, "no canonical link")
+  assert.match(home, /og:title/, "no preview title when the link is shared")
+  assert.match(home, /property="og:description"/, "no preview description")
+  assert.match(home, /rel="icon"[^>]*favicon\.svg/, "no favicon")
+  assert.match(home, /name="description" content="[^"]{20,}"/, "no real meta description")
+  // and the description must not advertise what is not built
+  assert.doesNotMatch(home, /企业版提供 SSO/, "the description still promises the enterprise tier")
+  rmSync(out, { recursive: true, force: true })
 })

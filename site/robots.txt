@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# 证据索引每天重建,收录它没有意义;接口路径不是页面。
+Disallow: /v1/
+Disallow: /badge/
+Disallow: /health
+
+Sitemap: https://app.xn--5kvo87g.com/sitemap.xml

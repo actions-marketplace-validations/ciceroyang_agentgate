@@ -98,7 +98,8 @@ writeFileSync(join(outDir, indexName), page)
 let copied = 0
 if (pagesDir && existsSync(pagesDir)) {
   for (const name of readdirSync(pagesDir)) {
-    if (!name.endsWith(".html")) continue
+    // the plain pages plus the small assets a real site needs (favicon, robots, sitemap, 404)
+    if (!/\.[a-z0-9]+$/.test(name)) continue
     if (name === "evidence.html") continue
     const target = name === "index.html" ? "index.html" : name
     if (target === indexName) continue
