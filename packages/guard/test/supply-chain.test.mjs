@@ -13,6 +13,15 @@ test("a dependency from a git or http source is high", function () {
   assert.deepEqual(got, ["AG-SUPPLY-001", "AG-SUPPLY-001"])
 })
 
+test("a file: dependency is a packaging problem, not a remote source", function () {
+  const runtime = checkManifest("package.json", JSON.stringify({ dependencies: { a: "file:../models" } }))
+  assert.equal(runtime[0].rule, "AG-SUPPLY-001")
+  assert.equal(runtime[0].severity, "medium")
+  assert.match(runtime[0].message, /inside this repository/)
+  const dev = checkManifest("package.json", JSON.stringify({ devDependencies: { a: "link:../models" } }))
+  assert.equal(dev[0].severity, "low")
+})
+
 test("a floating version is flagged", function () {
   const got = rules(checkManifest("package.json", JSON.stringify({ dependencies: { a: "*", b: "latest" } })))
   assert.deepEqual(got, ["AG-SUPPLY-002", "AG-SUPPLY-002"])

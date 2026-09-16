@@ -108,6 +108,20 @@ test('a print-only node -e hook is not critical (v0 false positive)', () => {
   assert.ok(!findings.some((f) => f.severity === 'critical'), JSON.stringify(findings))
 })
 
+test('a hook that only prints is listed, but is not install-time execution', () => {
+  const banner = auditPackage(server, pkg("node -e \"require('fs').existsSync('dist/index.js')&&console.log('installed')\""), { version: '1.0.0' })
+  assert.equal(banner.find((f) => f.rule === 'install-time-execution').severity, 'info')
+  const echo = auditPackage(server, pkg("echo 'installed'"), { version: '1.0.0' })
+  assert.equal(echo.find((f) => f.rule === 'install-time-execution').severity, 'info')
+  const chained = auditPackage(server, pkg("echo hi && node setup.js"), { version: '1.0.0' })
+  assert.equal(chained.find((f) => f.rule === 'install-time-execution').severity, 'high')
+})
+
+test('a hook that runs a program is install-time execution at high', () => {
+  const findings = auditPackage(server, pkg('node scripts/postinstall.cjs'), { version: '1.0.0' })
+  assert.equal(findings.find((f) => f.rule === 'install-time-execution').severity, 'high')
+})
+
 test('a hook that spawns a fixed command is execution, not an incident', () => {
   const findings = auditPackage(server, pkg("node -e \"require('child_process').execSync('npm run build')\""), { version: '1.0.0' })
   assert.ok(findings.some((f) => f.rule === 'install-time-execution'))

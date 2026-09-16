@@ -1,0 +1,6 @@
+{
+  "name": "local-path",
+  "dependencies": {
+    "a": "file:../models"
+  }
+}

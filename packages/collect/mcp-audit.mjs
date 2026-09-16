@@ -167,6 +167,45 @@ export function spawnCapabilityOf(text) {
   return /\b(?:execSync|execFileSync|spawnSync|execFile|spawn|child_process)\b/.test(String(text))
 }
 
+/** Shell builtins that cannot do anything but print when they are the whole command. */
+const SHELL_PRINT_ONLY = /^(?:echo|printf|true|false|:)\b/
+
+/** The quoted program of a bare inline eval, the same strict shape the guard check reads. */
+const INLINE_EVAL = /^\s*(?:node\s+(?:-e|--eval)|python[0-9.]*\s+-c)\s+(?:'((?:\\.|[^'\\])*)'|"((?:\\.|[^"\\])*)")\s*$/
+
+/** Tokens an inline program that only prints is built from. */
+const INERT_TOKENS = new Set(["console", "log", "error", "warn", "info", "debug", "process", "stdout", "stderr", "write", "exit", "env", "require", "fs", "path", "node:fs", "node:path", "existsSync", "join", "resolve", "basename", "dirname", "__dirname", "__filename", "try", "catch", "finally", "if", "else", "return", "throw", "new", "typeof", "const", "let", "var", "function", "true", "false", "null", "undefined", "String", "Number", "JSON", "stringify", "parse", "Error", "e", "err"])
+
+/** Anything in inline code that can reach out or change the machine. */
+const ACTIVE_INLINE = /child_process|execSync|execFileSync|spawnSync|\bspawn\s*\(|\.exec\s*\(|\bfetch\s*\(|XMLHttpRequest|\baxios\b|\bundici\b|\bwriteFile|appendFile|rmSync|unlinkSync|\beval\s*\(|new\s+Function|Buffer\.from\s*\([^)]*['"]base64|require\s*\(\s*['"](?!(?:node:)?(?:fs|path)['"])/
+
+/**
+ * What an install hook does, as far as its command text shows.
+ *
+ * Declaring a hook is not the same severity as running a program in it. A package whose
+ * postinstall is \`echo "installed"\`, or inline code that only prints, is worth listing but is
+ * not an execution risk: an install-time-execution row at high should mean a program the
+ * consumer's machine will actually run.
+ */
+export function installHookReads(command) {
+  const text = String(command).trim()
+  if (SHELL_PRINT_ONLY.test(text) && !/[;&|]/.test(text.replace(/'[^']*'|"[^"]*"/g, ""))) {
+    return { severity: "info", note: " (prints a message: it runs no program)" }
+  }
+  const m = INLINE_EVAL.exec(text)
+  if (m) {
+    const program = m[1] !== undefined ? m[1] : m[2]
+    if (!ACTIVE_INLINE.test(program)) {
+      const stripped = program
+        .replace(/'(?:[^'\\]|\\.)*'/g, " ")
+        .replace(/"(?:[^"\\]|\\.)*"/g, " ")
+      const unknown = (stripped.match(/[A-Za-z_$][\w$]*/g) || []).filter(function (t) { return !INERT_TOKENS.has(t) })
+      if (unknown.length === 0) return { severity: "info", note: " (evaluates inline code that only prints)" }
+    }
+  }
+  return { severity: "high", note: "" }
+}
+
 /**
  * First critical pattern the text matches, or null.
  *
@@ -239,7 +278,8 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
     for (const hook of INSTALL_HOOKS) {
       const value = scripts[hook]
       if (typeof value !== 'string' || value.trim() === '') continue
-      add('install-time-execution', 'high', 'scripts.' + hook + '=' + JSON.stringify(value))
+      const read = installHookReads(value)
+      add('install-time-execution', read.severity, 'scripts.' + hook + '=' + JSON.stringify(value) + read.note)
       const label = criticalPatternOf(value, 'hook')
       if (label) {
         add('install-hook-critical', 'critical', 'scripts.' + hook + ' matches ' + label + ': ' + JSON.stringify(value))

@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 
-const MUTABLE_SOURCE = /^(git[+:]|github:|gitlab:|bitbucket:|https?:|file:|link:)/i
+const MUTABLE_REMOTE = /^(git[+:]|github:|gitlab:|bitbucket:|https?:)/i
+const MUTABLE_LOCAL = /^(file:|link:)/i
 const FLOATING = /^(\*|latest|x)$/i
 const LOCKFILES = ["package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb", "bun.lock"]
 
@@ -34,8 +35,17 @@ export function checkManifest(rel, text) {
   for (const dep of dependenciesOf(doc)) {
     const runtime = isRuntimeField(dep.field)
     const scope = runtime ? "" : " (dev-only: cannot reach a consumer of this package)"
-    if (MUTABLE_SOURCE.test(dep.spec)) {
-      findings.push({ rule: "AG-SUPPLY-001", severity: runtime ? "high" : "medium", file: rel, line: null, message: dep.field + " entry " + dep.name + " resolves to a mutable source: " + dep.spec + scope })
+    const remote = MUTABLE_REMOTE.test(dep.spec)
+    const local = MUTABLE_LOCAL.test(dep.spec)
+    if (remote || local) {
+      // A remote ref can be repointed under you after you have read it; a path inside this
+      // repository cannot, it only cannot be resolved by anyone else. Same rule, and the
+      // honest severity for each is different.
+      const severity = local ? (runtime ? "medium" : "low") : (runtime ? "high" : "medium")
+      const what = local
+        ? "resolves to a path inside this repository, which nobody installing the published package can resolve"
+        : "resolves to a mutable source"
+      findings.push({ rule: "AG-SUPPLY-001", severity: severity, file: rel, line: null, message: dep.field + " entry " + dep.name + " " + what + ": " + dep.spec + scope })
       continue
     }
     if (FLOATING.test(dep.spec.trim())) {
