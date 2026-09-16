@@ -33,7 +33,8 @@ function runPageScript(html) {
     if (!made[id]) made[id] = { id: id, textContent: id === "data" ? dataTag : id === "diffdata" ? diffTag : id === "totals" ? totalsTag : "", innerHTML: "", value: "", style: {}, classList: { add: function () {}, remove: function () {} } }
     return made[id]
   }
-  const sandbox = { document: { getElementById: el }, window: {}, console: console }
+  // the page registers keydown/click listeners; the stub only needs to accept the registration
+  const sandbox = { document: { getElementById: el, addEventListener: function () {} }, window: {}, console: console }
   const fn = new Function("document", "window", "console", code)
   fn(sandbox.document, sandbox.window, sandbox.console)
   return made
@@ -202,4 +203,24 @@ test("the built site carries the pieces a public site needs", function () {
   // and the description must not advertise what is not built
   assert.doesNotMatch(home, /企业版提供 SSO/, "the description still promises the enterprise tier")
   rmSync(out, { recursive: true, force: true })
+})
+
+test("the detail drawer is painted above the sticky search bar", function () {
+  // Reported from the live page: clicking a record opened the drawer and the search bar, which is
+  // sticky at top:0 with z-index 2, covered its top 63px -- the heading and the close button. The
+  // drawer is position:fixed but had no z-index of its own, so the bar won.
+  //
+  // It only shows once the page is scrolled; at scrollY 0 the bar is still below the header. In a
+  // browser at scrollY 600, elementFromPoint at the drawer's top returned ".bar" before this fix
+  // and "#detail" after it, and the close button was hit-testable only afterwards.
+  const html = readFileSync(join(ROOT, "site", "evidence.html"), "utf8").replace(/\n/g, " ")
+  const zIndexOf = function (selector) {
+    const block = new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{([^}]*)\\}").exec(html)
+    const z = /z-index:\s*(\d+)/.exec(block ? block[1] : "")
+    return z ? Number(z[1]) : 0
+  }
+  const bar = zIndexOf(".bar")
+  const detail = zIndexOf("#detail")
+  assert.ok(bar > 0, "the bar no longer pins itself with a z-index")
+  assert.ok(detail > bar, "the drawer (z-index " + detail + ") is not above the sticky bar (z-index " + bar + ")")
 })

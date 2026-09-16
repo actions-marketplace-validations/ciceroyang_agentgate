@@ -26,10 +26,12 @@ th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);verti
 th{color:var(--muted);font-weight:600;font-size:13px;position:sticky;top:53px;background:var(--bg)}
 tr{cursor:pointer}tr:hover{background:rgba(127,127,127,.06)}
 .v{font-weight:600}.clean{color:var(--clean)}.findings{color:var(--find)}.incomplete{color:var(--inc)}
-#detail{position:fixed;inset:0 0 0 auto;width:min(620px,92vw);background:var(--bg);border-left:1px solid var(--line);padding:20px;overflow:auto;display:none;box-shadow:-12px 0 40px rgba(0,0,0,.12)}
+#detail{position:fixed;inset:0 0 0 auto;width:min(620px,92vw);background:var(--bg);border-left:1px solid var(--line);padding:20px;overflow:auto;display:none;box-shadow:-12px 0 40px rgba(0,0,0,.12);z-index:10}
 #detail.open{display:block}
 pre{white-space:pre-wrap;word-break:break-word;background:rgba(127,127,127,.08);padding:8px;border-radius:6px;font-size:13px}
-.close{float:right;cursor:pointer;color:var(--muted)}
+/* the bar is sticky with a z-index; without one here the drawer opened *under* it and its top
+   was covered, close button included. The close control is sticky because the drawer scrolls. */
+.close{position:sticky;top:0;display:block;text-align:right;cursor:pointer;color:var(--muted);background:var(--bg);padding:0 0 10px}
 </style></head><body>
 <header>
   <h1>agentgate · 证据索引</h1>
@@ -90,6 +92,14 @@ function openD(i){
   document.getElementById("detail").classList.add("open");
 }
 function closeD(){ document.getElementById("detail").classList.remove("open"); }
+document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeD(); });
+document.addEventListener("click", function (e) {
+  var d = document.getElementById("detail");
+  if (!d.classList.contains("open")) return;
+  if (d.contains(e.target)) return;
+  if (e.target.closest && e.target.closest("tr")) return;   // that click opens another record
+  closeD();
+});
 q.oninput = render; vf.onchange = render;
 if (DIFF && DIFF.trim()) { document.getElementById("diff").textContent = DIFF; document.getElementById("diff").style.display = "block"; }
 document.getElementById("meta").textContent = "生成于 " + window.__GENERATED_AT__ + " · 共 " + TOTALS.total + " 条" + (TOTALS.truncated ? ",本页嵌入 " + TOTALS.shown + " 条(incomplete 与 findings 优先)" : "");
