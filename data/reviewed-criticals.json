@@ -1,0 +1,104 @@
+{
+ "note": "Criticals a person has read. The evidence string is part of the key: if it changes, the review is void and the checker says so. Edited by scripts/review-criticals.mjs --accept.",
+ "reviewed": [
+  {
+   "server": "ai.dinglebear/cortex",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/labby",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rapprise",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rarcane",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rgotify",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rtailscale",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/runifi",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rytdl",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/synapse",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/unraid",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/yarr",
+   "rule": "install-hook-script-critical",
+   "block": "registryDocument",
+   "file": null,
+   "evidence": "scripts/install.js can reach the network and writes files (network-module)",
+   "reviewedAt": "2026-09-16",
+   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+  }
+ ]
+}
