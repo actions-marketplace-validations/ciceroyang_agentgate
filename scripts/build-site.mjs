@@ -176,7 +176,11 @@ function renderServer(record, slug, template, index) {
   }
   const pkgs = (record.packages || []).map(function (p) { return esc(p.name) + (p.version ? "@" + esc(p.version) : "") + " (" + esc(p.registry || "?") + ")" }).join(", ")
   const rv = record.repository
-  const repo = rv ? esc(rv.url || rv) : "(注册表条目里没有仓库地址)"
+  // A registry entry can carry "repository": {}, which is truthy and names nothing. Rendering
+  // it printed "仓库: [object Object]" on fifty-four published pages, because String({}) is a
+  // string and nothing about that fails until a person opens the page.
+  const repoUrl = typeof rv === "string" ? rv : (rv && typeof rv === "object" && typeof rv.url === "string" ? rv.url : null)
+  const repo = repoUrl ? esc(repoUrl) : "(注册表条目里没有可用的仓库地址)"
   const name = String(record.server)
   const meta = '<div class="box"><p class="muted">包:' + (pkgs || "(无)") + "<br>仓库:" + repo + "</p></div>"
   const owner = ownerOf(record)

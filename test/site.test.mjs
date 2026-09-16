@@ -134,6 +134,20 @@ test("the plain pages are published beside the index, and the index does not ove
   }
 })
 
+test("a repository field that is an empty object does not render as an object", function () {
+  const dir = mkdtempSync(join(tmpdir(), "ag-site-repo-"))
+  const index = join(dir, "index.json")
+  writeFileSync(index, JSON.stringify({ generatedAt: "T", threshold: "medium", count: 1, records: [
+    { server: "a/empty-repo", verdict: "clean", packages: [], repository: {}, evidence: { registryDocument: { status: "clean", source: "mcp-census", findings: [] } }, generatedAt: "T" },
+  ] }))
+  const out = join(dir, "out")
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", index, "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+  const page = readFileSync(join(out, "s", "a__empty-repo.html"), "utf8")
+  assert.doesNotMatch(page, /\[object Object\]/, "the repository field was rendered as an object")
+  assert.match(page, /没有可用的仓库地址/)
+})
+
 test("every server gets a page of its own, and the page says what it did not measure", function () {
   const out = mkdtempSync(join(tmpdir(), "ag-site-servers-"))
   const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
