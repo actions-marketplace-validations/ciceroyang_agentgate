@@ -43,6 +43,43 @@ api.xn--5kvo87g.com      主机记录 api    类型 A   值 <公网IP>
 **没有 `docs.` 和 `try.`**:文档先留在仓库里;在线试用页面在主站的 `/try.html`(即 `app.xn--5kvo87g.com/try.html`)。
 等有了内容再加子域,不要为了占位建一条指向空目录的记录。
 
+
+### 怎么加这两条记录（阿里云云解析，逐步）
+
+**最少只要加 `app` 一条**——`app.` 这个站点本身就带 API(`/v1/*`、`/health`、`/badge/*` 都转发到服务),
+公开 demo 够用。`api.` 是可选,给脚本和 CI 一个干净的接口域名。
+
+**方式一:控制台点**
+
+1. 浏览器打开 <https://dns.console.aliyun.com>(或:阿里云控制台 → 搜"云解析 DNS")。
+2. 在域名列表里找到 `xn--5kvo87g.com`(可能显示成 `智量.com`),点右边 **解析设置**。
+3. 你会看到已有的记录:`@` 和 `www`,值都是 `8.218.22.11`——**这两条不要动**。
+4. 点 **添加记录**,只填这几个框:
+
+   | 框 | 填什么 |
+   | --- | --- |
+   | 记录类型 | `A` |
+   | 主机记录 | `app` ← **只写 app**,不要写 `app.`,更不要写整个域名 |
+   | 解析线路 | 默认 |
+   | 记录值 | `8.218.22.11` |
+   | TTL | 默认(10 分钟) |
+
+5. 点 **确认**。想连 `api.` 也加的话,重复第 4 步,主机记录换成 `api`,其余一样。
+
+**方式二:一条命令(阿里云 Cloud Shell,已登录状态)**
+
+打开 <https://shell.aliyun.com>,粘贴:
+
+```sh
+aliyun alidns AddDomainRecord --DomainName xn--5kvo87g.com --RR app --Type A --Value 8.218.22.11
+# 可选:
+aliyun alidns AddDomainRecord --DomainName xn--5kvo87g.com --RR api --Type A --Value 8.218.22.11
+```
+
+输出里有 `RecordId` 就是成功;如果报 `DomainRecordDuplicate` 说明已经有了。报权限错就用方式一。
+
+**怎么知道加对了**:等 1–10 分钟,在这台机器上执行 `nc -vz -w 5 app.xn--5kvo87g.com 443`,
+看到 `succeeded` 就说明解析生效了。也可以直接告诉我,我从外网查。
 **要把产品挪到主域时**:先把另一个站点迁到别处或 `me.` 子域,再改 `deploy/Caddyfile`。
 这件事不该由部署脚本单方面做——它会覆盖一个正在运行的站点。
 
