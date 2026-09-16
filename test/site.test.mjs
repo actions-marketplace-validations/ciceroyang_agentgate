@@ -171,3 +171,14 @@ test("registry data cannot break out of the embedded json", function () {
   assert.deepEqual(JSON.parse(data).map(function (r) { return r.server }).sort(), [payload, "a$'b", "c$&d"].sort())
   assert.match(JSON.parse(diff), /a\$'b/, "the diff lost its dollar sign")
 })
+
+test("the pricing page says which tiers exist yet", function () {
+  // The table lists SSO/SAML, RBAC, multi-tenancy and signed audit export under Team and
+  // Enterprise. None of those are implemented. A footer calling the page a draft is not enough —
+  // somebody reading it has to be able to tell what they can buy today.
+  const pricing = readFileSync(join(ROOT, "site", "pricing.html"), "utf8")
+  assert.match(pricing, /还在做/, "the pricing page no longer says the paid tiers are not built")
+  assert.match(pricing, /现在能用的只有/, "it no longer says what is available today")
+  const index = readFileSync(join(ROOT, "site", "index.html"), "utf8")
+  assert.match(index, /这些还在做/, "the landing page presents the enterprise features as shipped")
+})
