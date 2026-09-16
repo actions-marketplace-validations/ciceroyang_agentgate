@@ -54,15 +54,18 @@ curl -s localhost:8080/v1/servers/<name>
 curl -s localhost:8080/badge/<name>.svg
 ```
 
-From npm, nothing to clone, and it works out of the box: with no policy file present
-`check` uses a built-in default that refuses nothing extra, and `serve` answers from the
-snapshot the package was published with. `refresh` always writes to `./data` beside you,
-never inside the installed package.
+It is packaged for npm as `@zhiliang/agentgate`. If `npx` answers 404 the first publish has not
+happened yet — [docs/operations/publish-checklist.md](docs/operations/publish-checklist.md) is that
+one-time setup, and until then the clone above is the way to run it.
 
 ```sh
 npx @zhiliang/agentgate check --root .
 npx @zhiliang/agentgate serve
 ```
+
+With no policy file present `check` uses a built-in default that refuses nothing extra, and
+`serve` answers from the snapshot the package was published with. `refresh` always writes to
+`./data` beside you, never inside the installed package.
 
 Or with docker, which runs the same command in a container:
 
