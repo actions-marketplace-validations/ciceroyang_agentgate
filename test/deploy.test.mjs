@@ -264,3 +264,29 @@ test("a server without a usable node stops at the check, with instructions", fun
   assert.doesNotMatch(apply.stdout, /将执行/, "apply carried on past the missing runtime")
   rmSync(bin, { recursive: true, force: true })
 })
+
+test("--port reaches the smoke check, the unit and the Caddyfile block", function () {
+  // The machine already runs another site. If 8080 turns out to be taken there, the first
+  // collection would finish and then the service would fail to bind, so the port has to be
+  // something the operator can move -- and it has to move consistently, not in one place only.
+  const bin = mkdtempSync(join(tmpdir(), "ag-port-"))
+  writeFileSync(join(bin, "caddy"), "#!/bin/sh\nexit 0\n", { mode: 0o755 })
+  for (const tool of ["uname", "hostname", "id", "sed", "node"]) {
+    const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
+    if (from) symlinkSync(from, join(bin, tool))
+  }
+  const repo = mkdtempSync(join(tmpdir(), "ag-portrepo-"))
+  mkdirSync(join(repo, "deploy"), { recursive: true })
+  mkdirSync(join(repo, "scripts"), { recursive: true })
+  copyFileSync(join(ROOT, "deploy", "Caddyfile"), join(repo, "deploy", "Caddyfile"))
+  copyFileSync(join(ROOT, "deploy", "agentgate.service"), join(repo, "deploy", "agentgate.service"))
+  copyFileSync(join(ROOT, "scripts", "caddy-append.sh"), join(repo, "scripts", "caddy-append.sh"))
+
+  const out = spawnSync("/bin/bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--with-caddy", "--port", "9099", "--dir", repo], {
+    encoding: "utf8", timeout: 60000, env: Object.assign({}, process.env, { PATH: bin + ":/usr/bin:/bin" }) })
+  assert.equal(out.status, 0, out.stderr)
+  assert.match(out.stdout, /http:\/\/127\.0\.0\.1:9099/, "the smoke check still uses 8080")
+  assert.match(out.stdout, /AGENTGATE_PORT=9099/, "the unit still binds 8080")
+  rmSync(bin, { recursive: true, force: true })
+  rmSync(repo, { recursive: true, force: true })
+})

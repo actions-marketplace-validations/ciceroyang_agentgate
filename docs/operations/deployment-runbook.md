@@ -268,6 +268,10 @@ cd /opt/agentgate && git log --oneline -5 && git checkout <good-sha> && docker c
 
 ## 自动化脚本
 
+`--with-caddy` 之外还有 `--port <n>`:共享机器上 8080 若已被别的服务占用,脚本会自动挑一个空闲端口,
+并把同一个端口写进 systemd 单元与 Caddyfile 的转发目标。想固定就用 `--port` 指定。
+
+
 ```sh
 # 在服务器上，先预演，确认无误再 --apply
 bash scripts/onboard-server.sh

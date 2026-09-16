@@ -12,6 +12,8 @@ APPLY=0
 MODE=node
 SKIP_NET=0
 WITH_CADDY=0
+PORT=8080
+PORT_SET=0
 DIR=/opt/agentgate
 REPO=https://github.com/ciceroyang/agentgate
 # Caddyfile 里 serve 的目录。必须有人创建它，否则主域上线就是一个空页面。
@@ -25,6 +27,7 @@ while [ "$#" -gt 0 ]; do
     --node) MODE=node ;;
     --skip-network) SKIP_NET=1 ;;
     --with-caddy) WITH_CADDY=1 ;;
+    --port) PORT="$2"; PORT_SET=1; shift ;;
     --dir) DIR="$2"; shift ;;
     --repo) REPO="$2"; shift ;;
     --repo=*) REPO="${1#--repo=}" ;;
@@ -119,7 +122,7 @@ fi
 # 不是 Ubuntu。写死 apt-get,这一步会在用户的机器上停住。
 # SELinux 在 RHEL 系上默认 Enforcing,而 Caddy 是第三方单元,会被挡住。
 if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" = "Enforcing" ]; then
-  echo "  SELinux: Enforcing —— Caddy 可能读不了 /var/www、连不上 127.0.0.1:8080;"
+  echo "  SELinux: Enforcing —— Caddy 可能读不了 /var/www、连不上 127.0.0.1:$PORT;"
   echo "           处理命令见 docs/operations/deployment-runbook.md 的 SELinux 一节。"
 fi
 echo "  包管理器:${PKG:-未识别}"
@@ -145,6 +148,18 @@ else
   probe "仓库主机 $REPO_HOST" "$REPO" "克隆会失败。换镜像,例如 --repo https://gitee.com/<你的镜像>/agentgate"
   probe "MCP 官方注册表" "https://registry.modelcontextprotocol.io/v0/servers?limit=1" "采集会失败;换个时段重试"
   probe "npm registry" "https://registry.npmjs.org/" "包清单查不到,扫描结果会把它们标成 metadata-unavailable"
+fi
+echo
+# 共享机器上 8080 可能已经有人用了(这台机器上还跑着别的站)。先探,别等采集两分钟再失败。
+port_in_use() { ( exec 3<>"/dev/tcp/127.0.0.1/$1" ) 2>/dev/null; }
+if [ "$PORT_SET" != "1" ] && port_in_use "$PORT"; then
+  for cand in 8081 8090 18080 28080; do
+    if ! port_in_use "$cand"; then PORT="$cand"; break; fi
+  done
+  echo "  端口 8080 已被占用 -> 改用 $PORT(想指定别的用 --port)"
+fi
+if port_in_use "$PORT"; then
+  echo "  注意:端口 $PORT 也被占用,服务可能起不来。换一个: sudo bash $0 --apply --with-caddy --port <空闲端口>"
 fi
 echo
 echo "== 将执行 =="
@@ -192,7 +207,7 @@ if [ "$MODE" = "node" ]; then
   if [ -f "$DIR/deploy/agentgate.service" ]; then
     sed "s#^ExecStart=.*#ExecStart=$NODE_BIN bin/agentgate.mjs serve#" "$DIR/deploy/agentgate.service" > /tmp/agentgate.service.new
   fi
-  echo "  unit:    ExecStart=$NODE_BIN bin/agentgate.mjs serve"
+  echo "  unit:    ExecStart=$NODE_BIN bin/agentgate.mjs serve   (AGENTGATE_PORT=$PORT)"
   if [ "$APPLY" = "1" ]; then
     install -m 0644 /tmp/agentgate.service.new /etc/systemd/system/agentgate.service
   else
@@ -203,18 +218,18 @@ if [ "$MODE" = "node" ]; then
 fi
 
 if [ "$APPLY" = "1" ]; then
-  if ! "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:8080 --expect-min 1000; then
+  if ! "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:$PORT --expect-min 1000; then
     echo
     echo "== smoke 没通过,先看这三个原因 =="
     echo "  1. 采集没跑成功 -> 服务读的是样本索引（records 会停在 300 左右）"
     echo "  2. node 路径不对 -> systemctl status agentgate / journalctl -u agentgate -n 40"
-    echo "  3. 端口被占 -> ss -ltnp | grep 8080"
+    echo "  3. 端口被占 -> ss -ltnp | grep $PORT"
     echo "--- journalctl -u agentgate -n 40 ---"
     journalctl -u agentgate -n 40 --no-pager 2>/dev/null || true
     exit 1
   fi
 else
-  run "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:8080 --expect-min 1000
+  run "$NODE_BIN" "$DIR/scripts/smoke.mjs" http://127.0.0.1:$PORT --expect-min 1000
 fi
 
 if [ "$WITH_CADDY" = "1" ]; then
@@ -238,7 +253,7 @@ if [ "$WITH_CADDY" = "1" ]; then
     MARK_END="# agentgate-managed-end"
     BLOCK=/tmp/agentgate-caddy-block
     if [ -f "$DIR/deploy/Caddyfile" ]; then
-    { echo "$MARK_BEGIN"; cat "$DIR/deploy/Caddyfile"; echo "$MARK_END"; } > "$BLOCK"
+    { echo "$MARK_BEGIN"; sed "s#127.0.0.1:8080#127.0.0.1:$PORT#g" "$DIR/deploy/Caddyfile"; echo "$MARK_END"; } > "$BLOCK"
     # 这台机器的主域上已经跑着别的站点。绝不覆盖:只备份后追加我们标了记的一段。
     run bash "$DIR/scripts/caddy-append.sh" "$DEST" "$BLOCK"
     if [ "$APPLY" = "1" ]; then
