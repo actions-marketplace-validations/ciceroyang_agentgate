@@ -193,13 +193,7 @@ fi
 if [ "$WITH_CADDY" = "1" ]; then
   echo
   echo "== Caddy（--with-caddy）=="
-  if command -v caddy >/dev/null 2>&1; then
-    if [ -f /etc/caddy/Caddyfile ]; then run cp /etc/caddy/Caddyfile "/etc/caddy/Caddyfile.bak.$(date +%s)"; fi
-    run cp "$DIR/deploy/Caddyfile" /etc/caddy/Caddyfile
-    run caddy validate --config /etc/caddy/Caddyfile
-    run bash -c "systemctl reload caddy 2>/dev/null || systemctl restart caddy"
-    echo "  已配置。证书在 DNS 生效后自动签发,看 journalctl -u caddy -n 50。"
-  else
+  if ! command -v caddy >/dev/null 2>&1; then
     echo "  Caddy 还没装。按你的发行版执行,然后重跑: sudo bash $0 --apply --with-caddy"
     if [ "$PKG" = "apt" ]; then
       echo "    sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https"
@@ -210,6 +204,40 @@ if [ "$WITH_CADDY" = "1" ]; then
       echo "    sudo $PKG install -y dnf-command(copr) && sudo $PKG copr enable -y @caddy/caddy && sudo $PKG install -y caddy"
     else
       echo "    https://caddyserver.com/docs/install"
+    fi
+  else
+    DEST=/etc/caddy/Caddyfile
+    MARK_BEGIN="# agentgate-managed-begin"
+    MARK_END="# agentgate-managed-end"
+    BLOCK=/tmp/agentgate-caddy-block
+    if [ -f "$DIR/deploy/Caddyfile" ]; then
+    { echo "$MARK_BEGIN"; cat "$DIR/deploy/Caddyfile"; echo "$MARK_END"; } > "$BLOCK"
+    # 这台机器的主域上已经跑着别的站点。绝不覆盖:只备份后追加我们标了记的一段。
+    if [ ! -f "$DEST" ]; then
+      run cp "$BLOCK" "$DEST"
+    elif grep -qF "$MARK_BEGIN" "$DEST"; then
+      run cp "$DEST" "$DEST.bak.$(date +%s)"
+      run bash -c "sed '/$MARK_BEGIN/,/$MARK_END/d' $DEST > /tmp/caddy.stripped && cat $BLOCK >> /tmp/caddy.stripped && mv /tmp/caddy.stripped $DEST"
+    else
+      run cp "$DEST" "$DEST.bak.$(date +%s)"
+      run bash -c "cat $BLOCK >> $DEST"
+    fi
+    if [ "$APPLY" = "1" ]; then
+      if caddy validate --config "$DEST" >/dev/null 2>&1; then
+        systemctl reload caddy 2>/dev/null || systemctl restart caddy
+        echo "  已追加并 reload。证书在 app./api. 的 DNS 生效后自动签发,看 journalctl -u caddy -n 50。"
+        echo "  主域上的原有站点没有被动过;改动前的备份是 $DEST.bak.*"
+      else
+        LATEST="$(ls -t "$DEST".bak.* 2>/dev/null | head -1 || true)"
+        if [ -n "$LATEST" ]; then cp "$LATEST" "$DEST"; echo "  配置校验没过,已回滚到 $LATEST"; else rm -f "$DEST"; echo "  配置校验没过,已删除刚写入的文件"; fi
+        caddy validate --config "$DEST" 2>&1 | tail -5 || true
+        exit 1
+      fi
+    else
+      echo "  会先备份现有 $DEST,再只追加 agentgate 的段落(不覆盖主域上的站点),然后 validate + reload"
+    fi
+    else
+      echo "  仓库还没克隆,拿不到 $DIR/deploy/Caddyfile;--apply 时它会在,那时才追加"
     fi
   fi
 fi

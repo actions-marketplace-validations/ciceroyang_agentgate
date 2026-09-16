@@ -1,7 +1,7 @@
 import { DEFAULT_PORT } from "../packages/service/src/defaults.mjs"
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { readFileSync, existsSync, mkdtempSync, writeFileSync, symlinkSync, rmSync } from "node:fs"
+import { readFileSync, existsSync, mkdtempSync, writeFileSync, symlinkSync, rmSync, mkdirSync, copyFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -156,7 +156,11 @@ test("every name Caddy serves is a name the runbook tells the user to create", f
       if (/^[a-z0-9.-]+\.[a-z0-9-]+$/.test(host)) served.add(host)
     }
   }
-  assert.ok(served.size >= 4, "the Caddyfile parse found too few names: " + Array.from(served).join(", "))
+  assert.ok(served.size >= 2, "the Caddyfile parse found too few names: " + Array.from(served).join(", "))
+  // The apex already serves the personal site on that machine. A Caddyfile that claims it would
+  // take the site over the moment it is installed, which is not a deploy script\u0027s call to make.
+  assert.equal(served.has("xn--5kvo87g.com"), false, "the Caddyfile claims the apex, which is in use")
+  assert.equal(served.has("www.xn--5kvo87g.com"), false, "the Caddyfile claims www, which is in use")
 
   const runbook = readFileSync(join(ROOT, "docs", "operations", "deployment-runbook.md"), "utf8")
   // Only the DNS section counts. The runbook also quotes the whole Caddyfile further down, so a
@@ -170,7 +174,7 @@ test("every name Caddy serves is a name the runbook tells the user to create", f
   const missing = Array.from(served).filter(function (host) { return tokens.indexOf(host) === -1 })
   assert.deepEqual(missing, [], "Caddy serves names the runbook DNS section never tells the user to create")
 
-  assert.match(runbook, /没有 `try\.`/, "the runbook no longer says there is no try. subdomain")
+  assert.match(runbook, /没有[^\n]*`try\.`/, "the runbook no longer says there is no try. subdomain")
 })
 
 test("the runbook points at the Caddyfile instead of copying it", function () {
@@ -210,4 +214,30 @@ test("--with-caddy still installs the service, and puts the TLS step last", func
 
   const plain = spawnSync("bash", [script, "--skip-network"], { encoding: "utf8", timeout: 60000 })
   assert.match(plain.stdout, /这一步没做/, "without the flag the outstanding step must still be stated")
+})
+
+test("--with-caddy appends to an existing Caddyfile instead of replacing it", function () {
+  // The target machine already runs Caddy for the personal site on the apex. The first version of
+  // this step copied our Caddyfile over /etc/caddy/Caddyfile, which would have taken that site
+  // down. It must back up and append, and roll back if the result does not validate.
+  const fakeBin = mkdtempSync(join(tmpdir(), "ag-caddy-"))
+  writeFileSync(join(fakeBin, "caddy"), "#!/bin/sh\nexit 0\n", { mode: 0o755 })
+  for (const tool of ["uname", "hostname", "id", "sed"]) {
+    const from = ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
+    if (from) symlinkSync(from, join(fakeBin, tool))
+  }
+  const fakeRepo = mkdtempSync(join(tmpdir(), "ag-repo-"))
+  mkdirSync(join(fakeRepo, "deploy"), { recursive: true })
+  copyFileSync(join(ROOT, "deploy", "Caddyfile"), join(fakeRepo, "deploy", "Caddyfile"))
+
+  const out = spawnSync("/bin/bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--with-caddy", "--dir", fakeRepo], {
+    encoding: "utf8", timeout: 60000,
+    env: Object.assign({}, process.env, { PATH: fakeBin + ":/usr/bin:/bin" }),
+  })
+  assert.equal(out.status, 0, out.stderr)
+  assert.match(out.stdout, /只追加/, "the plan does not mention appending: " + out.stdout.slice(-400))
+  assert.doesNotMatch(out.stdout, /cp \S*deploy\/Caddyfile \/etc\/caddy\/Caddyfile$/, "it would overwrite the file")
+  assert.match(out.stdout, /备份/, "no backup is taken before the change")
+  rmSync(fakeBin, { recursive: true, force: true })
+  rmSync(fakeRepo, { recursive: true, force: true })
 })

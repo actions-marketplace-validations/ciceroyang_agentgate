@@ -1,37 +1,41 @@
-# 复制到服务器 /etc/caddy/Caddyfile。
+# agentgate 的站点。复制到 /etc/caddy/Caddyfile —— 但如果那个文件里已经有别的东西,
+# **不要覆盖**,只把这个文件的内容追加进去(onboard-server.sh --with-caddy 就是这么做的)。
 #
-# 智量.com 是中文域名，证书与路由都用 punycode 写，Caddy 不接受中文字面量。
-# 把 <服务器公网IP> 处不需要填——DNS 的 A 记录负责指向，这里只管域名。
+# 这里刻意不声明主域 xn--5kvo87g.com:那台机器的主域上已经跑着另一个站点(Next.js,由 Caddy
+# 提供 HTTPS)。声明主域会把站点从另一个站点抢过来,而那不该由部署脚本单方面决定。
+# 要把产品挪到主域时,先把另一个站点迁走,再把下面的 app. 段复制一份改成主域。
+#
+# 智量.com 是中文域名,证书与路由都用 punycode 写,Caddy 不接受中文字面量。
 
-# 主域：产品/品牌页。若另一个站点要保留，把这一段挪到 me.xn--5kvo87g.com。
-xn--5kvo87g.com, www.xn--5kvo87g.com {
-	root * /var/www/zhiliang
-	encode gzip
-	file_server
-}
-
-# 控制台与 API：同一个服务，两个名字。
+# 站 + API:同一个服务,静态页走文件,接口转发到本地 8080。
 app.xn--5kvo87g.com {
 	encode gzip
-	reverse_proxy 127.0.0.1:8080
+	handle /health {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /v1/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /badge/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle {
+		root * /var/www/zhiliang
+		file_server
+	}
 }
 
+# 纯 API:给脚本和 CI 用。
 api.xn--5kvo87g.com {
 	encode gzip
 	reverse_proxy 127.0.0.1:8080
 }
 
-# 文档（可选）：直接指向仓库里的 docs 或另建静态站。
-docs.xn--5kvo87g.com {
-	root * /var/www/zhiliang-docs
-	file_server
-}
-
-# 访问日志：默认进 journald（含 IP 与 UA）。这不用于画像，也不共享。
-# 保留期建议 7 天，依据见 docs/operations/legal/data-handling.md：
+# 访问日志:默认进 journald(含 IP 与 UA)。不用于画像,也不共享。
+# 保留期建议 7 天,依据见 docs/operations/legal/data-handling.md:
 #   /etc/systemd/journald.conf.d/agentgate.conf 里设 MaxRetentionSec=7day
 
-# 说明：
-# - Caddy 会自动申请并续期 Let's Encrypt 证书，前提是 80/443 已放行且 DNS 已生效。
-# - 中国大陆服务器必须先完成 ICP 备案，否则 80/443 会被拦截（见 docs/operations/plan-b-no-icp.md）。
-# - 不要把 8080 暴露到公网：安全组只开 22 / 80 / 443，Caddy 通过回环访问服务。
+# 说明:
+# - Caddy 会自动申请并续期 Let's Encrypt 证书,前提是 80/443 已放行且 DNS 已生效。
+# - 香港机器不需要 ICP 备案;大陆机器必须先备案,否则 80/443 会被拦(见 plan-b-no-icp.md)。
+# - 不要把 8080 暴露到公网:安全组只开 22 / 80 / 443,Caddy 通过回环访问服务。
