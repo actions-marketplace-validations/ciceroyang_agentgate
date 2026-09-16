@@ -112,6 +112,16 @@ test("the plain pages are published beside the index, and the index does not ove
   const evidence = readFileSync(join(out, "evidence.html"), "utf8")
   assert.match(evidence, /id="rows"/, "the browsable index still gets built")
 
+  // The index builds its rows in the browser, so a stray quote in that script is a page that
+  // renders nothing — and nothing else in the suite would notice. It happened once already.
+  const blocks = /<script>([\s\S]*)<\/script>/.exec(evidence)
+  assert.ok(blocks, "the index page has no script block")
+  const scriptPath = join(out, "page-script.js")
+  writeFileSync(scriptPath, blocks[1])
+  const parsed = spawnSync(process.execPath, ["--check", scriptPath], { encoding: "utf8" })
+  assert.equal(parsed.status, 0, "the index page script does not parse: " + parsed.stderr)
+  assert.ok(evidence.indexOf('"/s/" + slug(') !== -1, "the index must link to the per-server pages")
+
   assert.match(readFileSync(join(out, "pricing.html"), "utf8"), /29,800|29,?800|价格/)
   assert.match(readFileSync(join(out, "try.html"), "utf8"), /自己试|十分钟/)
 

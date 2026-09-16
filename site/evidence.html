@@ -61,6 +61,9 @@ var vf = document.getElementById("v");
 var n = document.getElementById("n");
 function evCount(r){ var c=0; for (var i=0;i<r.evidence.length;i++) c+=r.evidence[i].findings.length; return c; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+// The same slug scripts/build-site.mjs writes the page under. Two rules for one name would
+// drift, and a link that 404s is worse than no link.
+function slug(name){ return String(name).split("/").join("__").replace(/[^A-Za-z0-9._-]/g, "_"); }
 function render(){
   var query = q.value.trim().toLowerCase(), ver = vf.value;
   var out = DATA.filter(function(r){
@@ -71,14 +74,14 @@ function render(){
   });
   n.textContent = "显示 " + out.length + " / " + DATA.length;
   var html = out.slice(0,600).map(function(r){
-    return "<tr onclick=\"openD(" + DATA.indexOf(r) + ")\"><td>" + esc(r.server) + "</td><td class=\"v " + esc(r.verdict) + "\">" + esc(r.verdict) + "</td><td class=\"meta\">" + esc(r.packages.join(", ") || "—") + "</td><td class=\"meta\">" + r.evidence.length + " 块 / " + evCount(r) + " 条</td></tr>";
+    return "<tr onclick=\"openD(" + DATA.indexOf(r) + ")\"><td><a href=\"/s/" + slug(r.server) + ".html\" onclick=\"event.stopPropagation()\">" + esc(r.server) + "</a></td><td class=\"v " + esc(r.verdict) + "\">" + esc(r.verdict) + "</td><td class=\"meta\">" + esc(r.packages.join(", ") || "—") + "</td><td class=\"meta\">" + r.evidence.length + " 块 / " + evCount(r) + " 条</td></tr>";
   }).join("");
   if (out.length > 600) html += "<tr><td colspan=4 class=\"meta\">只显示前 600 条,请用搜索缩小范围</td></tr>";
   rows.innerHTML = html;
 }
 function openD(i){
   var r = DATA[i];
-  var h = "<h2>" + esc(r.server) + "</h2><p class=\"v " + esc(r.verdict) + "\">" + esc(r.verdict) + "</p>";
+  var h = "<h2>" + esc(r.server) + "</h2><p class=\"v " + esc(r.verdict) + "\">" + esc(r.verdict) + "</p><p class=\"meta\"><a href=\"/s/" + slug(r.server) + ".html\">独立页面 →</a></p>";
   if (r.packages.length) h += "<p class=\"meta\">包:" + esc(r.packages.join(", ")) + "</p>";
   for (var i2=0;i2<r.evidence.length;i2++){
     var e = r.evidence[i2];
