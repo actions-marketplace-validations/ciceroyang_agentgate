@@ -1,0 +1,8 @@
+{
+  "name": "buywhere-mcp-banner",
+  "version": "0.3.1",
+  "description": "Placeholder for a package whose only install hook prints a banner.",
+  "scripts": {
+    "postinstall": "node -e \"try{require('fs').existsSync(require('path').join(__dirname,'dist','index.js'))&&console.log('\\n  ✦ installed\\n  › Docs: https://github.com/x/y\\n')}catch(e){}\""
+  }
+}

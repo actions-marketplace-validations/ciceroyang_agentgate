@@ -3682,17 +3682,10 @@
      ]
     },
     "packageManifest": {
-     "status": "findings",
+     "status": "clean",
      "source": "guard-scan",
      "reason": null,
-     "findings": [
-      {
-       "rule": "AG-INSTALL-001",
-       "severity": "critical",
-       "file": "package.json",
-       "message": "the postinstall script evaluates inline code at install time"
-      }
-     ]
+     "findings": []
     }
    },
    "verdict": "findings",

@@ -114,20 +114,36 @@ const CRITICAL_PATTERNS = [
 const NETWORK_MODULE = /\b(node:https?|node-fetch|axios|undici|got)\b|require\(\s*['"](?:node:)?https?['"]\s*\)/
 
 /**
+ * What a network fetch has to be paired with before it is an incident and not a
+ * capability. Reaching the network is what a legitimate installer does when it checks for
+ * an update or pulls an official binary; a download turns into one when the same script
+ * can write the result, run it, or decode it.
+ */
+const NETWORK_SINK = /\bwriteFile|appendFile|createWriteStream|\brmSync|\bunlinkSync|\bmkdir|child_process|execSync|execFileSync|spawnSync|\bspawn\s*\(|\.exec\s*\(|\beval\s*\(|new\s+Function|Buffer\.from\s*\([^)]*base64/
+
+/** Whether the text can reach the network at all: a capability, not a finding by itself. */
+export function networkCapabilityOf(text) {
+  return NETWORK_MODULE.test(String(text))
+}
+
+/**
  * First critical pattern the text matches, or null.
  *
  * Two modes, because the same characters mean different things: in a `postinstall`
  * command the quoted argument of `node -e "..."` IS the executed code, so hooks are
  * matched raw; in a referenced script the quoted text is usually data (a notice with a
  * URL), so script content is matched after strings and comments are stripped.
+ *
+ * `network-module` also needs its sink: a network require on its own is a capability, and
+ * the corpus counts a fetch that pipes into a file as the shape worth calling critical.
  * @param {string} text
  * @param {'hook'|'script'} [mode]
  * @returns {string|null} pattern label.
  */
 export function criticalPatternOf(text, mode = 'script') {
   const raw = String(text)
-  if (mode === 'script' && NETWORK_MODULE.test(raw)) return 'network-module'
   const subject = mode === 'hook' ? raw : stripStringsAndComments(raw)
+  if (mode === 'script' && NETWORK_MODULE.test(raw) && NETWORK_SINK.test(subject)) return 'network-module'
   for (const [label, pattern] of CRITICAL_PATTERNS) {
     if (pattern.test(subject)) return label
   }
@@ -194,6 +210,8 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
         const scriptLabel = criticalPatternOf(content)
         if (scriptLabel) {
           add('install-hook-script-critical', 'critical', ref + ' matches ' + scriptLabel)
+        } else if (networkCapabilityOf(content)) {
+          add('install-hook-script-network', 'high', ref + ' can reach the network at install time, but no write, spawn or decode sink was found')
         } else {
           add('install-hook-script-inspected', 'info', 'hook runs ' + ref + ' (' + content.length + ' bytes): no fetch/spawn/decode pattern found')
         }

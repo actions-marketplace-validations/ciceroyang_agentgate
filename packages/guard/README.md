@@ -25,7 +25,7 @@ That invariant is the product. The worst failure mode of a security gate is a gr
 | check | rules | what it looks at |
 | --- | --- | --- |
 | `mcp-config` | AG-MCP-001 … 015 | MCP client configs: unpinned `npx`/`uvx`, relative command paths, shell metacharacters, plain `http`, filesystem roots handed to a server, literal credentials in `env` |
-| `install-hooks` | AG-INSTALL-001 | `preinstall`/`install`/`postinstall`/`prepare` scripts that fetch-and-exec, decode base64, inline-eval, or spawn |
+| `install-hooks` | AG-INSTALL-001 | `preinstall`/`install`/`postinstall`/`prepare` scripts that fetch-and-exec, decode base64, or run inline code that can fetch, spawn or rewrite files. The inline program is read rather than inferred from its shape, so a print-only install banner is not a finding |
 | `content-injection` | AG-INJECT-EN-01…04, ZH-01…03, MIX-01 | instruction-override phrasing in markdown and text |
 | `transport` | AG-TRANSPORT-001 … 004 | plain `http` endpoints, remote servers with no authentication, disabled TLS verification, `0.0.0.0` binds |
 | `supply-chain` | AG-SUPPLY-001 … 003 | dependencies resolved from a mutable source (git/http/file), versions floating on `*` or `latest`, dependencies with no committed lockfile. A dev or peer dependency is reported at a lower severity than a runtime one, because it never reaches a consumer of the package |
