@@ -240,15 +240,7 @@ if [ "$WITH_CADDY" = "1" ]; then
     if [ -f "$DIR/deploy/Caddyfile" ]; then
     { echo "$MARK_BEGIN"; cat "$DIR/deploy/Caddyfile"; echo "$MARK_END"; } > "$BLOCK"
     # 这台机器的主域上已经跑着别的站点。绝不覆盖:只备份后追加我们标了记的一段。
-    if [ ! -f "$DEST" ]; then
-      run cp "$BLOCK" "$DEST"
-    elif grep -qF "$MARK_BEGIN" "$DEST"; then
-      run cp "$DEST" "$DEST.bak.$(date +%s)"
-      run bash -c "sed '/$MARK_BEGIN/,/$MARK_END/d' $DEST > /tmp/caddy.stripped && cat $BLOCK >> /tmp/caddy.stripped && mv /tmp/caddy.stripped $DEST"
-    else
-      run cp "$DEST" "$DEST.bak.$(date +%s)"
-      run bash -c "cat $BLOCK >> $DEST"
-    fi
+    run bash "$DIR/scripts/caddy-append.sh" "$DEST" "$BLOCK"
     if [ "$APPLY" = "1" ]; then
       if caddy validate --config "$DEST" >/dev/null 2>&1; then
         systemctl reload caddy 2>/dev/null || systemctl restart caddy
