@@ -91,6 +91,22 @@ test("the onboarding script does not write to a fixed path in a shared temporary
   assert.match(script, /mktemp/, "temporary files have to be allocated with mktemp")
 })
 
+test("the onboarding script leaves nothing behind in the temporary directory", function () {
+  // The unit file is written under $TMPDIR before it is installed, so it is removed by an EXIT
+  // trap. When that trap cannot run -- or runs on a PATH without rm -- every rehearsal leaves the
+  // generated unit and an empty mktemp file in a shared directory. The fake PATH in the tests is
+  // where this actually happened: the rig that faked curl never got an rm, and the files piled up
+  // in the deployment server's /tmp where a root run would have left them behind for good.
+  const scratch = mkdtempSync(join(tmpdir(), "ag-tmp-"))
+  const out = spawnSync("bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--dir", join(scratch, "not-there")], {
+    encoding: "utf8", timeout: 60000,
+    env: Object.assign({}, process.env, { TMPDIR: scratch }),
+  })
+  assert.equal(out.status, 0, out.stderr)
+  assert.deepEqual(readdirSync(scratch), [], "the script left files behind in TMPDIR")
+  rmSync(scratch, { recursive: true, force: true })
+})
+
 test("the installer picks the package manager the distribution actually has", function () {
   // Alibaba Cloud Linux is RHEL family: no apt-get, dnf instead, SELinux enforcing. The script
   // called apt-get unconditionally, which stops at the first step on the default Aliyun image.
@@ -118,7 +134,7 @@ test("the installer picks the package manager the distribution actually has", fu
 /** A PATH with only what the script needs, plus whatever fakes the test supplies. */
 function fakeBin(tools, files) {
   const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
-  for (const tool of tools.concat(["node", "mktemp"])) {
+  for (const tool of tools.concat(["node", "mktemp", "rm"])) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
