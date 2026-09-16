@@ -40,6 +40,15 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
+# 临时文件要用不可预测的名字。这个脚本通常以 root 在别人的机器上跑,而 /tmp 是人人可写的:
+# 固定名字可以被预先创建,或者做成指向 /etc/systemd/system/agentgate.service 的符号链接,
+# 下一次写入就成了对那个路径的 root 写入。固定名字也让彩排失败——早前一次运行留下的文件
+# 属于别的用户时,这里直接 Permission denied(在真机上 7 个测试全红)。
+TMP_SERVICE="$(mktemp "${TMPDIR:-/tmp}/agentgate.service.XXXXXX")"
+TMP_CADDY_BLOCK="$(mktemp "${TMPDIR:-/tmp}/agentgate.caddy.XXXXXX")"
+cleanup() { rm -f "$TMP_SERVICE" "$TMP_CADDY_BLOCK" 2>/dev/null || true; }
+trap cleanup EXIT
+
 # 单元文件里写的是绝对路径。手册推荐 nvm，而 nvm 装的 node 不在 /usr/bin，
 # 照抄单元文件会让 systemctl 报 "No such file or directory"。所以先测真实路径。
 NODE_BIN="$(command -v node 2>/dev/null || echo /usr/bin/node)"
@@ -213,11 +222,11 @@ if [ "$MODE" = "node" ]; then
   run useradd -r -s /usr/sbin/nologin agentgate || true
   run chown -R agentgate:agentgate "$DIR"
   if [ -f "$DIR/deploy/agentgate.service" ]; then
-    sed "s#^ExecStart=.*#ExecStart=$NODE_BIN bin/agentgate.mjs serve#" "$DIR/deploy/agentgate.service" > /tmp/agentgate.service.new
+    sed "s#^ExecStart=.*#ExecStart=$NODE_BIN bin/agentgate.mjs serve#" "$DIR/deploy/agentgate.service" > "$TMP_SERVICE"
   fi
   echo "  unit:    ExecStart=$NODE_BIN bin/agentgate.mjs serve   (AGENTGATE_PORT=$PORT)"
   if [ "$APPLY" = "1" ]; then
-    install -m 0644 /tmp/agentgate.service.new /etc/systemd/system/agentgate.service
+    install -m 0644 "$TMP_SERVICE" /etc/systemd/system/agentgate.service
   else
     echo "  would install /etc/systemd/system/agentgate.service (仓库克隆后可生成)"
   fi
@@ -271,7 +280,7 @@ if [ "$WITH_CADDY" = "1" ]; then
     DEST=/etc/caddy/Caddyfile
     MARK_BEGIN="# agentgate-managed-begin"
     MARK_END="# agentgate-managed-end"
-    BLOCK=/tmp/agentgate-caddy-block
+    BLOCK="$TMP_CADDY_BLOCK"
     if [ -f "$DIR/deploy/Caddyfile" ]; then
     { echo "$MARK_BEGIN"; sed "s#127.0.0.1:8080#127.0.0.1:$PORT#g" "$DIR/deploy/Caddyfile"; echo "$MARK_END"; } > "$BLOCK"
     # 这台机器的主域上已经跑着别的站点。绝不覆盖:只备份后追加我们标了记的一段。

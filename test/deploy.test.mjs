@@ -80,12 +80,23 @@ test("the onboarding script is valid shell and its dry run exits clean", functio
   assert.match(dry.stdout, /smoke\.mjs http:\/\/127\.0\.0\.1:/, "the dry run does not end with a smoke check")
 })
 
+test("the onboarding script does not write to a fixed path in a shared temporary directory", function () {
+  // A fixed name under /tmp can be pre-created by another user, and this script writes those files
+  // as root: pointing one at /etc/systemd/system/agentgate.service turns the write into a root write
+  // to that path. It also broke the rehearsal on a machine where an earlier run had left the file
+  // owned by someone else -- seven tests failed with Permission denied.
+  const script = readFileSync(join(ROOT, "scripts", "onboard-server.sh"), "utf8")
+  const fixed = script.match(/>\s*\/tmp\/[A-Za-z0-9._-]+/g) || []
+  assert.deepEqual(fixed, [], "the script writes to a fixed /tmp path: " + JSON.stringify(fixed))
+  assert.match(script, /mktemp/, "temporary files have to be allocated with mktemp")
+})
+
 test("the installer picks the package manager the distribution actually has", function () {
   // Alibaba Cloud Linux is RHEL family: no apt-get, dnf instead, SELinux enforcing. The script
   // called apt-get unconditionally, which stops at the first step on the default Aliyun image.
   // A fake PATH with only what the script needs reproduces that distribution here.
   const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
-  for (const tool of ["uname", "hostname", "id", "sed", "node"]) {
+  for (const tool of ["uname", "hostname", "id", "sed", "node", "mktemp", "rm"]) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
@@ -107,7 +118,7 @@ test("the installer picks the package manager the distribution actually has", fu
 /** A PATH with only what the script needs, plus whatever fakes the test supplies. */
 function fakeBin(tools, files) {
   const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
-  for (const tool of tools.concat(["node"])) {
+  for (const tool of tools.concat(["node", "mktemp"])) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
@@ -225,7 +236,7 @@ test("--with-caddy appends to an existing Caddyfile instead of replacing it", fu
   // down. It must back up and append, and roll back if the result does not validate.
   const fakeBin = mkdtempSync(join(tmpdir(), "ag-caddy-"))
   writeFileSync(join(fakeBin, "caddy"), "#!/bin/sh\nexit 0\n", { mode: 0o755 })
-  for (const tool of ["uname", "hostname", "id", "sed", "node"]) {
+  for (const tool of ["uname", "hostname", "id", "sed", "node", "mktemp", "rm"]) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(fakeBin, tool))
   }
@@ -249,7 +260,7 @@ test("a server without a usable node stops at the check, with instructions", fun
   // Without this the script printed one line and carried on, so every later step failed with
   // "/usr/bin/node: not found" and nothing said why. Node is the one runtime it does not install.
   const bin = mkdtempSync(join(tmpdir(), "ag-node-"))
-  for (const tool of ["uname", "hostname", "id", "sed"]) {
+  for (const tool of ["uname", "hostname", "id", "sed", "mktemp", "rm"]) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
@@ -274,7 +285,7 @@ test("--port reaches the smoke check, the unit and the Caddyfile block", functio
   // something the operator can move -- and it has to move consistently, not in one place only.
   const bin = mkdtempSync(join(tmpdir(), "ag-port-"))
   writeFileSync(join(bin, "caddy"), "#!/bin/sh\nexit 0\n", { mode: 0o755 })
-  for (const tool of ["uname", "hostname", "id", "sed", "node"]) {
+  for (const tool of ["uname", "hostname", "id", "sed", "node", "mktemp", "rm"]) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
