@@ -41,3 +41,18 @@ jobs:
         run: node packages/guard/bin/agent-guard.mjs . --exclude packages/guard/corpus,node_modules --fail-on high
       - name: An incomplete scan exits 2 no matter what --fail-on says
         run: node -e "import('./packages/guard/test/invariant.mjs')"
+
+  minimum-node:
+    # package.json says node >= 20 and the deployment target runs 20.20.2, while the job above
+    # tracks 24. This job keeps the floor a fact instead of a claim, the way the source scan
+    # keeps the corpus honest: a version nobody runs is not a supported version.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Unit tests on the oldest supported node
+        run: npm test
+      - name: Deploy rehearsal on the oldest supported node
+        run: node scripts/rehearse-deploy.mjs
