@@ -91,6 +91,64 @@ function putAll(page, placeholder, value) { return page.split(placeholder).join(
 function slugOf(name) { return String(name).split("/").join("__").replace(/[^A-Za-z0-9._-]/g, "_") }
 
 const SERVER_TEMPLATE = join(ROOT, "site", "server.html")
+const OWNER_TEMPLATE = join(ROOT, "site", "owner.html")
+
+/** The GitHub login a record's repository belongs to, or null. */
+function ownerOf(record) {
+  const rv = record.repository
+  const url = typeof rv === "string" ? rv : (rv && rv.url) || ""
+  const m = /^https?:\/\/github\.com\/([^\/]+)\//.exec(url)
+  return m ? m[1] : null
+}
+
+/** GitHub logins are case-insensitive, so the slug is the lowercased one. */
+function ownerSlug(login) { return String(login).toLowerCase().replace(/[^a-z0-9-]/g, "_") }
+
+/**
+ * One page per publisher.
+ *
+ * A vendor with twenty-one servers cannot be read twenty-one pages at a time, and "here is
+ * your report" has to be a page somebody can hand to their own customer. Same rules as the
+ * server page: the rows are one line per server, and the limits are stated, not implied.
+ */
+function renderOwner(group, slug, template, index) {
+  const verdicts = {}
+  const severities = {}
+  const ORDER = { incomplete: 0, findings: 1, clean: 2 }
+  const rows = group.records.slice().sort(function (a, b) {
+    const pa = ORDER[a.verdict] === undefined ? 3 : ORDER[a.verdict]
+    const pb = ORDER[b.verdict] === undefined ? 3 : ORDER[b.verdict]
+    if (pa !== pb) return pa - pb
+    return String(a.server).localeCompare(String(b.server))
+  }).map(function (r) {
+    verdicts[r.verdict] = (verdicts[r.verdict] || 0) + 1
+    const findings = []
+    for (const key of Object.keys(r.evidence || {})) {
+      for (const f of ((r.evidence[key] || {}).findings) || []) {
+        findings.push(f)
+        severities[f.severity] = (severities[f.severity] || 0) + 1
+      }
+    }
+    const pkgs = (r.packages || []).map(function (p) { return p.name + (p.version ? "@" + p.version : "") }).join(", ") || "—"
+    const notable = findings.filter(function (f) { return f.severity !== "info" }).length
+    return '<tr><td><a href="/s/' + slugOf(r.server) + '.html">' + esc(r.server) + "</a></td>"
+      + '<td><span class="verdict ' + esc(r.verdict) + '">' + esc(r.verdict) + "</span></td>"
+      + '<td class="muted">' + esc(pkgs) + "</td>"
+      + '<td class="muted">' + findings.length + " 条" + (notable ? ",其中 " + notable + " 条非 info" : "") + "</td></tr>"
+  }).join("\n")
+  const shown = ["clean", "findings", "incomplete", "unknown"].filter(function (v) { return verdicts[v] })
+    .map(function (v) { return '<span class="verdict ' + v + '">' + v + " " + verdicts[v] + "</span>" })
+  const sev = ["critical", "high", "medium", "low", "info"].filter(function (s) { return severities[s] })
+    .map(function (s) { return s + " " + severities[s] })
+  let page = template
+  page = putAll(page, "__SLUG__", esc(slug))
+  page = putAll(page, "__OWNER__", esc(group.display))
+  page = putAll(page, "__COUNT__", String(group.records.length))
+  page = putAll(page, "__GENERATED__", esc(index.generatedAt || "-"))
+  page = putAll(page, "__VERDICTS__", shown.join(" ") + (sev.length ? ' <span class="muted">发现 ' + sev.join(" / ") + "</span>" : ""))
+  page = putAll(page, "__ROWS__", rows)
+  return page
+}
 
 /**
  * One page per server, so a single record can be linked to and read on its own.
@@ -121,6 +179,8 @@ function renderServer(record, slug, template, index) {
   const repo = rv ? esc(rv.url || rv) : "(注册表条目里没有仓库地址)"
   const name = String(record.server)
   const meta = '<div class="box"><p class="muted">包:' + (pkgs || "(无)") + "<br>仓库:" + repo + "</p></div>"
+  const owner = ownerOf(record)
+  const ownerLink = owner ? '<p class="muted">发布方:<a href="/o/' + esc(ownerSlug(owner)) + '.html">' + esc(owner) + "</a></p>" : ""
   let page = template
   page = putAll(page, "__SLUG__", esc(slug))
   page = putAll(page, "__SERVER__", esc(name))
@@ -129,6 +189,7 @@ function renderServer(record, slug, template, index) {
   page = putAll(page, "__GENERATED__", esc(record.generatedAt || index.generatedAt || "-"))
   page = putAll(page, "__API__", esc("https://app.xn--5kvo87g.com/v1/servers/" + encodeURIComponent(name)))
   page = putAll(page, "__BADGE__", esc("https://app.xn--5kvo87g.com/badge/" + encodeURIComponent(name) + ".svg"))
+  page = putAll(page, "__OWNERLINK__", ownerLink)
   page = putAll(page, "__META__", meta)
   page = putAll(page, "__UNMEASURED__", unmeasured.length
     ? '<h2>没测到的部分</h2><div class="box warn">' + unmeasured.join("\n") + "</div>"
@@ -160,7 +221,7 @@ if (pagesDir && existsSync(pagesDir)) {
   for (const name of readdirSync(pagesDir)) {
     // the plain pages plus the small assets a real site needs (favicon, robots, sitemap, 404)
     if (!/\.[a-z0-9]+$/.test(name)) continue
-    if (name === "evidence.html" || name === "server.html") continue
+    if (name === "evidence.html" || name === "server.html" || name === "owner.html") continue
     const target = name === "index.html" ? "index.html" : name
     if (target === indexName) continue
     copyFileSync(join(pagesDir, name), join(outDir, target))
@@ -180,6 +241,23 @@ if (existsSync(SERVER_TEMPLATE)) {
   }
   console.log("wrote " + bySlug.size + " per-server page(s) into " + dir)
 }
+if (existsSync(OWNER_TEMPLATE)) {
+  const ownerTpl = readFileSync(OWNER_TEMPLATE, "utf8")
+  const groups = new Map()
+  for (const r of all) {
+    const owner = ownerOf(r)
+    if (!owner) continue
+    const key = ownerSlug(owner)
+    if (!groups.has(key)) groups.set(key, { display: owner, records: [] })
+    groups.get(key).records.push(r)
+  }
+  const dir = join(outDir, "o")
+  mkdirSync(dir, { recursive: true })
+  for (const [key, group] of groups) {
+    writeFileSync(join(dir, key + ".html"), renderOwner(group, key, ownerTpl, index))
+  }
+  console.log("wrote " + groups.size + " publisher page(s) into " + dir)
+}
 
 // Every server page belongs in the sitemap, otherwise the only way to reach a record is to
 // already know its URL. A sitemap holds 50,000 URLs, so past that it has to become an index,
@@ -191,13 +269,19 @@ if (existsSync(SERVER_TEMPLATE)) {
   const serverUrls = all.map(function (r) {
     return "<url><loc>" + esc(base + "/s/" + slugOf(r.server) + ".html") + "</loc><priority>0.4</priority></url>"
   })
+  const ownerKeys = new Set()
+  for (const r of all) { const o = ownerOf(r); if (o) ownerKeys.add(ownerSlug(o)) }
+  const ownerUrls = Array.from(ownerKeys).map(function (k) {
+    return "<url><loc>" + esc(base + "/o/" + k + ".html") + "</loc><priority>0.5</priority></url>"
+  })
+  const top = main.concat(ownerUrls)
   const head = '<?xml version="1.0" encoding="UTF-8"?>'
   const urlset = function (urls) {
     return head + '\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.map(function (u) { return "  " + u }).join("\n") + "\n</urlset>\n"
   }
   const LIMIT = 45000
-  if (main.length + serverUrls.length <= LIMIT) {
-    writeFileSync(join(outDir, "sitemap.xml"), urlset(main.concat(serverUrls)))
+  if (top.length + serverUrls.length <= LIMIT) {
+    writeFileSync(join(outDir, "sitemap.xml"), urlset(top.concat(serverUrls)))
   } else {
     const files = []
     for (let i = 0; i < serverUrls.length; i += LIMIT) {
@@ -205,11 +289,11 @@ if (existsSync(SERVER_TEMPLATE)) {
       writeFileSync(join(outDir, name), urlset(serverUrls.slice(i, i + LIMIT)))
       files.push(name)
     }
-    writeFileSync(join(outDir, "sitemap-main.xml"), urlset(main))
+    writeFileSync(join(outDir, "sitemap-main.xml"), urlset(top))
     files.unshift("sitemap-main.xml")
     writeFileSync(join(outDir, "sitemap.xml"), head + '\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + files.map(function (f) { return "  <sitemap><loc>" + base + "/" + f + "</loc></sitemap>" }).join("\n") + "\n</sitemapindex>\n")
   }
-  console.log("sitemap: " + (main.length + serverUrls.length) + " url(s)")
+  console.log("sitemap: " + (top.length + serverUrls.length) + " url(s)")
 }
 writeFileSync(join(outDir, ".nojekyll"), "")
 console.log("site written to " + join(outDir, indexName) + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records" + (diffText ? ", with a diff" : "") + ") and " + copied + " page(s) copied")

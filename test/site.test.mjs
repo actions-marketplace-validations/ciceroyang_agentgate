@@ -167,6 +167,37 @@ test("every server gets a page of its own, and the page says what it did not mea
   assert.ok(!existsSync(join(out, "server.html")), "the template was published as a page")
 })
 
+test("every publisher gets a page listing their servers, and the sitemap carries it", function () {
+  const out = mkdtempSync(join(tmpdir(), "ag-site-owners-"))
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+
+  const index = JSON.parse(readFileSync(join(ROOT, "data", "sample-index.json"), "utf8"))
+  const ownerOf = function (r) {
+    const rv = r.repository
+    const url = typeof rv === "string" ? rv : (rv && rv.url) || ""
+    const m = /^https?:\/\/github\.com\/([^\/]+)\//.exec(url)
+    return m ? m[1].toLowerCase().replace(/[^a-z0-9-]/g, "_") : null
+  }
+  const slugOf = function (name) { return String(name).split("/").join("__").replace(/[^A-Za-z0-9._-]/g, "_") }
+  const sitemap = readFileSync(join(out, "sitemap.xml"), "utf8")
+  const seen = new Map()
+
+  let owners = 0
+  for (const record of index.records) {
+    const owner = ownerOf(record)
+    if (!owner) continue
+    owners += 1
+    if (!seen.has(owner)) seen.set(owner, readFileSync(join(out, "o", owner + ".html"), "utf8"))
+    const page = seen.get(owner)
+    assert.ok(page.indexOf(record.server) !== -1, owner + " does not list " + record.server)
+    assert.ok(page.indexOf("/s/" + slugOf(record.server) + ".html") !== -1, owner + " does not link " + record.server)
+    assert.ok(sitemap.indexOf("/o/" + owner + ".html") !== -1, "the sitemap is missing /o/" + owner)
+  }
+  assert.ok(owners > 0, "the sample has no repository owners to check")
+  assert.ok(!existsSync(join(out, "owner.html")), "the publisher template was published as a page")
+})
+
 // Registry data is written by whoever registered the server. It reaches this page as
 // embedded JSON, twice. Two ways that went wrong: String.replace() reads $& and the
 // dollar-prefix forms in a string replacement, so a name containing one spliced the rest of
