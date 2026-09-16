@@ -77,6 +77,66 @@ function put(page, placeholder, value) { return page.replace(placeholder, functi
  *  "</script>" ends the block and everything after it is parsed as HTML. */
 function jsonForScript(value) { return JSON.stringify(value).replace(/</g, "\\u003c") }
 
+/** HTML-escape a value that came from someone else's registration. */
+function esc(value) {
+  return String(value === undefined || value === null ? "" : value)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+}
+
+/** Replace every occurrence. String.replace with a string pattern stops at the first one. */
+function putAll(page, placeholder, value) { return page.split(placeholder).join(value) }
+
+/** A stable, filesystem-safe slug for a server name. The name is someone else's string. */
+function slugOf(name) { return String(name).split("/").join("__").replace(/[^A-Za-z0-9._-]/g, "_") }
+
+const SERVER_TEMPLATE = join(ROOT, "site", "server.html")
+
+/**
+ * One page per server, so a single record can be linked to and read on its own.
+ *
+ * The order of the substitutions matters: the block tables are built from escaped text that
+ * may itself contain a placeholder-looking string, so they go in last, after every scalar.
+ */
+function renderServer(record, slug, template, index) {
+  const ev = record.evidence || {}
+  const blocks = []
+  const unmeasured = []
+  for (const key of Object.keys(ev)) {
+    const b = ev[key] || {}
+    const findings = b.findings || []
+    const rows = findings.map(function (f) {
+      const where = f.file ? esc(f.file) + (f.line ? ":" + esc(f.line) : "") : ""
+      return "<tr><td>" + esc(f.rule) + '</td><td class="sev">' + esc(f.severity) + "</td><td>" + where + "</td><td>" + esc(f.message || f.evidence || "") + "</td></tr>"
+    }).join("")
+    const body = findings.length
+      ? "<table><tr><th>规则</th><th>级别</th><th>位置</th><th>说明</th></tr>" + rows + "</table>"
+      : '<p class="muted">这一块没有产生发现。</p>'
+    const html = "<h2>" + esc(key) + '</h2><p class="muted">status=' + esc(b.status) + " · source=" + esc(b.source || "-") + (b.reason ? " · reason=" + esc(b.reason) : "") + "</p>" + body
+    if (b.status === "findings" || b.status === "clean") blocks.push(html)
+    else unmeasured.push(html)
+  }
+  const pkgs = (record.packages || []).map(function (p) { return esc(p.name) + (p.version ? "@" + esc(p.version) : "") + " (" + esc(p.registry || "?") + ")" }).join(", ")
+  const rv = record.repository
+  const repo = rv ? esc(rv.url || rv) : "(注册表条目里没有仓库地址)"
+  const name = String(record.server)
+  const meta = '<div class="box"><p class="muted">包:' + (pkgs || "(无)") + "<br>仓库:" + repo + "</p></div>"
+  let page = template
+  page = putAll(page, "__SLUG__", esc(slug))
+  page = putAll(page, "__SERVER__", esc(name))
+  page = putAll(page, "__VERDICT__", esc(record.verdict || "unknown"))
+  page = putAll(page, "__THRESHOLD__", esc(index.threshold || "-"))
+  page = putAll(page, "__GENERATED__", esc(record.generatedAt || index.generatedAt || "-"))
+  page = putAll(page, "__API__", esc("https://app.xn--5kvo87g.com/v1/servers/" + encodeURIComponent(name)))
+  page = putAll(page, "__BADGE__", esc("https://app.xn--5kvo87g.com/badge/" + encodeURIComponent(name) + ".svg"))
+  page = putAll(page, "__META__", meta)
+  page = putAll(page, "__UNMEASURED__", unmeasured.length
+    ? '<h2>没测到的部分</h2><div class="box warn">' + unmeasured.join("\n") + "</div>"
+    : '<h2>没测到的部分</h2><div class="box"><p class="muted">这条记录里没有 unmeasured 的块。</p></div>')
+  page = putAll(page, "__BLOCKS__", blocks.join("\n"))
+  return page
+}
+
 const data = jsonForScript(records)
 const diffText = diffPath && existsSync(diffPath) ? readFileSync(diffPath, "utf8") : ""
 let page = readFileSync(templatePath, "utf8")
@@ -100,12 +160,25 @@ if (pagesDir && existsSync(pagesDir)) {
   for (const name of readdirSync(pagesDir)) {
     // the plain pages plus the small assets a real site needs (favicon, robots, sitemap, 404)
     if (!/\.[a-z0-9]+$/.test(name)) continue
-    if (name === "evidence.html") continue
+    if (name === "evidence.html" || name === "server.html") continue
     const target = name === "index.html" ? "index.html" : name
     if (target === indexName) continue
     copyFileSync(join(pagesDir, name), join(outDir, target))
     copied += 1
   }
+}
+if (existsSync(SERVER_TEMPLATE)) {
+  const serverTpl = readFileSync(SERVER_TEMPLATE, "utf8")
+  const dir = join(outDir, "s")
+  mkdirSync(dir, { recursive: true })
+  const bySlug = new Map()
+  for (const r of all) {
+    const slug = slugOf(r.server)
+    if (bySlug.has(slug)) { console.error("slug collision: " + r.server + " vs " + bySlug.get(slug)); process.exit(2) }
+    bySlug.set(slug, r.server)
+    writeFileSync(join(dir, slug + ".html"), renderServer(r, slug, serverTpl, index))
+  }
+  console.log("wrote " + bySlug.size + " per-server page(s) into " + dir)
 }
 writeFileSync(join(outDir, ".nojekyll"), "")
 console.log("site written to " + join(outDir, indexName) + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records" + (diffText ? ", with a diff" : "") + ") and " + copied + " page(s) copied")

@@ -124,6 +124,30 @@ test("the plain pages are published beside the index, and the index does not ove
   }
 })
 
+test("every server gets a page of its own, and the page says what it did not measure", function () {
+  const out = mkdtempSync(join(tmpdir(), "ag-site-servers-"))
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+
+  const index = JSON.parse(readFileSync(join(ROOT, "data", "sample-index.json"), "utf8"))
+  const slugOf = function (name) { return String(name).split("/").join("__").replace(/[^A-Za-z0-9._-]/g, "_") }
+
+  for (const record of index.records) {
+    assert.ok(existsSync(join(out, "s", slugOf(record.server) + ".html")), "no page for " + record.server)
+  }
+
+  const page = readFileSync(join(out, "s", slugOf(index.records[0].server) + ".html"), "utf8")
+  for (const placeholder of ["__SERVER__", "__SLUG__", "__VERDICT__", "__THRESHOLD__", "__GENERATED__", "__META__", "__BLOCKS__", "__UNMEASURED__", "__API__", "__BADGE__"]) {
+    assert.ok(page.indexOf(placeholder) === -1, "placeholder " + placeholder + " survived into the page")
+  }
+  assert.match(page, /没测到不等于干净/, "the page has to say that unmeasured is not clean")
+  assert.match(page, /发现是/, "the page has to say what a finding is and is not")
+  assert.doesNotMatch(page, /\*\*/, "markdown emphasis must not survive into HTML")
+
+  // The template is a build input, not a page.
+  assert.ok(!existsSync(join(out, "server.html")), "the template was published as a page")
+})
+
 // Registry data is written by whoever registered the server. It reaches this page as
 // embedded JSON, twice. Two ways that went wrong: String.replace() reads $& and the
 // dollar-prefix forms in a string replacement, so a name containing one spliced the rest of
