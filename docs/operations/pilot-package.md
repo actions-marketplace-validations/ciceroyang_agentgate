@@ -53,7 +53,7 @@
 
 ## 联系方式
 
-`hello@智量.com`(punycode:`hello@xn--5kvo87g.com`),或直接在 <https://github.com/ciceroyang/agentgate/issues> 开一个 issue。
+`contact@智量.com`(punycode:`contact@xn--5kvo87g.com`),或直接在 <https://github.com/ciceroyang/agentgate/issues> 开一个 issue。
 
 ## 对方要交出什么:一份阶梯,默认从第 0 层开始
 
