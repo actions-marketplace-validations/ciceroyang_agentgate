@@ -175,3 +175,32 @@ GET /nope.html              404                     兜底是文件服务,不是
 ```
 
 也就是说静态页与接口可以共用一个域名,不需要为 API 单独开子域——`api.` 只是给脚本用的可选项。
+
+## 首次真实部署（2026-09-16，阿里云香港）
+
+目标：`8.218.22.11`，域名 `智量.com`。**主域上已经跑着另一个站点(Next.js + Caddy)**,所以产品放在子域,
+配置是**追加**到已有 Caddyfile 的,不是覆盖。
+
+```
+服务      https://app.xn--5kvo87g.com/   systemd active + enabled, 监听 127.0.0.1:8080
+索引      2114 条, generatedAt 是当天(不是样本的 300 条)
+证书      Caddy 自动签发; 五个页面 / /health /v1/* /badge/* 从外网全部 200
+另一个站点    未改动; 改动前备份 /etc/caddy/Caddyfile.bak.*
+历史      data/history/{2026-09-16.json, diff-2026-09-16.md, previous.json}
+外网验收  node scripts/verify-public.mjs --base https://app.xn--5kvo87g.com  -> 14 项全过
+```
+
+部署过程中**真实遇到并修掉**的问题,全部来自环境而不是算法:
+
+1. 服务器没有 Node。旧脚本只提示一句就继续,在 `/usr/bin/node: No such file or directory` 上倒下。
+   现在 Node 不满足就在检查阶段停下,并按发行版给出安装命令。
+2. smoke 与 systemd 的竞态。`Type=simple` 在进程 fork 后就算"已启动",而 `listen()` 还没返回;
+   自检把一个健康的服务报成失败,并且因为这个失败**跳过了 Caddy 那一步**。现在自检前等端口就绪,
+   smoke 自己也会重试。
+3. 重跑时把**自己**占用的端口当成冲突。`enable --now` 不重启已经运行的单元,于是 unit 里写了 8081,
+   而进程还在 8080,配置永远不生效。现在先停自己的服务再探端口,并用 `restart`。
+4. `chown` 给 `agentgate` 之后 root 的 git 以 "dubious ownership" 拒绝操作,重跑拉不到新代码。
+   现在脚本会先 `git config --global --add safe.directory`。
+
+还有一条与前四项无关但同样真实:这台 Mac 的代理**按域名分流**,裸 IP 走直连(被墙),
+所以 `~/.ssh/config` 里那台机器的主机名必须是域名。
