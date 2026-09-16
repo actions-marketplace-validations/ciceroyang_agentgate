@@ -147,10 +147,16 @@ test("when the repository host is unreachable, the dry run says what to do about
 })
 
 test("a custom --repo is what the clone actually uses", function () {
-  const out = spawnSync("bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--repo", "https://gitee.com/someone/agentgate"], { encoding: "utf8", timeout: 60000 })
+  // The clone branch only runs when the target directory is not there yet. Without an explicit
+  // --dir this test read the machine it ran on: it passed on a laptop and failed on the deploy
+  // box, where /opt/agentgate already exists, so the script printed a pull instead of a clone.
+  const scratch = mkdtempSync(join(tmpdir(), "ag-repo-"))
+  const target = join(scratch, "not-cloned-yet")
+  const out = spawnSync("bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--dir", target, "--repo", "https://gitee.com/someone/agentgate"], { encoding: "utf8", timeout: 60000 })
   assert.equal(out.status, 0, out.stderr)
   assert.match(out.stdout, /git clone https:\/\/gitee\.com\/someone\/agentgate/)
   assert.doesNotMatch(out.stdout, /git clone https:\/\/github\.com/, "the mirror was ignored")
+  rmSync(scratch, { recursive: true, force: true })
 })
 
 test("every name Caddy serves is a name the runbook tells the user to create", function () {
