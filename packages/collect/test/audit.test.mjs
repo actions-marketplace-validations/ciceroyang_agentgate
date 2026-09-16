@@ -48,6 +48,18 @@ test('a repository URL with a sub-path is the same repository', () => {
   assert.ok(auditPackage(s, withRepo("https://github.com/acme/other"), { version: '1.0.0' }).some((f) => f.rule === 'repository-mismatch'), 'a genuinely different repository must still be flagged')
 })
 
+test('a registry repository that is an empty object names nothing', () => {
+  // "repository": {} is truthy, so the truthiness test in front of this rule treated it as a
+  // named repository: severity low instead of medium, and repoKey returned null which was then
+  // concatenated into the message. One published record said the registry entry "points at null".
+  const empty = { name: 'acme/s', packages: [{ registryType: 'npm', identifier: 'p', version: '1.0.0', transport: { type: 'stdio' } }], repository: {} }
+  const meta = { 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': {} } }
+  const f = auditPackage(empty, meta, { version: '1.0.0' }).find((x) => x.rule === 'package-repository-missing')
+  assert.equal(f.severity, 'medium', 'an empty object names nothing, so the source could not be located')
+  assert.doesNotMatch(f.evidence, /null/, 'a message must never render a null repository')
+  assert.match(f.evidence, /neither the registry entry nor the published package/)
+})
+
 test('a missing repository says which side is missing it', () => {
   // The registry entry naming a repository is not the same as the package naming one, and the
   // rule used to say "the registry document" for either case. A maintainer whose registry

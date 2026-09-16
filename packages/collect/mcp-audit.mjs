@@ -341,6 +341,11 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
 
   const repoUrl = versionDoc?.repository?.url ?? (typeof pkgMeta.repository === 'string' ? pkgMeta.repository : pkgMeta.repository?.url) ?? null
   const registryRepo = server?.repository?.url ?? server?.repository ?? null
+  // Whether the registry names a repository is not whether the field is truthy. A registry entry
+  // with "repository": {} is truthy and names nothing, and repoKey answers null for it — which
+  // was then concatenated into the message, so one record told its maintainer that the registry
+  // entry "points at null". Ask repoKey once, and use that answer everywhere below.
+  const registryKey = repoKey(registryRepo)
   if (!repoUrl) {
     // The condition is about the package metadata, not the registry entry. Saying "the
     // registry document" told a package whose registry entry names a repository that it had
@@ -348,13 +353,13 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
     // cases are also not the same size: with a registry repository we can still find and read
     // the source; without one we cannot locate it at all.
     add('package-repository-missing',
-      registryRepo ? 'low' : 'medium',
-      registryRepo
-        ? 'the published package declares no repository; the registry entry points at ' + repoKey(registryRepo)
+      registryKey ? 'low' : 'medium',
+      registryKey
+        ? 'the published package declares no repository; the registry entry points at ' + registryKey
         : 'neither the registry entry nor the published package names a repository, so the source could not be located')
   } else {
     const pkgKey = repoKey(repoUrl)
-    const regKey = registryRepo ? repoKey(registryRepo) : null
+    const regKey = registryKey
     if (pkgKey && regKey && pkgKey !== regKey) {
       add('repository-mismatch', 'medium', 'package repository ' + pkgKey + ' vs registry repository ' + regKey)
     }
@@ -425,15 +430,15 @@ export function auditPypiPackage(server, doc, declared = {}) {
   const homeIsVcs = /github\.com|gitlab\.com/i.test(String(info.home_page || ''))
   const pkgRepo = vcsEntry ? vcsEntry[1] : (homeIsVcs ? info.home_page : null)
   const regRepo = server?.repository?.url ?? server?.repository ?? null
+  const regKey = repoKey(regRepo)
   if (!pkgRepo) {
     add('package-repository-missing',
-      regRepo ? 'low' : 'medium',
-      regRepo
-        ? 'the package metadata names no VCS URL; the registry entry points at ' + repoKey(regRepo)
+      regKey ? 'low' : 'medium',
+      regKey
+        ? 'the package metadata names no VCS URL; the registry entry points at ' + regKey
         : 'neither the registry entry nor the package metadata names a VCS URL, so the source could not be located')
-  } else if (regRepo) {
+  } else if (regKey) {
     const pkgKey = repoKey(pkgRepo)
-    const regKey = repoKey(regRepo)
     if (pkgKey && regKey && pkgKey !== regKey) add('repository-mismatch', 'medium', 'package repository ' + pkgKey + ' vs registry repository ' + regKey)
   }
   const files = (doc.releases || {})[declaredVersion] || []
