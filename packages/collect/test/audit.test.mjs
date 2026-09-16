@@ -39,6 +39,15 @@ test('auditPackage reports unknown instead of guessing when metadata is missing'
   assert.equal(findings[1].severity, 'unknown')
 })
 
+test('a repository URL with a sub-path is the same repository', () => {
+  const s = { name: 'acme/s', packages: [{ registryType: 'npm', identifier: 'acme-mcp', version: '1.0.0', transport: { type: 'stdio' } }], repository: { url: 'https://github.com/acme/server' } }
+  const withRepo = (url) => ({ 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': { repository: { url: url } } } })
+  for (const url of ["https://github.com/acme/server/issues", "https://github.com/acme/server/blob/main/changelog.md", "git+https://github.com/acme/server.git"]) {
+    assert.ok(!auditPackage(s, withRepo(url), { version: '1.0.0' }).some((f) => f.rule === 'repository-mismatch'), url + " is the same repository")
+  }
+  assert.ok(auditPackage(s, withRepo("https://github.com/acme/other"), { version: '1.0.0' }).some((f) => f.rule === 'repository-mismatch'), 'a genuinely different repository must still be flagged')
+})
+
 test('a missing repository says which side is missing it', () => {
   // The registry entry naming a repository is not the same as the package naming one, and the
   // rule used to say "the registry document" for either case. A maintainer whose registry

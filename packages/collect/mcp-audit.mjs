@@ -82,7 +82,16 @@ function repoKey(url) {
   const cleaned = String(url).replace(/^git\+/, '').replace(/\.git$/, '').replace(/\/$/, '')
   try {
     const parsed = new URL(cleaned)
-    return (parsed.hostname + parsed.pathname).toLowerCase()
+    const host = parsed.hostname.toLowerCase()
+    // A GitHub repository is exactly host/owner/repo, so anything past the second segment is a
+    // path inside it. A package whose repository field points at .../issues or
+    // .../blob/main/changelog.md names the same repository; comparing the whole path turned ten
+    // of those into "mismatch" findings, each dismissible in one line. Other hosts can nest
+    // groups (gitlab.com/group/subgroup/repo), so only GitHub is trimmed.
+    const path = host === "github.com"
+      ? "/" + parsed.pathname.split("/").filter(Boolean).slice(0, 2).join("/")
+      : parsed.pathname
+    return (host + path).toLowerCase()
   } catch {
     return null
   }
