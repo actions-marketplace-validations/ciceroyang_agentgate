@@ -157,3 +157,21 @@ caddy validate --adapter caddyfile --config dup.caddy
 
 复跑方式:下载对应平台的 caddy 到 /tmp,然后 `CADDY_BIN=/tmp/caddybin/caddy npm test`。
 不设这个变量时,那条测试会跳过并在输出里说明原因——它需要一个 46MB 的二进制,不适合塞进 CI。
+
+## Caddyfile 路由实测（2026-09-16）
+
+`app.` 这个站点把静态页和 API 混在一个 host 里:有序的 `handle` 块 + 最后的 `file_server` 兜底。
+块与路径匹配器的顺序是第一次部署才会暴露的东西,所以用**真的 Caddy 二进制 + 真的服务**跑了一遍
+(`test/caddy.test.mjs`,设了 `CADDY_BIN` 才跑):
+
+```
+GET /                       200  text/html          文件服务
+GET /try.html               200  text/html          文件服务
+GET /evidence.html          200  text/html          文件服务
+GET /health                 200  application/json   反代到 127.0.0.1:<service>
+GET /v1/index/summary       200  application/json   通配路径反代
+GET /badge/anything.svg     200  image/svg+xml      通配路径反代
+GET /nope.html              404                     兜底是文件服务,不是代理
+```
+
+也就是说静态页与接口可以共用一个域名,不需要为 API 单独开子域——`api.` 只是给脚本用的可选项。
