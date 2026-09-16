@@ -10,20 +10,27 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 
 const VERDICT = { CLEAN: "clean", FINDINGS: "findings", INCOMPLETE: "incomplete" }
-const RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 }
+// Every severity a rule may emit has to be in here or in UNMEASURED. The scan lives in
+// packages/collect/test/index.test.mjs, so a rule that invents a severity fails a test rather
+// than quietly ranking as zero.
+export const RANK = { critical: 4, high: 3, medium: 2, low: 1, info: 0 }
+/** Severities that mean "the check ran and could not determine the answer". */
+export const UNMEASURED = ["unknown"]
 
 export function deriveVerdict(blocks, threshold) {
   const values = Object.keys(blocks).map(function (k) { return blocks[k] })
   if (values.some(function (b) { return b.status === "unmeasured" })) return VERDICT.INCOMPLETE
-  // A finding at severity "unknown" says the check ran and could not determine the answer:
-  // metadata that would not load, a hook script that would not fetch, a declared version with
-  // no files. That is the same claim as an unmeasured block, and it has to be caught here
-  // because RANK has no entry for "unknown" — it fell through the threshold arithmetic as 0,
-  // so a record whose only finding was "unknown" was published as clean. Thirty-two of them
-  // were, on a site whose first principle is that unmeasured is never written as clean.
-  if (values.some(function (b) {
-    return (b.findings || []).some(function (f) { return f.severity === "unknown" })
-  })) return VERDICT.INCOMPLETE
+  // "unknown" and any severity this code does not recognise mean the same thing: we cannot call
+  // the record clean, because we do not know what the finding says. RANK has no entry for
+  // either, and ranking an unrankable severity as 0 is how thirty-two records whose only finding
+  // was "could not determine" were published as clean. Anything unranked is treated as
+  // unmeasured rather than as information.
+  const unranked = values.some(function (b) {
+    return (b.findings || []).some(function (f) {
+      return UNMEASURED.indexOf(f.severity) !== -1 || !Object.prototype.hasOwnProperty.call(RANK, f.severity)
+    })
+  })
+  if (unranked) return VERDICT.INCOMPLETE
   const min = RANK[threshold] === undefined ? 2 : RANK[threshold]
   const notable = values.some(function (b) {
     return (b.findings || []).some(function (f) { return (RANK[f.severity] || 0) >= min })
