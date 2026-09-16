@@ -333,7 +333,16 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
   const repoUrl = versionDoc?.repository?.url ?? (typeof pkgMeta.repository === 'string' ? pkgMeta.repository : pkgMeta.repository?.url) ?? null
   const registryRepo = server?.repository?.url ?? server?.repository ?? null
   if (!repoUrl) {
-    add('package-repository-missing', 'medium', 'registry document has no repository field')
+    // The condition is about the package metadata, not the registry entry. Saying "the
+    // registry document" told a package whose registry entry names a repository that it had
+    // none — a sentence a maintainer dismisses in one line because it is not true. The two
+    // cases are also not the same size: with a registry repository we can still find and read
+    // the source; without one we cannot locate it at all.
+    add('package-repository-missing',
+      registryRepo ? 'low' : 'medium',
+      registryRepo
+        ? 'the published package declares no repository; the registry entry points at ' + repoKey(registryRepo)
+        : 'neither the registry entry nor the published package names a repository, so the source could not be located')
   } else {
     const pkgKey = repoKey(repoUrl)
     const regKey = registryRepo ? repoKey(registryRepo) : null
@@ -408,7 +417,11 @@ export function auditPypiPackage(server, doc, declared = {}) {
   const pkgRepo = vcsEntry ? vcsEntry[1] : (homeIsVcs ? info.home_page : null)
   const regRepo = server?.repository?.url ?? server?.repository ?? null
   if (!pkgRepo) {
-    add('package-repository-missing', 'medium', 'no VCS URL in project_urls or home_page')
+    add('package-repository-missing',
+      regRepo ? 'low' : 'medium',
+      regRepo
+        ? 'the package metadata names no VCS URL; the registry entry points at ' + repoKey(regRepo)
+        : 'neither the registry entry nor the package metadata names a VCS URL, so the source could not be located')
   } else if (regRepo) {
     const pkgKey = repoKey(pkgRepo)
     const regKey = repoKey(regRepo)

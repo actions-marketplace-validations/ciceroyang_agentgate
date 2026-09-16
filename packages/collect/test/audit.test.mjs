@@ -39,6 +39,22 @@ test('auditPackage reports unknown instead of guessing when metadata is missing'
   assert.equal(findings[1].severity, 'unknown')
 })
 
+test('a missing repository says which side is missing it', () => {
+  // The registry entry naming a repository is not the same as the package naming one, and the
+  // rule used to say "the registry document" for either case. A maintainer whose registry
+  // entry points at their repo reads that as a false statement, and they are right.
+  const meta = { 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': {} } }
+  const one = auditPackage(server, meta, { version: '1.0.0' }).find((f) => f.rule === 'package-repository-missing')
+  assert.equal(one.severity, 'low')
+  assert.match(one.evidence, /the published package declares no repository/)
+  assert.match(one.evidence, /github\.com\/acme\/server/)
+
+  const bare = { name: 'acme/bare', packages: [{ registryType: 'npm', identifier: 'bare-mcp', version: '1.0.0', transport: { type: 'stdio' } }] }
+  const two = auditPackage(bare, meta, { version: '1.0.0' }).find((f) => f.rule === 'package-repository-missing')
+  assert.equal(two.severity, 'medium', 'nothing names a repository, so the source could not be located')
+  assert.match(two.evidence, /neither the registry entry nor the published package/)
+})
+
 test('auditPackage flags a missing repository and deprecation', () => {
   const doc = { 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': {} }, deprecated: 'moved to acme/mcp' }
   const findings = auditPackage({ ...server, repository: null }, doc, { version: '1.0.0' })
