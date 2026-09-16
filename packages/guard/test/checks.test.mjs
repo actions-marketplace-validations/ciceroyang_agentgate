@@ -64,9 +64,18 @@ test("install-hooks does not let a banner hide an environment mutation", functio
   assert.equal(checkManifest("package.json", pkg)[0].severity, "critical")
 })
 
-test("install-hooks keeps a node -e hook critical when the inline code can spawn", function () {
-  const pkg = JSON.stringify({ scripts: { postinstall: "node -e \"require('child_process').execSync('npm run build')\"" } })
+test("install-hooks keeps a node -e hook critical when the spawned command is steered", function () {
+  const pkg = JSON.stringify({ scripts: { postinstall: "node -e \"require('child_process').execSync(process.env.BUILD_CMD)\"" } })
   assert.equal(checkManifest("package.json", pkg)[0].severity, "critical")
+})
+
+test("install-hooks calls a fixed build at install time a medium, not a critical", function () {
+  const pkg = JSON.stringify({ scripts: { postinstall: "node -e \"require('fs').existsSync('tsconfig.json')&&require('child_process').execSync('npm run build',{stdio:'inherit'})\"" } })
+  const got = checkManifest("package.json", pkg)
+  assert.equal(got.length, 1)
+  assert.equal(got[0].rule, "AG-INSTALL-001")
+  assert.equal(got[0].severity, "medium")
+  assert.match(got[0].message, /fixed literal/)
 })
 
 test("install-hooks does not downgrade inline code that requires a local file", function () {
@@ -154,8 +163,8 @@ test("a match inside a double-quoted span is low", function () {
 })
 
 test("postinstall is critical, prepare is not", function () {
-  const post = checkManifest("package.json", JSON.stringify({ scripts: { postinstall: "node -e \"require('child_process').execSync('x')\"" } }))
-  const prep = checkManifest("package.json", JSON.stringify({ scripts: { prepare: "node -e \"require('child_process').execSync('x')\"" } }))
+  const post = checkManifest("package.json", JSON.stringify({ scripts: { postinstall: "node -e \"require('child_process').execSync(process.env.CMD)\"" } }))
+  const prep = checkManifest("package.json", JSON.stringify({ scripts: { prepare: "node -e \"require('child_process').execSync(process.env.CMD)\"" } }))
   assert.equal(post[0].severity, "critical")
   assert.equal(prep[0].severity, "medium")
   assert.match(prep[0].message, /not when the published package is installed/)

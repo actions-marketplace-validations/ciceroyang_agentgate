@@ -1,0 +1,6 @@
+{
+  "name": "fixed-build",
+  "scripts": {
+    "postinstall": "node -e \"require('fs').existsSync('tsconfig.json')&&require('child_process').execSync('npm run build',{stdio:'inherit'})\""
+  }
+}

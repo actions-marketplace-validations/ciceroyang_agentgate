@@ -117,13 +117,54 @@ const NETWORK_MODULE = /\b(node:https?|node-fetch|axios|undici|got)\b|require\(\
  * What a network fetch has to be paired with before it is an incident and not a
  * capability. Reaching the network is what a legitimate installer does when it checks for
  * an update or pulls an official binary; a download turns into one when the same script
- * can write the result, run it, or decode it.
+ * can write the result, run it, or decode it. Each sink is named so the evidence can say
+ * what it actually saw rather than only naming the rule.
  */
-const NETWORK_SINK = /\bwriteFile|appendFile|createWriteStream|\brmSync|\bunlinkSync|\bmkdir|child_process|execSync|execFileSync|spawnSync|\bspawn\s*\(|\.exec\s*\(|\beval\s*\(|new\s+Function|Buffer\.from\s*\([^)]*base64/
+const NETWORK_SINKS = [
+  ['writes files', /\bwriteFile|appendFile|createWriteStream|\brmSync|\bunlinkSync|\bmkdir/],
+  ['spawns a process', /child_process|execSync|execFileSync|spawnSync|\bspawn\s*\(|\.exec\s*\(/],
+  ['decodes and runs code', /\beval\s*\(|new\s+Function|Buffer\.from\s*\([^)]*base64/],
+]
+const NETWORK_SINK = new RegExp(NETWORK_SINKS.map(function (s) { return s[1].source }).join("|"))
 
 /** Whether the text can reach the network at all: a capability, not a finding by itself. */
 export function networkCapabilityOf(text) {
   return NETWORK_MODULE.test(String(text))
+}
+
+/** The named sink that turns a network capability into an incident, or null. */
+export function networkSinkOf(text) {
+  const subject = stripStringsAndComments(String(text))
+  for (const [name, pattern] of NETWORK_SINKS) {
+    if (pattern.test(subject)) return name
+  }
+  return null
+}
+
+/**
+ * Whether a spawned command can be steered by whatever produced its argument.
+ *
+ * A literal command (\`execSync('npm run build')\`) runs at install time, but nothing in
+ * the repository can change what it runs, so it belongs at install-time-execution rather
+ * than critical. A variable, a template or a concatenation can be steered, and that is the
+ * case worth calling critical. Strings are the whole point here, so this reads the raw text.
+ */
+const SPAWN_CALL = /\b(?:execSync|execFileSync|spawnSync|execFile|spawn)\s*\(/g
+const LITERAL_ARG = /^\s*(['"\x60])(?:\\.|(?!\1)[\s\S])*\1\s*[),]/
+export function spawnIsSteerable(text) {
+  const s = String(text)
+  const re = new RegExp(SPAWN_CALL.source, "g")
+  let match
+  while ((match = re.exec(s)) !== null) {
+    const rest = s.slice(match.index + match[0].length)
+    if (!LITERAL_ARG.test(rest)) return true
+  }
+  return false
+}
+
+/** Whether the text references spawn primitives at all, whether or not we can read the command. */
+export function spawnCapabilityOf(text) {
+  return /\b(?:execSync|execFileSync|spawnSync|execFile|spawn|child_process)\b/.test(String(text))
 }
 
 /**
@@ -136,6 +177,8 @@ export function networkCapabilityOf(text) {
  *
  * `network-module` also needs its sink: a network require on its own is a capability, and
  * the corpus counts a fetch that pipes into a file as the shape worth calling critical.
+ * A spawn only reaches critical when its command is steerable: a literal command runs at
+ * install time, but nothing in the repository can change what it runs.
  * @param {string} text
  * @param {'hook'|'script'} [mode]
  * @returns {string|null} pattern label.
@@ -145,6 +188,7 @@ export function criticalPatternOf(text, mode = 'script') {
   const subject = mode === 'hook' ? raw : stripStringsAndComments(raw)
   if (mode === 'script' && NETWORK_MODULE.test(raw) && NETWORK_SINK.test(subject)) return 'network-module'
   for (const [label, pattern] of CRITICAL_PATTERNS) {
+    if (label === 'process-spawn' && !spawnIsSteerable(raw)) continue
     if (pattern.test(subject)) return label
   }
   return null
@@ -209,9 +253,11 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
         }
         const scriptLabel = criticalPatternOf(content)
         if (scriptLabel) {
-          add('install-hook-script-critical', 'critical', ref + ' matches ' + scriptLabel)
+          add('install-hook-script-critical', 'critical', ref + ' can reach the network and ' + (networkSinkOf(content) || 'do something with it') + ' (' + scriptLabel + ')')
         } else if (networkCapabilityOf(content)) {
           add('install-hook-script-network', 'high', ref + ' can reach the network at install time, but no write, spawn or decode sink was found')
+        } else if (spawnCapabilityOf(content)) {
+          add('install-hook-script-spawn', 'medium', ref + ' spawns a command at install time, but the command reads as a fixed literal')
         } else {
           add('install-hook-script-inspected', 'info', 'hook runs ' + ref + ' (' + content.length + ' bytes): no fetch/spawn/decode pattern found')
         }

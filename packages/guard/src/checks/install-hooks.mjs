@@ -18,7 +18,31 @@ const CRITICAL = [
  * program, so module names inside string arguments count: in `node -e "..."` the quoted
  * argument *is* the code that runs.
  */
-const ACTIVE = /child_process|execSync|execFileSync|spawnSync|\bspawn\s*\(|\.exec\s*\(|\bfetch\s*\(|XMLHttpRequest|\baxios\b|\bundici\b|\bwriteFile|\bappendFile|\brmSync|\bunlinkSync|\beval\s*\(|new\s+Function|Buffer\.from\s*\([^)]*['"]base64|\bimport\s*\(|require\s*\(\s*['"](?!(?:node:)?(?:fs|path)['"])|process\.env\s*[\w.\[\]'"]*\s*=|process\.exit/
+const ACTIVE = /\bfetch\s*\(|XMLHttpRequest|\baxios\b|\bundici\b|\bwriteFile|\bappendFile|\brmSync|\bunlinkSync|\beval\s*\(|new\s+Function|Buffer\.from\s*\([^)]*['"]base64|\bimport\s*\(|require\s*\(\s*['"](?!(?:node:)?(?:fs|path|child_process)['"])|process\.env\s*[\w.\[\]'"]*\s*=|process\.exit/
+
+/**
+ * A spawn whose first argument is not a fixed literal can be steered by whatever produced
+ * the argument. A literal command (\`execSync('npm run build')\`) runs at install time, but
+ * nothing in the repository can change what it runs, so it is a medium, not a critical.
+ * Spawns are read separately from ACTIVE because the tell is the argument, not the call.
+ */
+const SPAWN_CALL = /\b(?:execSync|execFileSync|spawnSync|execFile|spawn)\s*\(/g
+const LITERAL_ARG = /^\s*(['"\x60])(?:\\.|(?!\1)[\s\S])*\1\s*[),]/
+export function spawnIsSteerable(text) {
+  const s = String(text)
+  const re = new RegExp(SPAWN_CALL.source, "g")
+  let match
+  while ((match = re.exec(s)) !== null) {
+    const rest = s.slice(match.index + match[0].length)
+    if (!LITERAL_ARG.test(rest)) return true
+  }
+  return false
+}
+
+/** Whether the program reaches for a spawn primitive at all, however it is called. */
+export function hasSpawn(text) {
+  return /\b(?:execSync|execFileSync|spawnSync|execFile|spawn|child_process)\b/.test(String(text))
+}
 
 /**
  * Tokens a print-only banner is built from. An inline program made only of these plus
@@ -55,12 +79,14 @@ export function extractInline(command) {
  * which still reports as critical rather than assuming it is harmless.
  *
  * @param {string} command
- * @returns {{ kind: "inert"|"active"|"unread"|"opaque", program: string|null }}
+ * @returns {{ kind: "inert"|"active"|"fixed"|"unread"|"opaque", program: string|null }}
  */
 export function classifyInline(command) {
   const program = extractInline(command)
   if (program === null) return { kind: "unread", program: null }
   if (ACTIVE.test(program)) return { kind: "active", program: program }
+  // A spawn we can read: critical only when its command can be steered.
+  if (hasSpawn(program)) return { kind: spawnIsSteerable(program) ? "active" : "fixed", program: program }
   const stripped = program
     .replace(/'(?:[^'\\]|\\.)*'/g, " ")
     .replace(/"(?:[^"\\]|\\.)*"/g, " ")
@@ -79,6 +105,9 @@ function describe(hook, pattern, body, consumer) {
   if (verdict.kind === "inert") return null
   if (verdict.kind === "active") {
     return { severity: base, note: " (the inline code can reach the network, spawn a process or rewrite files)" }
+  }
+  if (verdict.kind === "fixed") {
+    return { severity: "medium", note: " (the inline code runs a command at install time, but the command is a fixed literal, so nothing here can redirect it)" }
   }
   if (verdict.kind === "unread") {
     return { severity: base, note: " (the inline code is wrapped or chained, so it could not be read here: treat it as live code)" }

