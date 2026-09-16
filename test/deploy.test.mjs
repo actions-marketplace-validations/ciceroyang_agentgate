@@ -85,8 +85,8 @@ test("the installer picks the package manager the distribution actually has", fu
   // called apt-get unconditionally, which stops at the first step on the default Aliyun image.
   // A fake PATH with only what the script needs reproduces that distribution here.
   const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
-  for (const tool of ["uname", "hostname", "id", "sed"]) {
-    const from = ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
+  for (const tool of ["uname", "hostname", "id", "sed", "node"]) {
+    const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
   writeFileSync(join(bin, "dnf"), "#!/bin/sh\necho dnf\n", { mode: 0o755 })
@@ -107,11 +107,11 @@ test("the installer picks the package manager the distribution actually has", fu
 /** A PATH with only what the script needs, plus whatever fakes the test supplies. */
 function fakeBin(tools, files) {
   const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
-  for (const tool of tools) {
-    const from = ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
+  for (const tool of tools.concat(["node"])) {
+    const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
-  for (const name of Object.keys(files || {})) writeFileSync(join(bin, name), files[name], { mode: 0o755 })
+  for (const name of Object.keys(files || {})) { rmSync(join(bin, name), { force: true }); writeFileSync(join(bin, name), files[name], { mode: 0o755 }) }
   return bin
 }
 
@@ -222,8 +222,8 @@ test("--with-caddy appends to an existing Caddyfile instead of replacing it", fu
   // down. It must back up and append, and roll back if the result does not validate.
   const fakeBin = mkdtempSync(join(tmpdir(), "ag-caddy-"))
   writeFileSync(join(fakeBin, "caddy"), "#!/bin/sh\nexit 0\n", { mode: 0o755 })
-  for (const tool of ["uname", "hostname", "id", "sed"]) {
-    const from = ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
+  for (const tool of ["uname", "hostname", "id", "sed", "node"]) {
+    const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(fakeBin, tool))
   }
   const fakeRepo = mkdtempSync(join(tmpdir(), "ag-repo-"))
@@ -240,4 +240,27 @@ test("--with-caddy appends to an existing Caddyfile instead of replacing it", fu
   assert.match(out.stdout, /备份/, "no backup is taken before the change")
   rmSync(fakeBin, { recursive: true, force: true })
   rmSync(fakeRepo, { recursive: true, force: true })
+})
+
+test("a server without a usable node stops at the check, with instructions", function () {
+  // Without this the script printed one line and carried on, so every later step failed with
+  // "/usr/bin/node: not found" and nothing said why. Node is the one runtime it does not install.
+  const bin = mkdtempSync(join(tmpdir(), "ag-node-"))
+  for (const tool of ["uname", "hostname", "id", "sed"]) {
+    const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
+    if (from) symlinkSync(from, join(bin, tool))
+  }
+  writeFileSync(join(bin, "node"), "#!/bin/sh\ncase \"$1\" in --version) echo v18.16.0 ;; *) exit 0 ;; esac\n", { mode: 0o755 })
+
+  const dry = spawnSync("/bin/bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network"], {
+    encoding: "utf8", timeout: 60000, env: Object.assign({}, process.env, { PATH: bin + ":/usr/bin:/bin" }) })
+  assert.equal(dry.status, 0, dry.stderr)
+  assert.match(dry.stdout, /太旧/, "an old node was not reported")
+  assert.doesNotMatch(dry.stdout, /将执行/, "the dry run carried on and listed commands that cannot run")
+
+  const apply = spawnSync("/bin/bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--apply"], {
+    encoding: "utf8", timeout: 60000, env: Object.assign({}, process.env, { PATH: bin + ":/usr/bin:/bin" }) })
+  assert.equal(apply.status, 1, "apply did not stop on an unusable node")
+  assert.doesNotMatch(apply.stdout, /将执行/, "apply carried on past the missing runtime")
+  rmSync(bin, { recursive: true, force: true })
 })

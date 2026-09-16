@@ -53,23 +53,6 @@ echo "  target:  $DIR"
 echo "  mode:    $([ "$APPLY" = "1" ] && echo APPLY || echo DRY-RUN) / path: $MODE"
 echo
 
-echo "== 检查项 =="
-if command -v docker >/dev/null 2>&1; then echo "  docker:  已安装 ($(docker --version | cut -d, -f1))"; else echo "  docker:  未安装 -> 将安装"; fi
-if command -v git >/dev/null 2>&1; then echo "  git:     已安装"; else echo "  git:     未安装 -> 将安装"; fi
-if [ -d "$DIR/.git" ]; then echo "  repo:    已存在 -> 将更新"; else echo "  repo:    不存在 -> 将克隆"; fi
-if command -v caddy >/dev/null 2>&1; then echo "  caddy:   已安装 (TLS 将自动签发)"; else echo "  caddy:   未安装 -> 如需对外 HTTPS 请安装"; fi
-echo "  备案:    中国大陆机器必须已备案才能使用 80/443（见 docs/operations/what-i-need.md）"
-echo
-
-if [ "$MODE" = "docker" ]; then
-  echo "== 注意 =="
-  echo "  Docker 路径未经验证（构建上下文与 CMD 验过，镜像构建本身没有）。"
-  echo "  Node + systemd 路径已在公开仓库上完整彩排。可用 --node 切回。"
-  echo
-fi
-
-# 发行版家族决定装包命令。阿里云 ECS 的默认镜像是 Alibaba Cloud Linux(RHEL 系,用 dnf),
-# 不是 Ubuntu。写死 apt-get,这一步会在用户的机器上停住。
 PKG=""
 if command -v apt-get >/dev/null 2>&1; then PKG="apt"
 elif command -v dnf >/dev/null 2>&1; then PKG="dnf"
@@ -83,6 +66,57 @@ install_pkgs() {
     *) echo "  未识别包管理器,请手动安装:$*" ;;
   esac
 }
+
+echo "== 检查项 =="
+if command -v docker >/dev/null 2>&1; then echo "  docker:  已安装 ($(docker --version | cut -d, -f1))"; else echo "  docker:  未安装 -> 将安装"; fi
+if command -v git >/dev/null 2>&1; then echo "  git:     已安装"; else echo "  git:     未安装 -> 将安装"; fi
+if [ -d "$DIR/.git" ]; then echo "  repo:    已存在 -> 将更新"; else echo "  repo:    不存在 -> 将克隆"; fi
+if command -v caddy >/dev/null 2>&1; then echo "  caddy:   已安装 (TLS 将自动签发)"; else echo "  caddy:   未安装 -> 如需对外 HTTPS 请安装"; fi
+  if command -v node >/dev/null 2>&1; then
+    NODE_MAJOR="$(node --version 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')"
+    if [ "${NODE_MAJOR:-0}" -ge 20 ] 2>/dev/null; then
+      echo "  node:    $(node --version) at $NODE_BIN"
+    else
+      echo "  node:    $(node --version) —— 太旧,agentgate 需要 20 或更高"
+      NODE_PROBLEM=1
+    fi
+  else
+    echo "  node:    未安装 —— agentgate 需要 Node 20 或更高"
+    NODE_PROBLEM=1
+  fi
+  # 没有可用的 node,后面每一步都会以 "not found" 的形式失败。这里停住,并说清怎么装。
+  if [ -n "${NODE_PROBLEM:-}" ]; then
+    echo "           脚本不替你装运行时。按你的发行版装:"
+    if [ "$PKG" = "apt" ]; then
+      echo "             curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
+      echo "             sudo apt-get install -y nodejs"
+    elif [ "$PKG" = "dnf" ] || [ "$PKG" = "yum" ]; then
+      echo "             sudo $PKG module install -y nodejs:20/common     # 或按 NodeSource 文档"
+    else
+      echo "             https://nodejs.org/en/download"
+    fi
+    if [ "$APPLY" = "1" ]; then
+      echo "            --apply 停在这里:没有 node 就没有服务可装。"
+      exit 1
+    else
+      # 预演到这里就够了。继续打印 would run 只会列出跑不起来的命令,反而误导。
+      echo "            先装好 node,再回来预演。"
+      exit 0
+    fi
+  fi
+
+echo "  备案:    中国大陆机器必须已备案才能使用 80/443（见 docs/operations/what-i-need.md）"
+echo
+
+if [ "$MODE" = "docker" ]; then
+  echo "== 注意 =="
+  echo "  Docker 路径未经验证（构建上下文与 CMD 验过，镜像构建本身没有）。"
+  echo "  Node + systemd 路径已在公开仓库上完整彩排。可用 --node 切回。"
+  echo
+fi
+
+# 发行版家族决定装包命令。阿里云 ECS 的默认镜像是 Alibaba Cloud Linux(RHEL 系,用 dnf),
+# 不是 Ubuntu。写死 apt-get,这一步会在用户的机器上停住。
 # SELinux 在 RHEL 系上默认 Enforcing,而 Caddy 是第三方单元,会被挡住。
 if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" = "Enforcing" ]; then
   echo "  SELinux: Enforcing —— Caddy 可能读不了 /var/www、连不上 127.0.0.1:8080;"
@@ -126,13 +160,6 @@ if [ "$MODE" = "docker" ]; then
       echo "  docker: RHEL 系请按 Docker 官方文档加 docker-ce 仓库,或直接用 --node 路径(已验证)"
     fi
     run systemctl enable --now docker
-  fi
-else
-  if command -v node >/dev/null 2>&1; then
-    echo "  node:    $(node --version) at $NODE_BIN"
-  else
-    echo "  node:    未安装 -> 请装 Node 20+（nvm 或 nodesource），不要用发行版自带的旧版本"
-    echo "           这一步留给你确认，脚本不替你装运行时"
   fi
 fi
 
