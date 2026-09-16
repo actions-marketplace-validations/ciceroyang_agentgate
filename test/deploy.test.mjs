@@ -205,7 +205,10 @@ test("--with-caddy still installs the service, and puts the TLS step last", func
   const script = join(ROOT, "scripts", "onboard-server.sh")
   const withCaddy = spawnSync("bash", [script, "--skip-network", "--with-caddy"], { encoding: "utf8", timeout: 60000 })
   assert.equal(withCaddy.status, 0, withCaddy.stderr)
-  assert.match(withCaddy.stdout, /systemctl enable --now agentgate/, "the service install was skipped")
+  assert.match(withCaddy.stdout, /systemctl enable agentgate/, "the service install was skipped")
+  // enable --now leaves an already-running unit alone, so a changed port or node path would never
+  // take effect on a re-run; the unit has to be restarted.
+  assert.match(withCaddy.stdout, /systemctl restart agentgate/, "the unit is never restarted, so config changes do not apply")
   assert.match(withCaddy.stdout, /smoke\.mjs http/, "the smoke check was skipped")
   assert.match(withCaddy.stdout, /Caddy（--with-caddy）/, "the Caddy step is missing")
   assert.doesNotMatch(withCaddy.stdout, /这一步没做/, "it still says the TLS step was not done")

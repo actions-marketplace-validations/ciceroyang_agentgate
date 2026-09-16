@@ -150,6 +150,10 @@ else
   probe "npm registry" "https://registry.npmjs.org/" "包清单查不到,扫描结果会把它们标成 metadata-unavailable"
 fi
 echo
+# 如果上一轮已经装过这个服务,先停掉再探端口。否则会把自己占用的端口当成"被占用",换一个新端口,
+# 而 systemctl enable --now 不会重启已经跑着的单元 —— 新配置就永远不生效。这在第一次重跑时真的发生过。
+if command -v systemctl >/dev/null 2>&1; then run systemctl stop agentgate 2>/dev/null || true; fi
+
 # 共享机器上 8080 可能已经有人用了(这台机器上还跑着别的站)。先探,别等采集两分钟再失败。
 port_in_use() { ( exec 3<>"/dev/tcp/127.0.0.1/$1" ) 2>/dev/null; }
 if [ "$PORT_SET" != "1" ] && port_in_use "$PORT"; then
@@ -177,6 +181,10 @@ if [ "$MODE" = "docker" ]; then
     run systemctl enable --now docker
   fi
 fi
+
+# 上一轮把 $DIR chown 给了 agentgate,而这个脚本以 root 跑;git 会以 "dubious ownership"
+# 拒绝操作,于是第二次部署时拉不到新代码。这一行让 root 认这个目录。
+run git config --global --add safe.directory "$DIR" || true
 
 if [ ! -d "$DIR/.git" ]; then
   run mkdir -p "$DIR"
@@ -214,7 +222,11 @@ if [ "$MODE" = "node" ]; then
     echo "  would install /etc/systemd/system/agentgate.service (仓库克隆后可生成)"
   fi
   run systemctl daemon-reload
-  run systemctl enable --now agentgate
+run systemctl enable agentgate
+  # restart, not enable --now: the unit may already be running with the old port or node path,
+  # and enable --now leaves a running unit alone. The first re-run deployed 8081 into the unit
+  # while the old process kept 8080, so the new configuration never took effect.
+  run systemctl restart agentgate
 fi
 
 if [ "$APPLY" = "1" ]; then
