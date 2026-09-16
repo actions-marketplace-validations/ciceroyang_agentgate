@@ -132,3 +132,28 @@ against, so the truncation is printed.
 
 
 Each of these is a place where "it works" currently means "it worked once, for me".
+
+## Caddy 追加机制实测（2026-09-16）
+
+部署目标上已经有一份别人在用的 Caddy 配置（主域上的另一个站点）。`--with-caddy` 的做法是
+**备份后追加**一个带标记的段落,校验通过才 reload,失败回滚。这个机制用**真的 Caddy 二进制**验过,
+不是推断:
+
+```sh
+# 用 /tmp 里的 caddy 二进制,对一个"已有主域站点"的配置追加我们的段落
+caddy validate --adapter caddyfile --config merged.caddy
+#   -> Valid configuration (exit 0)
+
+caddy adapt --adapter caddyfile --config merged.caddy
+#   -> 同一个 server 上有四个 host:
+#      xn--5kvo87g.com www.xn--5kvo87g.com app.xn--5kvo87g.com api.xn--5kvo87g.com
+#      主域的另一个站点与产品共存,Caddy 会为四个名字各自签发证书
+
+# 失败路径:已有配置里也声明了 app.
+caddy validate --adapter caddyfile --config dup.caddy
+#   -> Error: ambiguous site definition: app.xn--5kvo87g.com (exit 1)
+#      这正是回滚要覆盖的情况
+```
+
+复跑方式:下载对应平台的 caddy 到 /tmp,然后 `CADDY_BIN=/tmp/caddybin/caddy npm test`。
+不设这个变量时,那条测试会跳过并在输出里说明原因——它需要一个 46MB 的二进制,不适合塞进 CI。
