@@ -69,12 +69,14 @@
 - **实现过程中被自己抓到的一个 bug**：`checkBackups` 一开始读的是 `options.maxAgeHours`（那是采集年龄的窗口），于是 `--backup-max-age` 被接受却完全不起作用——一个读了错参数的检查就是在检查错的东西。已改成自己的键，并加了一条"收紧采集窗口不得影响备份检查"的测试。
 - **遗留（下一轮或 P6）**：`/var/backups` 只有本机一份；异地副本没有做（账本本身有 GitHub `history` 分支镜像）。
 
-## P4 发布工程
+## P4 发布工程 —— **完成（代码与文档；`latest` 已提升到 0.1.1）**
 
-- **为什么**：现在发版靠 checklist 与人记得；`latest` 还是 0.1.0。
+- **为什么**：发版原来靠 checklist 与人记得（`latest` 一度还停在 0.1.0）。
 - **做什么**：`scripts/release-check.mjs`（tag 与 version 一致、测试通过、打包内容白名单、provenance 存在、dist-tags 现状打印）；CHANGELOG；回滚手册（把 dist-tag 指回上一版 + 站点回滚）。
 - **做到什么算完**：一条命令给出"能不能发"的结论与缺口清单；发版后一条命令确认线上装到的是新版本。
-- **怎么验**：对 0.1.1 跑一次 release-check，应报 `latest` 未提升为唯一缺口。
+- **怎么验**：`node scripts/release-check.mjs --tests --online`（`--online` 之前全程离线）；`node --test packages/release/test/release.test.mjs test/release-check-cli.test.mjs`（10 项，含"0.1.1 不等于 0.1.10""`.env`/账本/生成索引都算泄漏""warning 不挡发布、problem 挡"）；已进 `scripts/verify.sh` 与 CI。
+- **做完的**：`CHANGELOG.md`（0.1.0 / 0.1.1 / Unreleased），release-check 会拒绝没有对应小节的版本；`docs/operations/rollback.md` 分 npm 包 / 服务站点 / 数据三层，并写明"绝不 `git reset --hard`""恢复数据要先备份当前，因为采集不可再生"。
+- **`latest` 已提升到 0.1.1（2026-09-17T10:16:51Z）**：`npx @zhiliangtech/agentgate version`、`@latest`、`@next` 三个写法都打印 `agentgate 0.1.1`。写操作要人的动态码，网页授权流程在非交互环境会立刻退出，所以这一步按设计留给人。
 
 ## P5 合规资产（客户第一眼要看的）
 

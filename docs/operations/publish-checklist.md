@@ -77,13 +77,15 @@ git tag v0.1.1 && git push origin main --tags
 
 已跑通：`v0.1.1` 由 CI 发布成功，registry 的 dist-tags 显示 `next: 0.1.1`；该版本带两条 attestation（npm publish v0.1 与 SLSA provenance v1）。GitHub Release：<https://github.com/ciceroyang/agentgate/releases/tag/v0.1.1>。
 
-## 六、提升到 latest（待做：目前 latest = 0.1.0）
-
-自托管演示验过之后再：
+## 六、提升到 latest（已完成 2026-09-17）
 
 ```sh
 npm dist-tag add @zhiliangtech/agentgate@0.1.1 latest
 ```
+
+已完成：registry 的 dist-tags 现在是 `{"latest":"0.1.1","next":"0.1.1"}`（2026-09-17T10:16:51Z 修改）。验证：`npx --yes @zhiliangtech/agentgate version` 与 `@latest`、`@next` 三个写法都打印 `agentgate 0.1.1`。
+
+**这一步只有人能做**：写操作需要动态码，而 npm 的网页授权流程在非交互环境会立刻退出、auth URL 在日志里也是 `***`。发下一版时同样要有人执行一次 `npm dist-tag add`。
 
 ---
 
@@ -94,7 +96,8 @@ npm dist-tag add @zhiliangtech/agentgate@0.1.1 latest
 | `@zhiliangtech/agentgate` 是否被占 | **没被占**，registry 返回 404 | `curl -s -o /dev/null -w "%{http_code}" https://registry.npmjs.org/@zhiliangtech%2Fagentgate` |
 | `@zhiliang` 是不是我们的 | **不是**：属于另一个账号；我们发布时 PUT 返回 404 | 2026-09-17 实际发布尝试 |
 | 不带作用域的 `agentgate` | **已被占**（200），所以必须用作用域 | registry |
-| `@zhiliangtech/agentgate` 的版本 | **0.1.0**（本机 bootstrap）、**0.1.1**（CI 发布，带 provenance） | `curl -sS https://registry.npmjs.org/-/package/@zhiliangtech%2Fagentgate/dist-tags` |
+| `@zhiliangtech/agentgate` 的版本 | **0.1.0**（本机 bootstrap）、**0.1.1**（CI 发布，带 provenance，且已是 `latest`） | `curl -sS https://registry.npmjs.org/-/package/@zhiliangtech%2Fagentgate/dist-tags` |
+| `latest` 现在指向谁 | **0.1.1**；`npx @zhiliangtech/agentgate version` 直接打印 `agentgate 0.1.1` | 2026-09-17 实测 |
 | 从 npm 装出来的包能不能跑 | **能**：`npx --yes @zhiliangtech/agentgate@0.1.1 version` 打印 `agentgate 0.1.1`；`npm i` 后 `node_modules/.bin/agentgate` 直接可执行；`check --root .` 正常给出 verdict | npx / `npm i`，2026-09-17 实测 |
 | 0.1.1 有没有 provenance | **有**：attestations 两条（npm publish v0.1 与 SLSA provenance v1） | `curl -sS https://registry.npmjs.org/-/npm/v1/attestations/@zhiliangtech%2Fagentgate@0.1.1` |
 | 打出来的包长什么样 | 123 个文件、394.5 kB、解开 1.8 MB | `npm publish --dry-run` |

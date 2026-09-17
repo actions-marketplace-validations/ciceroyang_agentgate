@@ -21,6 +21,8 @@ node scripts/acceptance-m5.mjs > /dev/null && echo "M5 ok"
 echo "== supply chain =="
 node scripts/check-zero-deps.mjs
 node scripts/sbom.mjs --out "${TMPDIR:-/tmp}/agentgate-sbom.cdx.json" > /dev/null && echo "sbom ok"
+echo "== release check (packaging, version, changelog) =="
+node scripts/release-check.mjs --skip-tests > /dev/null && echo "release-check ok"
 echo "== deploy rehearsal (everything except systemd and Caddy) =="
 # pipefail is set above, so a failure inside the pipe still stops the script
 node scripts/rehearse-deploy.mjs | tail -1

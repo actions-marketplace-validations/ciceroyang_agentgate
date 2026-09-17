@@ -1,0 +1,26 @@
+# Changelog
+
+All notable changes to this package. The version here is the version that shipped; the tarball and
+the tag agree with it, and `scripts/release-check.mjs` refuses a release whose section is missing.
+
+## [Unreleased]
+
+Productionization (P0-P6 in docs/operations/productionization.md): observability and alerting,
+supply-chain self-checks, service hardening, backup with a restore drill, release engineering,
+customer-facing compliance pages, and operations runbooks.
+
+## [0.1.1] - 2026-09-17
+
+- Published by CI with provenance and an SBOM; the tag is the release.
+- `agentgate version` reads the version from package.json instead of keeping a second copy,
+  which had already drifted once.
+- Adoption checks made stricter: an artifact with an unmeasured part is `incomplete`, never
+  `clean`.
+- `discover`, `audit`, `watch` and the AI-CAIQ mapping (`framework`) arrive after this release.
+
+## [0.1.0] - 2026-09-17
+
+- First public release, published by hand because Trusted Publishing cannot bootstrap a package
+  that does not exist yet.
+- Inventory, evidence index, policy evaluation with SARIF, the gateway proxy, and the capture
+  ledger with a verifiable hash chain.

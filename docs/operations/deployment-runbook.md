@@ -303,6 +303,25 @@ node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000
 
 `--expect-min 1000` 是关键的一条：样本索引只有 300 条，如果这里过了但数字还是 300，说明**采集没跑成功，服务在读样本**。
 
+## 发布与回滚（P4）
+
+发版前先跑一条命令，它负责说"不"：
+
+```sh
+node scripts/release-check.mjs --tests --online
+```
+
+它检查：`package.json` 的版本与 `--version`/`--tag` 一致、`agentgate version` 报的是同一个数、`CHANGELOG.md` 里有这个版本的一节、`npm pack --dry-run` 的内容没有缺文件、没有 `.env`/`账号本`/`生成的索引`、每个文件都被 `files` 字段解释、`publishConfig` 带 provenance。`--tests` 会真的跑测试（不跑只提醒），`--online` 查 registry（这个版本是否已存在、latest 指向谁）。**默认离线：不加 `--online` 就不联网。**
+
+发布：
+
+```sh
+git tag v0.2.0 && git push origin main --tags   # CI 用 OIDC 发布到 next，并附 SBOM
+npm dist-tag add @zhiliangtech/agentgate@0.2.0 latest   # 需要人的动态码，这是有意的
+```
+
+回滚见 [rollback.md](rollback.md)——分 npm 包 / 服务站点 / 数据三层，先判断坏的是哪一层。
+
 ## 备份与恢复（P3）
 
 - **每晚 03:30** 归档到 `/var/backups/agentgate`（保留 14 天，但**最新那份永不删除**——窗口比故障还短的清理会删掉唯一还能恢复服务的那份）。**每月 1 日 05:00** 自动做一次恢复演练。cron 见 `deploy/cron.d-agentgate`，日志轮转见 `deploy/logrotate-agentgate`。
