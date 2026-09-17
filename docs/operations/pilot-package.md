@@ -55,6 +55,23 @@
 
 `contact@智量.com`(punycode:`contact@xn--5kvo87g.com`),或直接在 <https://github.com/ciceroyang/agentgate/issues> 开一个 issue。
 
+## 零交接:你们自己跑,我们什么都不收
+
+从 0.1.2 起清单可以完全在你们机器上生成:
+
+```sh
+npx @zhiliangtech/agentgate discover --out tools.txt                                  # 只输出名字或包名@版本
+npx @zhiliangtech/agentgate inventory --input tools.txt --out report.html             # 本地出报告
+npx @zhiliangtech/agentgate inventory --input tools.txt --framework aicaiq --out report.html   # 问卷对照
+npx @zhiliangtech/agentgate watch --input tools.txt --archive ./agentgate-archive      # 每周看变化
+```
+
+- `discover` 不输出 `env`、请求头或启动参数,远程地址只留主机名;读不到或解析不了的配置会单独列出并把退出码置 2——**缺东西的清单不会被当成完整的**;
+- 不装任何东西也可以:打开 <https://app.xn--5kvo87g.com/inventory.html> 粘贴名字,匹配在浏览器里跑;
+- `watch` 默认不联网,除非显式给 `--webhook`。
+
+这样交付物不变,只是**你们不需要把任何配置发出来**。仍然建议至少发一份纯名称清单给我们,否则报告里的覆盖范围只能由你们自己判断。
+
 ## 材料范围:默认从第 0 层开始
 
 **默认不需要仓库。** 是否继续提供更多材料由你们决定;工具名称本身也可能属于内部信息,请只分享允许外发的内容。
