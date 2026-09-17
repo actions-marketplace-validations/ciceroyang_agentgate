@@ -8,3 +8,8 @@ PATH=/usr/bin:/bin
 #
 # Install as /etc/cron.d/agentgate (mode 0644, owner root). See docs/operations/deployment-runbook.md.
 17 4,8,12,16,20 * * * agentgate /opt/agentgate/scripts/daily-job.sh >> /var/log/agentgate.log 2>&1
+
+# Every hour: is the deployment still working? The daily job's own log sits on the machine it
+# would be reporting about, and a missing capture is the one thing that cannot be recovered
+# later. Alerting needs /etc/agentgate/alert.env (mode 0600); without it the check still runs.
+7 * * * * agentgate /opt/agentgate/scripts/healthcheck.sh >> /var/log/agentgate-health.log 2>&1

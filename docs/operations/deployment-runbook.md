@@ -322,6 +322,25 @@ curl -s localhost:8080/metrics | grep -E "history_(age|captures|stale)|index_age
 curl -s localhost:8080/health | python3 -m json.tool
 ```
 
+## 告警（P0-2）
+
+- 凭据只放一处：`/etc/agentgate/alert.env`（owner agentgate，mode 0600），字段见 `deploy/alert.env.example`。**仓库里永远不存密码。**
+- cron 每小时一次（见 `deploy/cron.d-agentgate`）：`scripts/healthcheck.sh` 检查 /health 的采集年龄/缺口、磁盘余量、账本链、以及 `--site` 给的公开 URL。
+- 发送策略：发现异常立刻发；仍异常每 6 小时重发一次（不被忘掉，也不是每小时的轰炸）；恢复正常发一封「已恢复」。状态存在 `data/healthcheck-state.json`（已 gitignore）。
+- 密码不进 argv：curl 用 `--netrc-file` 指向一个 0600 的临时文件，用完覆写再删。argv 在共享机器上 `ps` 可见。
+
+**必须真做一次的演练**（否则"有告警"只是配置）：
+
+```sh
+# 1) 制造异常：把 index 说成旧的，或临时停掉 daily-job
+# 2) 手动跑一遍，确认退出码是 1（不是 0）
+sudo -u agentgate /opt/agentgate/scripts/healthcheck.sh ; echo "exit=$?"
+# 3) 确认收到邮件，主题形如 [agentgate] 巡检异常：N 项
+# 4) 恢复后确认收到「[agentgate] 巡检已恢复」
+```
+
+本地排查用 `--no-alert`（只巡检）或 `--dry-run`（打印将要发送的邮件，不发送）。
+
 ## 上线检查清单
 
 - [ ] `curl https://api.智量.com/health` 返回 200，且 `records` 不是样本的 300 条
@@ -330,3 +349,4 @@ curl -s localhost:8080/health | python3 -m json.tool
 - [ ] OSS 备份跑通一次，并且**试过一次还原**
 - [ ] `/badge/<name>.svg` 在外网可访问
 - [ ] 安全组只开了 22/80/443，8080 不对公网开放
+- [ ] `/etc/agentgate/alert.env` 已装（0600），且**做过一次真实的告警演练**（收到异常邮件与恢复邮件）
