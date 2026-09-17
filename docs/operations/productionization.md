@@ -30,13 +30,19 @@
 - **做到什么算完**：`/metrics` 只在回环可达；路由标签是有界的（未知路径一律 `/other`）；日志不写 IP / UA / 查询串；SIGTERM 退出码 0。
 - **怎么验**：`node --test packages/service/test/observability.test.mjs packages/service/test/metrics-http.test.mjs`（12 项，含"一千个不同路径只产生一个标签""扫描路径不出现在指标与日志里""SIGTERM 退出码 0"三条负路径）；提交 `f7fdb25`；门禁 `scripts/verify.sh` 全绿。
 
-### P0-2 故障能自己喊出来 —— **在做（代码与文档完成 cb81f93；服务器安装与真实演练待做）**
+### P0-2 故障能自己喊出来 —— **完成（代码 cb81f93；服务器安装与演练 2026-09-17）**
 
 - **为什么**：`daily-job.sh` 失败只在机器上的 log 里留一行，`/health` 的 `stale` 没有任何外部东西在看。**采集断一天是补不回来的**，这是唯一无法回溯的失败。
 - **做什么**：`scripts/healthcheck.mjs`（检查 /health 的 ageHours/stale/gaps、磁盘余量、归档链 verify、站点关键 URL 200），退出码非 0 即异常；异常时通过现有阿里云 DirectMail SMTP 发一封告警到我们自己的信箱（`curl --url smtps://... --user ... --upload-file`，零依赖）；cron 每小时跑一次，连续失败不静默。
 - **做到什么算完**：拔掉 daily-job（或把 index 改旧）后，一小时内收到一封告警邮件；恢复正常后收到恢复通知；`--dry-run` 不真的发信。
 - **怎么验（已完成的部分）**：`node --test packages/service/test/healthcheck.test.mjs packages/service/test/alert.test.mjs test/healthcheck-cli.test.mjs`（33 项，含"服务不可达必须算问题""什么都没检查不算通过""凭据不进 argv""缺凭据时退出码 3"）；提交 `cb81f93`；门禁全绿。
-- **还差什么（这才算完）**：在服务器上装 `/etc/agentgate/alert.env`（0600）、更新 `/etc/cron.d/agentgate`、然后**真做一次拔插演练**——制造异常收到"巡检异常"邮件、恢复后收到"巡检已恢复"邮件，并把两次时间记在这里。没做这一步之前，告警只是一个文件。
+- **服务器上实做（2026-09-17，部署后 HEAD `6db65c4`）**：
+  - `/etc/agentgate/alert.env` 已装：`600 agentgate`，键为 SMTP_HOST/PORT/USER/PASS + AGENTGATE_ALERT_FROM/TO。密码经 ssh stdin 管道写入，**没有出现在任何命令输出里**。
+  - `/etc/cron.d/agentgate` 已更新（每小时 :07）；`/var/log/agentgate-health.log` 预先建好并归 agentgate（`/var/log` 本身不可写，不预建这条 cron 会静默丢输出）。
+  - `systemctl restart agentgate` 后 `/metrics` 在线，`agentgate_health_ok 1`。
+  - **演练**：`--state /tmp/drill3.json --max-age 0` → 退出码 **1**、stderr `告警已发出（已交给 smtpdm.aliyun.com）`；随后 `--max-age 26` → 退出码 **0**、发出恢复邮件。**163 收件箱确认收到** `[agentgate] 巡检异常：2 项` 与 `[agentgate] 巡检已恢复`（各两封，来自两次演练）。
+  - **cron 环境模拟**（`env -i SHELL=/bin/sh PATH=/usr/bin:/bin`）退出码 0：没有依赖交互式环境，也没有因为没有 HOME 而失败。
+- **留给 P3 的一件小事**：`/var/log/agentgate*.log` 需要 logrotate（现在只增不减）。
 
 ## P1 供应链自保
 

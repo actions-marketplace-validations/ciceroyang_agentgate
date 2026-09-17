@@ -326,6 +326,13 @@ curl -s localhost:8080/health | python3 -m json.tool
 
 - 凭据只放一处：`/etc/agentgate/alert.env`（owner agentgate，mode 0600），字段见 `deploy/alert.env.example`。**仓库里永远不存密码。**
 - cron 每小时一次（见 `deploy/cron.d-agentgate`）：`scripts/healthcheck.sh` 检查 /health 的采集年龄/缺口、磁盘余量、账本链、以及 `--site` 给的公开 URL。
+- 安装三步（`/var/log` 本身不可写，日志文件必须先建好，否则 cron 的输出会被静默丢掉）：
+  ```sh
+  sudo install -d -m 755 -o root -g root /etc/agentgate
+  sudo install -m 600 -o agentgate -g agentgate alert.env /etc/agentgate/alert.env
+  sudo install -m 644 -o agentgate -g agentgate /dev/null /var/log/agentgate-health.log
+  sudo install -m 644 -o root -g root /opt/agentgate/deploy/cron.d-agentgate /etc/cron.d/agentgate
+  ```
 - 发送策略：发现异常立刻发；仍异常每 6 小时重发一次（不被忘掉，也不是每小时的轰炸）；恢复正常发一封「已恢复」。状态存在 `data/healthcheck-state.json`（已 gitignore）。
 - 密码不进 argv：curl 用 `--netrc-file` 指向一个 0600 的临时文件，用完覆写再删。argv 在共享机器上 `ps` 可见。
 
