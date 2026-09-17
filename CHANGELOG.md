@@ -18,6 +18,12 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   scanners it insists on.
 - The index diff gained a `coverage changed` category: a record that stopped being fully measured
   (or started being) is reported on its own, because no version change explains it.
+- `scripts/coverage-stats.mjs` turns an index into the coverage distribution — how many records are
+  fully measured, what stopped the rest, and how many findings came out of the work that ran. It
+  exits non-zero when a record claims a verdict its own coverage block cannot support, and it is the
+  source of the numbers in
+  [the coverage article](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.md)
+  ([中文](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.zh-CN.md)).
 - The inventory report now shows, per tool, which scanners actually ran: the coverage state, the
   required/completed/failed counts and one row per scanner. A record whose own coverage block says a
   required scanner did not finish can no longer reach `matched`, however complete the rest of its

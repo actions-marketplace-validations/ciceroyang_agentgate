@@ -199,6 +199,7 @@ node bin/agentgate.mjs diff --from previous-index.json --to data/index.json
 node packages/collect/mcp-audit.mjs --max 6000 --out data/census.json
 node packages/collect/scripts/guard-scan.mjs --census data/census.json --out data/guard-scan.json
 node packages/collect/scripts/build-index.mjs --census data/census.json --guard data/guard-scan.json --out data/index.json
+node scripts/coverage-stats.mjs --index data/index.json   # 其中真正被测过的有多少
 ```
 
 在本地项目上跑扫描器：
@@ -207,6 +208,12 @@ node packages/collect/scripts/build-index.mjs --census data/census.json --guard 
 node packages/guard/bin/agent-guard.mjs . --fail-on high
 node packages/collect/bin/agent-add.mjs --index data/index.json <server-name>
 ```
+
+## 文章
+
+- [2,057 个 MCP server,审计跑完的是 264 个](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.zh-CN.md)([English](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.md))——采到的 server 里真正被测过的有多少,其余的卡在哪。
+- [The loudest rule was wrong nine times out of nine](docs/articles/2026-09-the-loudest-rule-was-wrong.md)
+- [Clean is a claim about work that was done](docs/articles/2026-09-clean-is-a-claim.md)
 
 ## 测试
 
