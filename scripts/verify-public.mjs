@@ -38,10 +38,16 @@ try {
   check("首页是站点而不是 API", home.type.indexOf("text/html") !== -1, home.type)
   check("首页是产品页,不是另一个站点", home.text.indexOf("agentgate") !== -1 || home.text.indexOf("智量") !== -1)
 
-  for (const p of ["/pricing.html", "/try.html", "/evidence.html", "/report-sample.html"]) {
+  for (const p of ["/pricing.html", "/try.html", "/evidence.html", "/report-sample.html", "/security.html", "/privacy.html"]) {
     const r = await get(base + p)
     check("页面 " + p, r.status === 200 && r.type.indexOf("text/html") !== -1, r.status + " " + r.type)
   }
+
+  // RFC 9116 puts this at a fixed path; a security page without it is a page nobody's scanner
+  // will find.
+  const securityTxt = await get(base + "/.well-known/security.txt")
+  check("security.txt 在 RFC 规定的路径上", securityTxt.status === 200, securityTxt.status + " " + securityTxt.type)
+  check("security.txt 里有 Contact 与 Expires", /^Contact:/m.test(securityTxt.text) && /^Expires:/m.test(securityTxt.text), securityTxt.text.slice(0, 120))
 
   const health = await get(base + "/health")
   let h = null

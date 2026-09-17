@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>数据处理说明 · 智量 agentgate</title>
+<meta name="description" content="agentgate 各个组件会读什么、会不会联网、日志里有什么。">
+<link rel="canonical" href="https://app.xn--5kvo87g.com/privacy.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>:root{--fg:#111;--muted:#5b6472;--line:#e6e8eb;--bg:#fff}
+@media (prefers-color-scheme: dark){:root{--fg:#e8eaed;--muted:#9aa4b2;--line:#2a2f36;--bg:#0f1115}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 system-ui,-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}
+main{max-width:760px;margin:0 auto;padding:56px 20px 96px}
+h1{font-size:30px;margin:0 0 6px}h2{font-size:19px;margin:40px 0 12px;padding-top:20px;border-top:1px solid var(--line)}
+.sub{color:var(--muted);margin:0 0 20px}a{color:inherit}
+code{background:rgba(127,127,127,.14);padding:1px 5px;border-radius:4px;font-size:14px}
+ul{padding-left:22px}li{margin:6px 0}.muted{color:var(--muted);font-size:14px}
+.box{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:18px 0}</style></head><body><main>
+<p class="sub"><a href="/">智量 · agentgate</a></p>
+<h1>数据处理说明</h1>
+<p class="sub">这是行为说明，不是法律意见，也不是隐私政策。写清"会做什么、不会做什么、哪一条我们核不到"，核对时间 2026-09-17。</p>
+
+<h2>一句话</h2>
+<p><code>check</code> 读本地材料，<code>inventory</code> 把你的清单与本地索引对照出报告，<code>serve</code> 从本地索引回答请求——这三个都不主动向外发请求。<code>refresh</code>、部分采集脚本、<code>proxy</code> 与 <code>crosscheck</code> 会联网或启动第三方进程，逐条列在下面。</p>
+
+<h2>1. 本地命令：不主动外发</h2>
+<p><code>check</code> 只读你指定的目录和策略文件，结果写到终端或 <code>--out</code> 文件。<code>inventory</code> 只读你给的清单和索引，报告默认不覆盖已有文件。<code>serve</code> 默认只监听 <code>127.0.0.1</code>——"不主动向外请求"不等于"不会向访问者返回数据"。</p>
+<p class="muted">验证入口：<code>test/no-telemetry.test.mjs</code>（拦截 fetch、DNS 与非回环连接）。</p>
+
+<h2>2. npm 包</h2>
+<ul>
+  <li>零运行时依赖，无安装期脚本，无原生构建。</li>
+  <li>包内容由 <code>files</code> 字段决定，发布前由 <code>scripts/release-check.mjs</code> 检查有没有夹带 <code>.env</code>、账本或生成的索引。</li>
+</ul>
+
+<h2>3. 公开证据服务</h2>
+<p>索引来自 MCP 官方注册表、npm、PyPI 与公开仓库等公开材料；API 只接受 GET，没有账号，也没有上传接口。</p>
+<p><strong>请求与日志分开说。</strong> 访问者的 IP 与请求头会到达承接请求的服务器。我们的服务端访问日志<strong>默认关闭</strong>（<code>AGENTGATE_ACCESS_LOG</code> 打开后只记 method / 路由 / 状态码 / 耗时 / 请求 ID，不记 IP、User-Agent、查询串）；部署的 Caddy 配置没有 HTTP 访问日志指令（2026-09-17 核对）。<strong>核不到的</strong>：托管服务商的网络层日志与保留期；我们不会替它做保证。</p>
+
+<h2>4. 会联网或启动第三方进程的组件</h2>
+<ul>
+  <li><code>refresh</code>：向注册表、npm、PyPI 拉公开信息，可能从 unpkg/jsDelivr 取包文件；不上传本地扫描结果。</li>
+  <li>采集脚本（如 <code>packages/collect/scripts/scan-repos.mjs</code>）：用本机 <code>gh</code> 凭据请求 GitHub API。这不是 <code>check</code>/<code>serve</code> 的行为，用之前请自己确认身份与权限。</li>
+  <li><code>proxy</code>：启动你指定的命令并在本地记录判定与移除事件（时间、工具名、判定），不记录调用参数全文；被启动的 server 可能联网或读写文件，网关不提供沙箱。</li>
+  <li><code>crosscheck</code>：默认会访问被检查文本里的 URL，<code>--no-network</code> 关闭。</li>
+</ul>
+
+<h2>5. 静态页面</h2>
+<p>页面没有 cookie、没有统计脚本、不加载第三方字体或 CDN；搜索与清单匹配都在浏览器里跑；清单页只在内存里处理你粘贴的内容，不写浏览器存储。页面里的外链（GitHub、邮件）点击后由对方站点处理。</p>
+
+<h2>6. 试点中你主动给的材料</h2>
+<p>试点只要一份工具名称清单。我们不会把它放进版本库，也不会用于本次试点以外的用途。清单的保留期限按试点开始前的书面约定执行——<strong>目前没有自动化的留存与删除流程，这一点不粉饰</strong>；要求立即删除时，发一封邮件确认即可。</p>
+
+<h2>7. 变更与联系</h2>
+<p>本页随实现变化更新；发现与事实不符的地方，请发到 <a href="mailto:zhiliangtech@163.com">zhiliangtech@163.com</a>。安全相关见 <a href="/security.html">安全页</a>。</p>
+</main></body></html>

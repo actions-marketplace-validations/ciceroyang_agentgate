@@ -235,6 +235,17 @@ if (pagesDir && existsSync(pagesDir)) {
     copyFileSync(join(pagesDir, name), join(outDir, target))
     copied += 1
   }
+  // /.well-known/security.txt has to land at the path the RFC names, and the page loop above
+  // only copies files at the top level: a directory is skipped without this.
+  const wellKnown = join(pagesDir, ".well-known")
+  if (existsSync(wellKnown)) {
+    mkdirSync(join(outDir, ".well-known"), { recursive: true })
+    for (const name of readdirSync(wellKnown)) {
+      if (!/\.[a-z0-9]+$/.test(name)) continue
+      copyFileSync(join(wellKnown, name), join(outDir, ".well-known", name))
+      copied += 1
+    }
+  }
 }
 // The personal inventory never leaves the browser. Ship the public snapshot and the same
 // matching/report modules used by the offline CLI, not a name-querying upload endpoint.

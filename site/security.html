@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>安全 · 智量 agentgate</title>
+<meta name="description" content="agentgate 的安全联系方式、我们自己做到的事、以及我们不做的边界。">
+<link rel="canonical" href="https://app.xn--5kvo87g.com/security.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>:root{--fg:#111;--muted:#5b6472;--line:#e6e8eb;--bg:#fff}
+@media (prefers-color-scheme: dark){:root{--fg:#e8eaed;--muted:#9aa4b2;--line:#2a2f36;--bg:#0f1115}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 system-ui,-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}
+main{max-width:760px;margin:0 auto;padding:56px 20px 96px}
+h1{font-size:30px;margin:0 0 6px}h2{font-size:19px;margin:40px 0 12px;padding-top:20px;border-top:1px solid var(--line)}
+.sub{color:var(--muted);margin:0 0 20px}a{color:inherit}
+code{background:rgba(127,127,127,.14);padding:1px 5px;border-radius:4px;font-size:14px}
+ul{padding-left:22px}li{margin:6px 0}.muted{color:var(--muted);font-size:14px}
+.box{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:18px 0}</style></head><body><main>
+<p class="sub"><a href="/">智量 · agentgate</a></p>
+<h1>安全</h1>
+<p class="sub">本页 2026-09-17 核对过一遍；下面每一条都写了怎么自己验。</p>
+
+<h2>报告漏洞</h2>
+<p>发到 <a href="mailto:zhiliangtech@163.com">zhiliangtech@163.com</a>，标题带上 <code>[security]</code>。我们会在 3 个工作日内回执，并在确认后给出修复时间。机器可读的版本在 <a href="/.well-known/security.txt"><code>/.well-known/security.txt</code></a>。</p>
+<p class="muted">请用测试数据复现，不要碰别人的数据，也不要对公开服务做压力测试。我们不会因为没有签保密协议而拒收报告，也欢迎匿名。</p>
+
+<h2>我们自己做到的事（可以自己验）</h2>
+<ul>
+  <li><strong>零运行时依赖</strong>：没有 npm 依赖可以被人投毒。CI 会跑 <code>scripts/check-zero-deps.mjs</code>，它同时检查清单和源码里的裸导入。</li>
+  <li><strong>没有安装期脚本</strong>：包内没有 <code>preinstall</code>/<code>install</code>/<code>postinstall</code>/<code>prepare</code>。</li>
+  <li><strong>可验证的发布</strong>：npm 上的版本带 provenance attestation，发布时同时生成我们自己的 CycloneDX SBOM。</li>
+  <li><strong>开源可审</strong>：AGPL-3.0，内核可自托管，不用把清单交给我们也能出报告（<code>inventory</code> 完全在本地跑）。</li>
+  <li><strong>篡改可检测</strong>：采集账本每行带上一行的哈希，<code>agentgate history --verify</code> 重算链与快照哈希。</li>
+</ul>
+
+<h2>我们怎么看待你的数据</h2>
+<ul>
+  <li>试点只需要<strong>工具名称清单</strong>——不要代码、不要凭据、不要环境变量。本地命令（<code>check</code>、<code>inventory</code>、<code>serve</code>）不主动向外发请求。</li>
+  <li><strong>访问日志默认关闭</strong>：服务端只有在显式设置 <code>AGENTGATE_ACCESS_LOG=1</code> 时才记录，而且只记 method / 路由 / 状态码 / 耗时 / 请求 ID，<strong>不记</strong> IP、User-Agent 与查询串。</li>
+  <li>部署的 Caddy 配置<strong>没有</strong> HTTP 访问日志指令（2026-09-17 在实际服务器上核过）。</li>
+  <li><strong>我们不能否认的</strong>：请求本身仍然会到达服务器和托管商，云厂商可能有网络层日志，邮件会经过邮件服务商。这一层不在我们的控制里，所以不写成"我们没有日志"。</li>
+</ul>
+<p>细节见 <a href="/privacy.html">数据处理说明</a>。</p>
+
+<h2>我们不做的</h2>
+<ul>
+  <li>不替任何人认证，也不出合规结论。我们输出的是<strong>可以核的记录</strong>，判断在你们和你们的审计方。</li>
+  <li>不扫描生产、不执行被测工具、不读取客户的代码或凭据。</li>
+  <li>不承诺"能过等保 / SOC 2 / 客户评审"。</li>
+</ul>
+
+<h2>这份材料本身</h2>
+<p class="muted">报告里的每一条结论都标注了来源与覆盖范围；查不到的写"没查到"，不写成干净。这一条也是我们产品的主张：一份把未测到的部分藏起来的报告，比没有报告更危险。</p>
+<p class="muted">回执与更正要走的路：<a href="/">首页</a> · <a href="/privacy.html">数据处理说明</a> · <a href="/rollback">（内部）回滚手册不进站点</a></p>
+</main></body></html>

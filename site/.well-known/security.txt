@@ -1,0 +1,8 @@
+# agentgate / 智量
+# RFC 9116. Expires is deliberately less than a year out: a security.txt nobody has looked at
+# for a year is a security.txt that points at an address nobody reads.
+Contact: mailto:zhiliangtech@163.com
+Expires: 2027-09-17T00:00:00.000Z
+Canonical: https://app.xn--5kvo87g.com/.well-known/security.txt
+Policy: https://app.xn--5kvo87g.com/security.html
+Preferred-Languages: zh-CN, en
