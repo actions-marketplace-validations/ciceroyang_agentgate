@@ -1,104 +1,558 @@
 {
- "note": "Criticals a person has read. The evidence string is part of the key: if it changes, the review is void and the checker says so. Edited by scripts/review-criticals.mjs --accept.",
+ "schemaVersion": 2,
+ "note": "Explicit human review attestations for high/critical findings, bound to server/block/rule/file/severity, evidence text, exact package version and complete scanned-content provenance. Changed or missing bindings require human re-review. Written only by scripts/review-criticals.mjs --accept; this command does not inspect third-party source code.",
  "reviewed": [
+  {
+   "server": "ai.dinglebear/cortex",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/cortex",
+     "version": "3.13.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c5bfef08fccfc918574695a292fb2e26bf127ab1cc1d9d1d512fbd4f55872882",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/cortex@3.13.2: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
+  },
   {
    "server": "ai.dinglebear/cortex",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/cortex",
+     "version": "3.13.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c5bfef08fccfc918574695a292fb2e26bf127ab1cc1d9d1d512fbd4f55872882",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/cortex@3.13.2): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/labby",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/labby",
+     "version": "1.20.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "3dbb6e952f15c4ed32d42b41526216b4807f631dca24c6718eb5da62a2c306f9",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/labby@1.20.1: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/labby",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/labby",
+     "version": "1.20.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "3dbb6e952f15c4ed32d42b41526216b4807f631dca24c6718eb5da62a2c306f9",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/labby@1.20.1): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rapprise",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rapprise",
+     "version": "0.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "ba9de671bab4b7cc24488a2d8f80b79e7b65b59ad83094b450913faa5bab8eae",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/rapprise@0.3.0: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/rapprise",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rapprise",
+     "version": "0.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "ba9de671bab4b7cc24488a2d8f80b79e7b65b59ad83094b450913faa5bab8eae",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/rapprise@0.3.0): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rarcane",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rarcane",
+     "version": "0.4.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "b67b025ae13e49d118f52f5fe83a6285a2a546609480134f185a7b607a85a9bb",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/rarcane@0.4.4: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/rarcane",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rarcane",
+     "version": "0.4.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "b67b025ae13e49d118f52f5fe83a6285a2a546609480134f185a7b607a85a9bb",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/rarcane@0.4.4): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rgotify",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rgotify",
+     "version": "0.2.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "421a3c5bbb53d44664fa6349f9ec856bcb68826abb5eca67e3fa456dac2a6f81",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/rgotify@0.2.0: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/rgotify",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rgotify",
+     "version": "0.2.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "421a3c5bbb53d44664fa6349f9ec856bcb68826abb5eca67e3fa456dac2a6f81",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/rgotify@0.2.0): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rtailscale",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rtailscale",
+     "version": "0.1.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "50293a2bd66072c389434905aee114ef26311afe42957cd9646d863e7d5be64d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/rtailscale@0.1.4: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/rtailscale",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rtailscale",
+     "version": "0.1.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "50293a2bd66072c389434905aee114ef26311afe42957cd9646d863e7d5be64d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/rtailscale@0.1.4): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/runifi",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/runifi",
+     "version": "0.2.5"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "8d590aa775bff05f559cae1732cd58fb248d21e861c144f592b5f61b180a1245",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/runifi@0.2.5: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/runifi",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/runifi",
+     "version": "0.2.5"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "8d590aa775bff05f559cae1732cd58fb248d21e861c144f592b5f61b180a1245",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/runifi@0.2.5): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/rytdl",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rytdl",
+     "version": "1.0.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "1062ed8e8c08157e6adcee106b27704a9eb8c0d5f2171690803e26743606b201",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/rytdl@1.0.4: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/rytdl",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/rytdl",
+     "version": "1.0.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "1062ed8e8c08157e6adcee106b27704a9eb8c0d5f2171690803e26743606b201",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/rytdl@1.0.4): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/synapse",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/synapse",
+     "version": "1.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "9dc8d08ac728ebfcf9faea4c75946ec5881dddc8236c270071e6be901fbaec6d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/synapse@1.0.0: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/synapse",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/synapse",
+     "version": "1.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "9dc8d08ac728ebfcf9faea4c75946ec5881dddc8236c270071e6be901fbaec6d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/synapse@1.0.0): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/unraid",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/unraid",
+     "version": "0.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "e1bd04c96fc6255231ebab15377c2cdd17f1b0451e9abf3d1d09629d33fc84b9",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/unraid@0.3.0: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/unraid",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/unraid",
+     "version": "0.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "e1bd04c96fc6255231ebab15377c2cdd17f1b0451e9abf3d1d09629d33fc84b9",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/unraid@0.3.0): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.dinglebear/yarr",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/yarr",
+     "version": "2.2.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "739738069e0bc1147ebd411e331c4e4117b889a5af67a25aa1a00109b788c2a7",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for @dinglebear/yarr@2.2.2: postinstall runs node scripts/install.js at install time; re-read 2026-09-17, the finding is real"
   },
   {
    "server": "ai.dinglebear/yarr",
    "rule": "install-hook-script-critical",
    "block": "registryDocument",
    "file": null,
+   "severity": "critical",
    "evidence": "scripts/install.js can reach the network and writes files (network-module)",
-   "reviewedAt": "2026-09-16",
-   "note": "read the install script: it downloads a release binary and spawns it, so the finding is real"
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@dinglebear/yarr",
+     "version": "2.2.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "739738069e0bc1147ebd411e331c4e4117b889a5af67a25aa1a00109b788c2a7",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "read scripts/install.js from the published tarball (@dinglebear/yarr@2.2.2): it downloads a per-platform release binary over http(s), extracts it with tar, chmods it 0755 and spawns it; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.etincel/etincel-nonfiction",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node -e \\\"require('fs').existsSync('tsconfig.json')&&require('child_process').execSync('npm run build',{stdio:'inherit'})\\\"\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "etincel",
+     "version": "0.10.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "3b105b56c12b3e5f1e5d2b962dc177fb6b5915b5d934582670630fb5472d5aea",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for etincel@0.10.1: postinstall runs node -e \\\"require('fs').existsSync('tsconfig.json')&&require('child_process').execSync('npm run build',{stdio:'inherit'})\\\" at install time; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "ai.telbase/deploy",
+   "rule": "install-time-execution",
+   "block": "registryDocument",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "telbase",
+     "version": "0.14.0-beta.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "bf369745bb4238e85ce8ed3dd5f0c82184f664ea40cf5fdb28db407c1e250b98",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-17",
+   "note": "package manifest for telbase@0.14.0-beta.2: postinstall runs node install.js at install time; re-read 2026-09-17, the finding is real"
   }
  ]
 }
