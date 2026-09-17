@@ -51,12 +51,12 @@
 - **做到什么算完**：CI 有一次"依赖必须为空"的失败演示；release 页面能看到 SBOM 文件；有依赖时 CI 会红。
 - **怎么验**：`node scripts/check-zero-deps.mjs`（127 个源文件、0 个裸导入）；`node scripts/sbom.mjs --stdout | python3 -m json.tool`；`node --test packages/verify/test/deps.test.mjs packages/verify/test/sbom.test.mjs`（20 项，含"字符串里的 require 不算导入""本仓库真的没有依赖"两条）。两条都已进 `scripts/verify.sh` 与 CI。**注**：本地没有 pyyaml，所以 YAML 校验在本地会走 `--` 跳过分支，我用 `ruby -ryaml` 单独验过全部 workflow + dependabot.yml 通过；CI 那一步现在覆盖全部 workflow（原来只查 test.yml，publish.yml 坏了要到发版才发现）。
 
-## P2 服务硬化
+## P2 服务硬化 —— **完成（ea99e22）**
 
 - **为什么**：公网只经过 Caddy，但服务本身不该依赖"外面那层一定挡住了"。
 - **做什么**：请求体积上限（本服务不读 body，超过就 413）、方法白名单（已 405，补 HEAD）、每 IP 令牌桶限流（429 + Retry-After）、header/request 超时、服务端安全头兜底、错误响应统一 JSON。
 - **做到什么算完**：`packages/service/test/limits.test.mjs` 覆盖 429/413/405/超时四条负路径，且不误伤正常的 `/health` 轮询。
-- **怎么验**：同一套测试 + 一次本地压测（`scripts/bench.mjs` 不回归）。
+- **怎么验**：`node --test packages/service/test/limits.test.mjs packages/service/test/limits-http.test.mjs`（14 项：带体 413、无体 POST 405、超限 429 + Retry-After、`/metrics` 不占额度、桶表有界、默认关闭、HEAD 无响应体、超时值）；`scripts/bench.mjs 20000 100` 不回归。**部署时还要做一次**：把 service 单元里的 `AGENTGATE_RATE_LIMIT` 生效并确认 429 会出现（本地默认 0=关闭，属于行为不变）。
 
 ## P3 数据与恢复
 
