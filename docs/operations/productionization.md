@@ -56,7 +56,8 @@
 - **为什么**：公网只经过 Caddy，但服务本身不该依赖"外面那层一定挡住了"。
 - **做什么**：请求体积上限（本服务不读 body，超过就 413）、方法白名单（已 405，补 HEAD）、每 IP 令牌桶限流（429 + Retry-After）、header/request 超时、服务端安全头兜底、错误响应统一 JSON。
 - **做到什么算完**：`packages/service/test/limits.test.mjs` 覆盖 429/413/405/超时四条负路径，且不误伤正常的 `/health` 轮询。
-- **怎么验**：`node --test packages/service/test/limits.test.mjs packages/service/test/limits-http.test.mjs`（14 项：带体 413、无体 POST 405、超限 429 + Retry-After、`/metrics` 不占额度、桶表有界、默认关闭、HEAD 无响应体、超时值）；`scripts/bench.mjs 20000 100` 不回归。**部署时还要做一次**：把 service 单元里的 `AGENTGATE_RATE_LIMIT` 生效并确认 429 会出现（本地默认 0=关闭，属于行为不变）。
+- **怎么验**：`node --test packages/service/test/limits.test.mjs packages/service/test/limits-http.test.mjs`（14 项：带体 413、无体 POST 405、超限 429 + Retry-After、`/metrics` 不占额度、桶表有界、默认关闭、HEAD 无响应体、超时值）；`scripts/bench.mjs 20000 100` 不回归。
+- **服务器上实做（2026-09-17，部署 `d6281e0`）**：unit 里的 `AGENTGATE_RATE_LIMIT=1200` 已生效——`/metrics` 读出 `agentgate_rate_limit_per_minute 1200`；`HEAD /health` = 200；`POST /health` 带体 = **413**；1400 个并发请求打 `/health` 得到 **1350×200 + 50×429**，限流确实在这个部署上生效，而不只是配置里写着。
 
 ## P3 数据与恢复
 
