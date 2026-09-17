@@ -1,7 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, readFileSync, rmSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, rmSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
@@ -9,6 +8,7 @@ import { auditRegistryServer } from "../packages/collect/mcp-audit.mjs"
 import { scanManifest } from "../packages/collect/scripts/guard-scan.mjs"
 import { buildIndex } from "../packages/collect/scripts/build-index.mjs"
 import { manifestFindings } from "../packages/guard/src/api.mjs"
+import { scratchDir } from "./tmpdir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const server = {
@@ -39,7 +39,7 @@ async function collectedIndex(content, checker = manifestFindings) {
 }
 
 function workspace(t) {
-  const dir = mkdtempSync(join(tmpdir(), "ag-collection-review-"))
+  const dir = scratchDir("ag-collection-review-")
   t.after(() => rmSync(dir, { recursive: true, force: true }))
   return dir
 }

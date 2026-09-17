@@ -1,11 +1,11 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, rmSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { mkdirSync, writeFileSync, symlinkSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import { walk, makeReader } from "../src/fs-scan.mjs"
 import { runScan } from "../src/engine.mjs"
 import { check as sourceInjection } from "../src/checks/source-injection.mjs"
+import { scratchDir } from "../../../test/tmpdir.mjs"
 
 /**
  * The walker, pointed at repositories this project does not control.
@@ -18,7 +18,7 @@ import { check as sourceInjection } from "../src/checks/source-injection.mjs"
  */
 
 test("a link out of the tree is not followed, and a loop terminates", function () {
-  const base = mkdtempSync(join(tmpdir(), "ag-walk-"))
+  const base = scratchDir("ag-walk-")
   const root = join(base, "root")
   const outside = join(base, "outside")
   mkdirSync(root)
@@ -39,7 +39,7 @@ test("a link out of the tree is not followed, and a loop terminates", function (
 })
 
 test("a file over the size limit is incomplete, never clean", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-size-"))
+  const dir = scratchDir("ag-size-")
   writeFileSync(join(dir, "big.js"), "const pad = \"" + "x".repeat(5000) + "\"\n")
 
   const scan = runScan({ root: dir, checks: [sourceInjection], readText: makeReader({ maxBytes: 512 }) })
@@ -55,7 +55,7 @@ test("a file over the size limit is incomplete, never clean", function () {
 })
 
 test("a bundled file is not read before it is skipped", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-bundle-"))
+  const dir = scratchDir("ag-bundle-")
   // not in dist/, which the walker skips by name, so this exercises the check itself
   writeFileSync(join(dir, "app.bundle.js"), "exec(cmd + args)\n")
   const read = []

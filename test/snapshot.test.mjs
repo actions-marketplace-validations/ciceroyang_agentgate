@@ -1,10 +1,10 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, existsSync, rmSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
+import { scratchDir } from "./tmpdir.mjs"
 
 /**
  * The daily history job, including the case that made it fail forever on a fresh server:
@@ -22,7 +22,7 @@ function indexWith(records) {
 }
 
 test("the first run seeds the snapshot and writes no diff", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-snap-"))
+  const dir = scratchDir("ag-snap-")
   const index = join(dir, "index.json")
   writeFileSync(index, indexWith([{ server: "a/b", verdict: "clean", packages: [], evidence: [] }]))
   const run1 = run(["--index", index, "--history", join(dir, "history"), "--date", "2026-09-15"])
@@ -35,7 +35,7 @@ test("the first run seeds the snapshot and writes no diff", function () {
 })
 
 test("the second run produces a diff against the first", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-snap2-"))
+  const dir = scratchDir("ag-snap2-")
   const history = join(dir, "history")
   const index = join(dir, "index.json")
   writeFileSync(index, indexWith([{ server: "a/b", verdict: "clean", packages: [], evidence: [] }]))
@@ -58,7 +58,7 @@ test("the second run produces a diff against the first", function () {
 })
 
 test("a diff says when the scanner itself changed, so its own fixes are not read as theirs", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-snap4-"))
+  const dir = scratchDir("ag-snap4-")
   const history = join(dir, "history")
   const index = join(dir, "index.json")
   const build = function (scanner) {
@@ -82,7 +82,7 @@ test("a diff says when the scanner itself changed, so its own fixes are not read
 })
 
 test("a missing index is an error, not a silent no-op", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-snap3-"))
+  const dir = scratchDir("ag-snap3-")
   const out = run(["--index", join(dir, "nope.json"), "--history", join(dir, "history")])
   assert.equal(out.status, 1)
   assert.match(out.stderr, /run refresh first/)

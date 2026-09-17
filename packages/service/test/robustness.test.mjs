@@ -1,13 +1,13 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { createService, matchRecords } from "../src/server.mjs"
 import { start } from "../src/start.mjs"
+import { scratchDir } from "../../../test/tmpdir.mjs"
 
 function serviceWith(content) {
-  const dir = mkdtempSync(join(tmpdir(), "ag-robust-"))
+  const dir = scratchDir("ag-robust-")
   const p = join(dir, "index.json")
   writeFileSync(p, content)
   return createService({ indexPath: p })
@@ -30,7 +30,7 @@ test("a record without a server name is skipped, not fatal", function () {
 })
 
 test("the fallback index is used only when the first one is unusable", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-fallback-"))
+  const dir = scratchDir("ag-fallback-")
   const broken = join(dir, "a.json")
   const good = join(dir, "b.json")
   writeFileSync(broken, JSON.stringify({ records: "nope" }))

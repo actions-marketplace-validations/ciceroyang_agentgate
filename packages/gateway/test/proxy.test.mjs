@@ -1,16 +1,16 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, existsSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawn } from "node:child_process"
+import { scratchDir } from "../../../test/tmpdir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
 function runProxy(policy, requests, timeoutMs) {
   return new Promise(function (done) {
-    const dir = mkdtempSync(join(tmpdir(), "ag-gw-"))
+    const dir = scratchDir("ag-gw-")
     const policyPath = join(dir, "policy.json")
     const logPath = join(dir, "calls.jsonl")
     const recPath = join(dir, "reached.jsonl")

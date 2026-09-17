@@ -1,9 +1,9 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { createService, matchRecords, clearIndexCache } from "../src/server.mjs"
+import { scratchDir } from "../../../test/tmpdir.mjs"
 
 const SAMPLE = {
   generatedAt: "2026-09-15T00:00:00.000Z",
@@ -17,7 +17,7 @@ const SAMPLE = {
 }
 
 function withIndex() {
-  const dir = mkdtempSync(join(tmpdir(), "agentgate-"))
+  const dir = scratchDir("agentgate-")
   const p = join(dir, "index.json")
   writeFileSync(p, JSON.stringify(SAMPLE))
   return createService({ indexPath: p })
@@ -79,7 +79,7 @@ test("matchRecords prefers exact, then substring", function () {
 })
 
 test("a badge renders only a known verdict, whatever the index says", function () {
-  const dir = mkdtempSync(join(tmpdir(), "agentgate-badge-"))
+  const dir = scratchDir("agentgate-badge-")
   const p = join(dir, "index.json")
   writeFileSync(p, JSON.stringify({
     generatedAt: "2026-09-15T00:00:00.000Z",

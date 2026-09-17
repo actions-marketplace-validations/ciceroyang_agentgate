@@ -8,13 +8,13 @@
  * action are YAML-validated in CI for that reason, and the action is only ever a thin
  * wrapper around the commands verified below.
  */
-import { mkdtempSync, writeFileSync, readFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
 import { toSarif } from "../packages/policy/src/sarif.mjs"
 import { diffIndex } from "../packages/history/src/diff.mjs"
+import { scratchDir } from "./scratch-dir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 let failures = 0
@@ -35,7 +35,7 @@ const unmeasured = sarif.runs[0].results.filter(function (r) { return r.ruleId =
 check("and it is an error, not a note", unmeasured.level === "error", unmeasured.level)
 
 // the CLI writes the same SARIF when asked
-const dir = mkdtempSync(join(tmpdir(), "ag-m3-"))
+const dir = scratchDir("ag-m3-")
 writeFileSync(join(dir, ".mcp.json"), JSON.stringify({ mcpServers: { fs: { command: "npx", args: ["-y", "pkg"] } } }))
 writeFileSync(join(dir, "agentgate.policy.json"), JSON.stringify({ version: "agentgate.policy/v1", forbidden: { rules: ["AG-MCP-010"] } }))
 const run = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check", "--root", dir, "--format", "sarif", "--out", join(dir, "out.sarif")], { encoding: "utf8" })

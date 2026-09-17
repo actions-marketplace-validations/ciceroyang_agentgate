@@ -6,14 +6,14 @@
  *   2. a repository that satisfies it passes
  *   3. an artefact nobody could measure exits 2, never 0
  */
-import { mkdtempSync, writeFileSync, readFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { spawnSync } from "node:child_process"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { loadPolicy, normalizePolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
+import { scratchDir } from "./scratch-dir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 let failures = 0
@@ -24,7 +24,7 @@ const check = function (name, ok, detail) {
 }
 
 // 1. a repository that breaks the policy fails, and the CLI agrees about the exit code
-const bad = mkdtempSync(join(tmpdir(), "ag-m2-bad-"))
+const bad = scratchDir("ag-m2-bad-")
 writeFileSync(join(bad, ".mcp.json"), JSON.stringify({ mcpServers: { fs: { command: "npx", args: ["-y", "pkg"] } } }))
 writeFileSync(join(bad, "agentgate.policy.json"), JSON.stringify({ version: "agentgate.policy/v1", threshold: "high", forbidden: { rules: ["AG-MCP-010"] } }))
 const badRun = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check", "--root", bad], { encoding: "utf8" })
@@ -32,7 +32,7 @@ check("a forbidden rule fails the check (exit 1)", badRun.status === 1, "exit " 
 check("and the report says why", /forbidden by policy/.test(badRun.stdout || ""), (badRun.stdout || "").slice(0, 120))
 
 // 2. the same repository passes when the policy does not refuse it
-const okDir = mkdtempSync(join(tmpdir(), "ag-m2-ok-"))
+const okDir = scratchDir("ag-m2-ok-")
 writeFileSync(join(okDir, ".mcp.json"), JSON.stringify({ mcpServers: { fs: { command: "/usr/local/bin/node", args: ["/opt/server/index.js", "/home/me/projects"] } } }))
 writeFileSync(join(okDir, "agentgate.policy.json"), JSON.stringify({ version: "agentgate.policy/v1", threshold: "high" }))
 const okRun = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check", "--root", okDir], { encoding: "utf8" })

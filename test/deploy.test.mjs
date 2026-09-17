@@ -1,11 +1,11 @@
 import { DEFAULT_PORT } from "../packages/service/src/defaults.mjs"
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { readFileSync, existsSync, mkdtempSync, writeFileSync, symlinkSync, rmSync, mkdirSync, copyFileSync, readdirSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { readFileSync, existsSync, writeFileSync, symlinkSync, rmSync, mkdirSync, copyFileSync, readdirSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
+import { scratchDir } from "./tmpdir.mjs"
 
 /**
  * Deployment drift.
@@ -97,7 +97,7 @@ test("the onboarding script leaves nothing behind in the temporary directory", f
   // generated unit and an empty mktemp file in a shared directory. The fake PATH in the tests is
   // where this actually happened: the rig that faked curl never got an rm, and the files piled up
   // in the deployment server's /tmp where a root run would have left them behind for good.
-  const scratch = mkdtempSync(join(tmpdir(), "ag-tmp-"))
+  const scratch = scratchDir("ag-tmp-")
   const out = spawnSync("bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--dir", join(scratch, "not-there")], {
     encoding: "utf8", timeout: 60000,
     env: Object.assign({}, process.env, { TMPDIR: scratch }),
@@ -111,7 +111,7 @@ test("the installer picks the package manager the distribution actually has", fu
   // Alibaba Cloud Linux is RHEL family: no apt-get, dnf instead, SELinux enforcing. The script
   // called apt-get unconditionally, which stops at the first step on the default Aliyun image.
   // A fake PATH with only what the script needs reproduces that distribution here.
-  const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
+  const bin = scratchDir("ag-bin-")
   for (const tool of ["uname", "hostname", "id", "sed", "node", "mktemp", "rm"]) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
@@ -133,7 +133,7 @@ test("the installer picks the package manager the distribution actually has", fu
 
 /** A PATH with only what the script needs, plus whatever fakes the test supplies. */
 function fakeBin(tools, files) {
-  const bin = mkdtempSync(join(tmpdir(), "ag-bin-"))
+  const bin = scratchDir("ag-bin-")
   for (const tool of tools.concat(["node", "mktemp", "rm"])) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
@@ -166,7 +166,7 @@ test("a custom --repo is what the clone actually uses", function () {
   // The clone branch only runs when the target directory is not there yet. Without an explicit
   // --dir this test read the machine it ran on: it passed on a laptop and failed on the deploy
   // box, where /opt/agentgate already exists, so the script printed a pull instead of a clone.
-  const scratch = mkdtempSync(join(tmpdir(), "ag-repo-"))
+  const scratch = scratchDir("ag-repo-")
   const target = join(scratch, "not-cloned-yet")
   const out = spawnSync("bash", [join(ROOT, "scripts", "onboard-server.sh"), "--skip-network", "--dir", target, "--repo", "https://gitee.com/someone/agentgate"], { encoding: "utf8", timeout: 60000 })
   assert.equal(out.status, 0, out.stderr)
@@ -256,13 +256,13 @@ test("--with-caddy appends to an existing Caddyfile instead of replacing it", fu
   // The target machine already runs Caddy for the personal site on the apex. The first version of
   // this step copied our Caddyfile over /etc/caddy/Caddyfile, which would have taken that site
   // down. It must back up and append, and roll back if the result does not validate.
-  const fakeBin = mkdtempSync(join(tmpdir(), "ag-caddy-"))
+  const fakeBin = scratchDir("ag-caddy-")
   writeFileSync(join(fakeBin, "caddy"), "#!/bin/sh\nexit 0\n", { mode: 0o755 })
   for (const tool of ["uname", "hostname", "id", "sed", "node", "mktemp", "rm"]) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(fakeBin, tool))
   }
-  const fakeRepo = mkdtempSync(join(tmpdir(), "ag-repo-"))
+  const fakeRepo = scratchDir("ag-repo-")
   mkdirSync(join(fakeRepo, "deploy"), { recursive: true })
   copyFileSync(join(ROOT, "deploy", "Caddyfile"), join(fakeRepo, "deploy", "Caddyfile"))
 
@@ -281,7 +281,7 @@ test("--with-caddy appends to an existing Caddyfile instead of replacing it", fu
 test("a server without a usable node stops at the check, with instructions", function () {
   // Without this the script printed one line and carried on, so every later step failed with
   // "/usr/bin/node: not found" and nothing said why. Node is the one runtime it does not install.
-  const bin = mkdtempSync(join(tmpdir(), "ag-node-"))
+  const bin = scratchDir("ag-node-")
   for (const tool of ["uname", "hostname", "id", "sed", "mktemp", "rm"]) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
@@ -305,13 +305,13 @@ test("--port reaches the smoke check, the unit and the Caddyfile block", functio
   // The machine already runs another site. If 8080 turns out to be taken there, the first
   // collection would finish and then the service would fail to bind, so the port has to be
   // something the operator can move -- and it has to move consistently, not in one place only.
-  const bin = mkdtempSync(join(tmpdir(), "ag-port-"))
+  const bin = scratchDir("ag-port-")
   writeFileSync(join(bin, "caddy"), "#!/bin/sh\nexit 0\n", { mode: 0o755 })
   for (const tool of ["uname", "hostname", "id", "sed", "node", "mktemp", "rm"]) {
     const from = tool === "node" ? process.execPath : ["/usr/bin", "/bin"].map(function (d) { return join(d, tool) }).filter(existsSync)[0]
     if (from) symlinkSync(from, join(bin, tool))
   }
-  const repo = mkdtempSync(join(tmpdir(), "ag-portrepo-"))
+  const repo = scratchDir("ag-portrepo-")
   mkdirSync(join(repo, "deploy"), { recursive: true })
   mkdirSync(join(repo, "scripts"), { recursive: true })
   copyFileSync(join(ROOT, "deploy", "Caddyfile"), join(repo, "deploy", "Caddyfile"))

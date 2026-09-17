@@ -1,9 +1,9 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, utimesSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, utimesSync } from "node:fs"
 import { join } from "node:path"
 import { createService, clearIndexCache } from "../src/server.mjs"
+import { scratchDir } from "../../../test/tmpdir.mjs"
 
 function writeIndex(path, server, generatedAt) {
   writeFileSync(path, JSON.stringify({ generatedAt: generatedAt || "T", count: 1, records: [{ server: server, verdict: "clean", packages: [], evidence: {} }] }))
@@ -11,7 +11,7 @@ function writeIndex(path, server, generatedAt) {
 
 test("a refresh takes effect without restarting the service", function () {
   clearIndexCache()
-  const dir = mkdtempSync(join(tmpdir(), "ag-cache-"))
+  const dir = scratchDir("ag-cache-")
   const path = join(dir, "index.json")
   writeIndex(path, "before/one")
   const svc = createService({ indexPath: path })
@@ -24,7 +24,7 @@ test("a refresh takes effect without restarting the service", function () {
 
 test("a same-size rewrite is still noticed", function () {
   clearIndexCache()
-  const dir = mkdtempSync(join(tmpdir(), "ag-cache2-"))
+  const dir = scratchDir("ag-cache2-")
   const path = join(dir, "index.json")
   writeIndex(path, "aa/one")
   const svc = createService({ indexPath: path })
@@ -37,7 +37,7 @@ test("a same-size rewrite is still noticed", function () {
 
 test("the cached index still answers identically", function () {
   clearIndexCache()
-  const dir = mkdtempSync(join(tmpdir(), "ag-cache3-"))
+  const dir = scratchDir("ag-cache3-")
   const path = join(dir, "index.json")
   writeIndex(path, "cc/one")
   const svc = createService({ indexPath: path })

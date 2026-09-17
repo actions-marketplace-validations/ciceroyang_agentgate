@@ -1,10 +1,10 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, existsSync, rmSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
+import { scratchDir } from "./tmpdir.mjs"
 
 /**
  * Appending into a Caddyfile that belongs to somebody else.
@@ -18,7 +18,7 @@ const SCRIPT = join(ROOT, "scripts", "caddy-append.sh")
 const MARK = "# agentgate-managed-begin"
 
 function setup(destContent) {
-  const dir = mkdtempSync(join(tmpdir(), "ag-append-"))
+  const dir = scratchDir("ag-append-")
   const dest = join(dir, "Caddyfile")
   if (destContent !== null && destContent !== undefined) writeFileSync(dest, destContent)
   const block = join(dir, "block")

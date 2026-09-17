@@ -4,11 +4,11 @@
  * let an allowed call through, refuse a forbidden one with a reason, keep the forbidden
  * tool out of the advertised list, and write both decisions to the log.
  */
-import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, existsSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawn } from "node:child_process"
+import { scratchDir } from "./scratch-dir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 let failures = 0
@@ -18,7 +18,7 @@ const check = function (name, ok, detail) {
   console.log("FAIL  " + name + (detail ? "  -> " + detail : ""))
 }
 
-const dir = mkdtempSync(join(tmpdir(), "ag-m4-"))
+const dir = scratchDir("ag-m4-")
 const policyPath = join(dir, "policy.json")
 const logPath = join(dir, "calls.jsonl")
 writeFileSync(policyPath, JSON.stringify({ version: "agentgate.policy/v1", forbidden: { tools: ["delete_*", "send_money"] } }))

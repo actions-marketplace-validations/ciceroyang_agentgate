@@ -1,11 +1,11 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { readFileSync, writeFileSync, mkdirSync, existsSync, mkdtempSync, rmSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync, spawn } from "node:child_process"
 import { createServer } from "node:net"
+import { scratchDir } from "./tmpdir.mjs"
 
 /**
  * The append mechanism, checked against a real Caddy binary when one is available.
@@ -20,7 +20,7 @@ const CADDY = process.env.CADDY_BIN
 
 test("appending our block to an existing Caddyfile validates, and a duplicate is rejected", { skip: CADDY ? false : "set CADDY_BIN to a caddy binary to run this" }, function () {
   assert.ok(existsSync(CADDY), "CADDY_BIN does not exist: " + CADDY)
-  const work = mkdtempSync(join(tmpdir(), "ag-caddy-"))
+  const work = scratchDir("ag-caddy-")
   mkdirSync(work, { recursive: true })
   mkdirSync(join(work, "site"), { recursive: true })
   writeFileSync(join(work, "site", "index.html"), "<title>existing site</title>")
@@ -60,7 +60,7 @@ test("the Caddyfile routes the static site and the API on one host", { skip: CAD
   // ordering and the path matchers are the part a first deploy would discover, so it is checked
   // against the real binary and the real service rather than read. Verified once by hand; this is
   // the same thing, repeatable.
-  const work = mkdtempSync(join(tmpdir(), "ag-caddy-e2e-"))
+  const work = scratchDir("ag-caddy-e2e-")
   const www = join(work, "www")
   mkdirSync(www, { recursive: true })
   const build = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"),

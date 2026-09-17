@@ -1,19 +1,19 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, existsSync } from "node:fs"
 import { join, resolve, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
 import { createService } from "../packages/service/src/server.mjs"
 import { start } from "../packages/service/src/start.mjs"
 import { renderInventoryPage } from "../packages/inventory/src/web.mjs"
+import { scratchDir } from "./tmpdir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const CLI = join(ROOT, "bin/agentgate.mjs")
 const PRELOAD = join(ROOT, "test/fixtures/no-network.cjs")
 function fixture() {
-  const dir = mkdtempSync(join(tmpdir(), "ag-inventory-flow-"))
+  const dir = scratchDir("ag-inventory-flow-")
   const index = {
     generatedAt: "2026-09-17T01:00:00.000Z", scanner: "test-fixture-not-production", count: 1,
     records: [{ server: "example/tool", packages: [{ registry: "npm", name: "@example/tool", version: "1.2.3" }],

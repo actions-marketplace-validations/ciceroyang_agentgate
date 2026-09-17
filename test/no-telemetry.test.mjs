@@ -1,10 +1,10 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, rmSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync, spawn } from "node:child_process"
+import { scratchDir } from "./tmpdir.mjs"
 
 /**
  * "It does not phone home" is a claim a security tool gets asked, and the answer has to be
@@ -19,7 +19,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const PRELOAD = join(ROOT, "test", "fixtures", "no-network.cjs")
 
 function fixture() {
-  const dir = mkdtempSync(join(tmpdir(), "ag-offline-"))
+  const dir = scratchDir("ag-offline-")
   writeFileSync(join(dir, ".mcp.json"), JSON.stringify({ mcpServers: { fs: { command: "npx", args: ["-y", "pkg"] } } }))
   return dir
 }

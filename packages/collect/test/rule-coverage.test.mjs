@@ -1,7 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { mkdirSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import {
   compilePattern,
@@ -11,9 +10,10 @@ import {
   precisionProbes,
   convergenceProbe,
 } from "../scripts/rule-coverage.mjs"
+import { scratchDir } from "../../../test/tmpdir.mjs"
 
 function synthetic() {
-  const root = mkdtempSync(join(tmpdir(), "rule-coverage-"))
+  const root = scratchDir("rule-coverage-")
   const dataDir = join(root, "data")
   const benignDir = join(root, "benign")
   mkdirSync(dataDir)
@@ -116,7 +116,7 @@ test("precisionProbes separates pattern-level from rule-level and finds twins an
 })
 
 test("convergenceProbe reports rank agreement against a published measurement", () => {
-  const root = mkdtempSync(join(tmpdir(), "rule-convergence-"))
+  const root = scratchDir("rule-convergence-")
   const path = join(root, "benign-fp-measurement.json")
   writeFileSync(path, JSON.stringify({
     generated_at: "2026-09-02",

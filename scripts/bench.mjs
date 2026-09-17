@@ -7,15 +7,15 @@
  *
  *   node scripts/bench.mjs [records] [requests]
  */
-import { writeFileSync, mkdtempSync, statSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { createService } from "../packages/service/src/server.mjs"
+import { scratchDir } from "./scratch-dir.mjs"
 
 const records = Number(process.argv[2] || 50000)
 const requests = Number(process.argv[3] || 200)
 
-const dir = mkdtempSync(join(tmpdir(), "ag-bench-"))
+const dir = scratchDir("ag-bench-")
 const indexPath = join(dir, "index.json")
 const made = []
 for (let i = 0; i < records; i += 1) {

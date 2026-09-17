@@ -1,10 +1,10 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { checkManifest, check } from "../src/checks/supply-chain.mjs"
 import { makeReader } from "../src/fs-scan.mjs"
+import { scratchDir } from "../../../test/tmpdir.mjs"
 
 function rules(f) { return f.map(function (x) { return x.rule }).sort() }
 
@@ -32,14 +32,14 @@ test("a normal semver range is not flagged", function () {
 })
 
 test("declared dependencies with no lockfile is a low finding", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-supply-"))
+  const dir = scratchDir("ag-supply-")
   writeFileSync(join(dir, "package.json"), JSON.stringify({ dependencies: { a: "1.0.0" } }))
   const out = check.run({ root: dir, readText: makeReader() })
   assert.deepEqual(rules(out.findings), ["AG-SUPPLY-003"])
 })
 
 test("a committed lockfile silences the lockfile rule", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-supply-"))
+  const dir = scratchDir("ag-supply-")
   writeFileSync(join(dir, "package.json"), JSON.stringify({ dependencies: { a: "1.0.0" } }))
   writeFileSync(join(dir, "package-lock.json"), "{}")
   assert.deepEqual(check.run({ root: dir, readText: makeReader() }).findings, [])

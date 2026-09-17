@@ -11,17 +11,17 @@
  *   node scripts/verify-real-server.mjs [package] [directory]
  */
 import { spawn } from "node:child_process"
-import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, existsSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+import { scratchDir } from "./scratch-dir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const pkg = process.argv[2] || "@modelcontextprotocol/server-filesystem"
 const target = process.argv[3] || process.env.TMPDIR || "/tmp"
 const WINDOW_MS = Number(process.env.VERIFY_WINDOW_MS || 90000)
 
-const dir = mkdtempSync(join(tmpdir(), "ag-verify-"))
+const dir = scratchDir("ag-verify-")
 const policyPath = join(dir, "policy.json")
 const logPath = join(dir, "calls.jsonl")
 writeFileSync(policyPath, JSON.stringify({ version: "agentgate.policy/v1", forbidden: { tools: ["write_*", "delete_*", "move_*", "edit_*"] } }))

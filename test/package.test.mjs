@@ -1,10 +1,10 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync, spawn } from "node:child_process"
+import { scratchDir } from "./tmpdir.mjs"
 
 /**
  * The package rehearsal.
@@ -19,7 +19,7 @@ import { spawnSync, spawn } from "node:child_process"
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 function pack() {
-  const work = mkdtempSync(join(tmpdir(), "ag-pack-"))
+  const work = scratchDir("ag-pack-")
   const run = spawnSync("npm", ["pack", "--json", "--pack-destination", work], { cwd: ROOT, encoding: "utf8" })
   assert.equal(run.status, 0, "npm pack failed: " + run.stderr)
   const meta = JSON.parse(run.stdout)

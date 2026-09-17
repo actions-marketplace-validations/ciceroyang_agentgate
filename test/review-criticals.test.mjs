@@ -1,10 +1,10 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { writeFileSync, readFileSync, existsSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
+import { scratchDir } from "./tmpdir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const SCRIPT = join(ROOT, "scripts", "review-criticals.mjs")
@@ -27,7 +27,7 @@ function run(dir, extra) {
 function seed(dir, findings) { writeFileSync(join(dir, "index.json"), JSON.stringify(indexWith(findings))) }
 
 test("an unreviewed critical fails the check, and reading it clears the check", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-"))
+  const dir = scratchDir("ag-review-")
   seed(dir, [{ rule: "R", severity: "critical", evidence: "boom" }])
 
   const first = run(dir)
@@ -49,7 +49,7 @@ test("an unreviewed critical fails the check, and reading it clears the check", 
 })
 
 test("changing the evidence voids the review", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review2-"))
+  const dir = scratchDir("ag-review2-")
   seed(dir, [{ rule: "R", severity: "critical", evidence: "boom" }])
   assert.equal(run(dir, ["--accept"]).status, 0)
 
@@ -60,7 +60,7 @@ test("changing the evidence voids the review", function () {
 })
 
 test("a critical that went away is reported and does not fail the check", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review3-"))
+  const dir = scratchDir("ag-review3-")
   seed(dir, [{ rule: "R", severity: "critical", evidence: "boom" }])
   assert.equal(run(dir, ["--accept"]).status, 0)
 
@@ -71,7 +71,7 @@ test("a critical that went away is reported and does not fail the check", functi
 })
 
 test("high findings need review while medium findings do not", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review4-"))
+  const dir = scratchDir("ag-review4-")
   seed(dir, [{ rule: "R", severity: "high", evidence: "x" }, { rule: "R2", severity: "medium", evidence: "y" }])
   const r = run(dir)
   assert.equal(r.status, 1)
@@ -83,7 +83,7 @@ test("high findings need review while medium findings do not", function () {
 })
 
 test("the same server and rule in different files retain separate reviews", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-files-"))
+  const dir = scratchDir("ag-review-files-")
   seed(dir, [
     { rule: "R", severity: "high", file: "one.js", evidence: "one" },
     { rule: "R", severity: "high", file: "two.js", evidence: "two" },
@@ -98,7 +98,7 @@ test("the same server and rule in different files retain separate reviews", func
 })
 
 test("moving a finding to another evidence block needs a new review", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-block-"))
+  const dir = scratchDir("ag-review-block-")
   seed(dir, [{ rule: "R", severity: "high", evidence: "same" }])
   assert.equal(run(dir, ["--accept"]).status, 0)
   const index = indexWith([{ rule: "R", severity: "high", evidence: "same" }])
@@ -109,7 +109,7 @@ test("moving a finding to another evidence block needs a new review", function (
 })
 
 test("a severity change needs a new review", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-severity-"))
+  const dir = scratchDir("ag-review-severity-")
   seed(dir, [{ rule: "R", severity: "high", evidence: "same" }])
   assert.equal(run(dir, ["--accept"]).status, 0)
   seed(dir, [{ rule: "R", severity: "critical", evidence: "same" }])
@@ -117,7 +117,7 @@ test("a severity change needs a new review", function () {
 })
 
 test("changing the exact package version voids review even when finding text is unchanged", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-version-"))
+  const dir = scratchDir("ag-review-version-")
   seed(dir, [{ rule: "R", severity: "high", evidence: "same" }])
   assert.equal(run(dir, ["--accept"]).status, 0)
   const next = indexWith([{ rule: "R", severity: "high", evidence: "same" }])
@@ -130,7 +130,7 @@ test("changing the exact package version voids review even when finding text is 
 })
 
 test("changing scanned-content digest voids review even when package and finding text are unchanged", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-content-"))
+  const dir = scratchDir("ag-review-content-")
   seed(dir, [{ rule: "R", severity: "high", evidence: "same" }])
   assert.equal(run(dir, ["--accept"]).status, 0)
   const next = indexWith([{ rule: "R", severity: "high", evidence: "same" }])
@@ -142,7 +142,7 @@ test("changing scanned-content digest voids review even when package and finding
 })
 
 test("provenance property order does not void a review", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-order-"))
+  const dir = scratchDir("ag-review-order-")
   seed(dir, [{ rule: "R", severity: "high", evidence: "same" }])
   assert.equal(run(dir, ["--accept"]).status, 0)
   const next = indexWith([{ rule: "R", severity: "high", evidence: "same" }])
@@ -157,7 +157,7 @@ test("provenance property order does not void a review", function () {
 })
 
 test("legacy reviews require new human review and are not rewritten during checks", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-legacy-"))
+  const dir = scratchDir("ag-review-legacy-")
   seed(dir, [{ rule: "R", severity: "critical", evidence: "same" }])
   const legacy = JSON.stringify({ reviewed: [{ server: "acme/server", rule: "R", block: "registryDocument", file: null, evidence: "same", reviewedAt: "2026-01-01" }] })
   writeFileSync(join(dir, "reviewed.json"), legacy)
@@ -169,7 +169,7 @@ test("legacy reviews require new human review and are not rewritten during check
 })
 
 test("a versioned baseline with a missing digest does not count as reviewed", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-partial-baseline-"))
+  const dir = scratchDir("ag-review-partial-baseline-")
   seed(dir, [{ rule: "R", severity: "high", evidence: "same" }])
   assert.equal(run(dir, ["--accept"]).status, 0)
   const baseline = JSON.parse(readFileSync(join(dir, "reviewed.json"), "utf8"))
@@ -195,7 +195,7 @@ for (const [name, invalidate] of [
   ["missing evidence text", function (r) { delete r.evidence.registryDocument.findings[0].evidence }],
 ]) {
   test(name + " fails checks and --accept without overwriting a prior baseline", function () {
-    const dir = mkdtempSync(join(tmpdir(), "ag-review-invalid-"))
+    const dir = scratchDir("ag-review-invalid-")
     seed(dir, [{ rule: "R", severity: "high", evidence: "same" }])
     assert.equal(run(dir, ["--accept"]).status, 0)
     const baseline = readFileSync(join(dir, "reviewed.json"), "utf8")
@@ -213,7 +213,7 @@ for (const [name, invalidate] of [
 }
 
 test("an incomplete fresh index cannot create a review baseline", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-no-baseline-"))
+  const dir = scratchDir("ag-review-no-baseline-")
   const index = indexWith([{ rule: "R", severity: "critical", evidence: "same" }])
   delete index.records[0].evidence.registryDocument.provenance
   writeFileSync(join(dir, "index.json"), JSON.stringify(index))
@@ -222,7 +222,7 @@ test("an incomplete fresh index cannot create a review baseline", function () {
 })
 
 test("moving tags and version ranges cannot be accepted as exact package versions", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-ranges-"))
+  const dir = scratchDir("ag-review-ranges-")
   for (const version of ["latest", "stable", "next", "*", "1", "1.2", "1.x", "1.2.*", "^1.2.3", "~1.2", ">=1.0.0", "1.0.0 || 2.0.0", "1.0 - 2.0"]) {
     const index = indexWith([{ rule: "R", severity: "high", evidence: "same" }])
     index.records[0].packages[0].version = version
@@ -235,7 +235,7 @@ test("moving tags and version ranges cannot be accepted as exact package version
 })
 
 test("exact versions outside npm semver remain reviewable", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-cross-ecosystem-"))
+  const dir = scratchDir("ag-review-cross-ecosystem-")
   const index = indexWith([{ rule: "R", severity: "high", evidence: "same" }])
   const pkg = { registry: "pypi", name: "acme-server", version: "2026.9.post1" }
   index.records[0].packages = [{ ...pkg }]
@@ -247,7 +247,7 @@ test("exact versions outside npm semver remain reviewable", function () {
 })
 
 test("multiple evidence items with the same identity retain separate reviews regardless of order", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review-shared-identity-"))
+  const dir = scratchDir("ag-review-shared-identity-")
   const first = { rule: "R", severity: "high", evidence: "preinstall: one" }
   const second = { rule: "R", severity: "high", evidence: "postinstall: two" }
   seed(dir, [first, second])
@@ -281,7 +281,7 @@ for (const [name, invalid] of [
   ["invalid severity", indexWith([{ rule: "R", severity: "CRITICAL", evidence: "same" }])],
 ]) {
   test(name + " is a malformed index, never an all-reviewed result", function () {
-    const dir = mkdtempSync(join(tmpdir(), "ag-review-malformed-"))
+    const dir = scratchDir("ag-review-malformed-")
     writeFileSync(join(dir, "index.json"), JSON.stringify(invalid))
     for (const extra of [[], ["--accept"]]) {
       const result = run(dir, extra)
@@ -294,7 +294,7 @@ for (const [name, invalid] of [
 }
 
 test("a missing index is a usage error, not a pass", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-review5-"))
+  const dir = scratchDir("ag-review5-")
   const r = run(dir)
   assert.equal(r.status, 2, "no index must not read as every critical reviewed")
   assert.match(r.stderr, /run refresh first/)
