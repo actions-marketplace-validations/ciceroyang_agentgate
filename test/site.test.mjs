@@ -162,7 +162,7 @@ test("every server gets a page of its own, and the page says what it did not mea
   }
 
   const page = readFileSync(join(out, "s", slugOf(index.records[0].server) + ".html"), "utf8")
-  for (const placeholder of ["__SERVER__", "__SLUG__", "__VERDICT__", "__THRESHOLD__", "__GENERATED__", "__META__", "__BLOCKS__", "__UNMEASURED__", "__API__", "__BADGE__"]) {
+  for (const placeholder of ["__SERVER__", "__SLUG__", "__VERDICT__", "__THRESHOLD__", "__GENERATED__", "__META__", "__BLOCKS__", "__UNMEASURED__", "__EXECUTION__", "__API__", "__BADGE__"]) {
     assert.ok(page.indexOf(placeholder) === -1, "placeholder " + placeholder + " survived into the page")
   }
   assert.match(page, /没测到不等于干净/, "the page has to say that unmeasured is not clean")
@@ -180,6 +180,37 @@ test("every server gets a page of its own, and the page says what it did not mea
 
   // The template is a build input, not a page.
   assert.ok(!existsSync(join(out, "server.html")), "the template was published as a page")
+})
+
+test("the evidence page says which scanners finished", function () {
+  const dir = scratchDir("ag-site-execution-")
+  const index = join(dir, "index.json")
+  const record = function (server, verdict, scanExecution) {
+    return { server: server, verdict: verdict, packages: [], repository: null, evidence: {}, scanExecution: scanExecution, generatedAt: "2026-09-17T00:00:00.000Z" }
+  }
+  writeFileSync(index, JSON.stringify({
+    generatedAt: "2026-09-17T00:00:00.000Z",
+    threshold: "medium",
+    count: 3,
+    records: [
+      record("a/done", "clean", { scanner_execution: { components: [{ id: "registryDocument", required: true, status: "completed", output_present: true, output_parseable: true, semantic_consistency: "ok", reason: null }], required: 1, completed: 1, failed: 0, state: "complete" } }),
+      record("b/partial", "incomplete", { scanner_execution: { components: [{ id: "repository", required: true, status: "failed", output_present: true, output_parseable: false, semantic_consistency: "unverified", reason: "not-in-run" }], required: 1, completed: 0, failed: 1, state: "incomplete" } }),
+      record("c/old", "incomplete", null),
+    ],
+  }))
+  const out = scratchDir("ag-site-execution-out-")
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", index, "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+
+  const slugOf = function (name) { return String(name).split("/").join("__").replace(/[^A-Za-z0-9._-]/g, "_") }
+  const partial = readFileSync(join(out, "s", slugOf("b/partial") + ".html"), "utf8")
+  assert.match(partial, /哪些扫描器跑完了/)
+  assert.match(partial, /not-in-run/)
+  assert.match(partial, /没跑成 1 个/)
+  const done = readFileSync(join(out, "s", slugOf("a/done") + ".html"), "utf8")
+  assert.match(done, /状态:<b>complete<\/b>/)
+  const old = readFileSync(join(out, "s", slugOf("c/old") + ".html"), "utf8")
+  assert.match(old, /写于 scan-execution 之前/)
 })
 
 test("a page for a record that is gone is removed, and nothing else in the directory is", function () {

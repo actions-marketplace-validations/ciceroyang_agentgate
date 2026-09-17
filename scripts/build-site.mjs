@@ -202,6 +202,23 @@ function renderServer(record, slug, template, index) {
   page = putAll(page, "__UNMEASURED__", unmeasured.length
     ? '<h2>没测到的部分</h2><div class="box warn">' + unmeasured.join("\n") + "</div>"
     : '<h2>没测到的部分</h2><div class="box"><p class="muted">这条记录里没有 unmeasured 的块。</p></div>')
+  // Coverage as its own section: which scanners were required, which finished, and why the rest
+  // did not. A record written before this block existed says so instead of implying it is complete.
+  const execution = record.scanExecution && record.scanExecution.scanner_execution
+  let executionHtml
+  if (execution) {
+    const rows = (execution.components || []).map(function (c) {
+      return "<tr><td>" + esc(c.id) + "</td><td>" + (c.required ? "必需" : "可选") + '</td><td class="sev">' + esc(c.status) + "</td><td>" +
+        (c.output_present ? "有" : "无") + " / " + (c.output_parseable ? "可读" : "不可读") + "</td><td>" + esc(c.semantic_consistency) + "</td><td>" + esc(c.reason || "") + "</td></tr>"
+    }).join("")
+    executionHtml = '<h2>哪些扫描器跑完了</h2><div class="box' + (execution.state === "complete" ? "" : " warn") + '">' +
+      "<p>状态:<b>" + esc(execution.state) + "</b> · 必需 " + esc(execution.required) + " 个,跑完 " + esc(execution.completed) + " 个,没跑成 " + esc(execution.failed) + " 个</p>" +
+      (rows ? "<table><tr><th>扫描器</th><th>是否必需</th><th>状态</th><th>输出</th><th>一致性</th><th>原因</th></tr>" + rows + "</table>"
+        : '<p class="muted">这条记录没有列出任何扫描器,所以它不可能被算作完整。</p>') + "</div>"
+  } else {
+    executionHtml = '<h2>哪些扫描器跑完了</h2><div class="box"><p class="muted">这条记录写于 scan-execution 之前,没有这一块。没有记录不等于跑完过。</p></div>'
+  }
+  page = putAll(page, "__EXECUTION__", executionHtml)
   page = putAll(page, "__BLOCKS__", blocks.join("\n"))
   return page
 }
