@@ -60,11 +60,13 @@
 从 0.1.2 起清单可以完全在你们机器上生成:
 
 ```sh
-npx @zhiliangtech/agentgate discover --out tools.txt                                  # 只输出名字或包名@版本
-npx @zhiliangtech/agentgate inventory --input tools.txt --out report.html             # 本地出报告
-npx @zhiliangtech/agentgate inventory --input tools.txt --framework aicaiq --out report.html   # 问卷对照
-npx @zhiliangtech/agentgate watch --input tools.txt --archive ./agentgate-archive      # 每周看变化
+npx @zhiliangtech/agentgate@0.1.2 discover --out tools.txt                                  # 只输出名字或包名@版本
+npx @zhiliangtech/agentgate@0.1.2 inventory --input tools.txt --out report.html             # 本地出报告
+npx @zhiliangtech/agentgate@0.1.2 inventory --input tools.txt --framework aicaiq --out report.html   # 问卷对照
+npx @zhiliangtech/agentgate@0.1.2 watch --input tools.txt --archive ./agentgate-archive      # 每周看变化
 ```
+
+（钉住版本是因为 `latest` 还停在 0.1.1;提升之后可以省略 `@0.1.2`。）
 
 - `discover` 不输出 `env`、请求头或启动参数,远程地址只留主机名;读不到或解析不了的配置会单独列出并把退出码置 2——**缺东西的清单不会被当成完整的**;
 - 不装任何东西也可以:打开 <https://app.xn--5kvo87g.com/inventory.html> 粘贴名字,匹配在浏览器里跑;
