@@ -3,6 +3,18 @@
 All notable changes to this package. The version here is the version that shipped; the tarball and
 the tag agree with it, and `scripts/release-check.mjs` refuses a release whose section is missing.
 
+## [0.2.0] - 2026-09-17
+
+- The README (English and Chinese) was rewritten in a plainer voice. No behaviour changed.
+- `discover`, `audit`, `watch` and `framework` are in this release; see 0.1.2 below for what they do.
+- Productionization P0–P6: /metrics and an optional access log, the health check with mail
+  alerts, zero-dependency enforcement with our own SBOM, request limits, backup with a restore
+  drill, the release check, and the public security and privacy pages.
+
+  **Use 0.2.0 or later.** The provenance attestations of 0.1.0–0.1.2 name commits that are no
+  longer on any branch or tag in this repository, so those versions cannot be checked the way
+  this one can.
+
 ## [0.1.2] - 2026-09-17
 
 - `agentgate discover`: reads the MCP configuration already on a machine (`.cursor/mcp.json`,

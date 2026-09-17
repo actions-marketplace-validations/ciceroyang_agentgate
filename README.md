@@ -2,17 +2,17 @@
 
 # agentgate
 
-**A control plane for the tools agents run.** Inventory what exists, state the evidence
-behind it, decide what is allowed, and enforce that decision in CI and at runtime.
+A control plane for the tools agents run. It inventories what is in use, records the evidence
+behind every claim, states what a company refuses, and enforces that decision in CI and at
+runtime.
 
-The reason it exists is one rule, and everything here follows from it:
+The whole project follows one rule:
 
-> A verdict of `clean` is only emitted when every check ran. Anything that could not be
-> measured is `unmeasured`, and an artefact with an unmeasured part is `incomplete`,
-> never `clean`.
+> `clean` is emitted only when every check ran. Anything that could not be measured is
+> `unmeasured`, and an artefact with an unmeasured part is `incomplete` — never `clean`.
 
-A security tool's worst failure is a green build for work nobody did. This project is
-built so that cannot happen.
+That rule is there because the usual failure of a security scanner is a green build for work
+nobody did. Here a check that crashes makes the result incomplete, so it cannot happen quietly.
 
 ## The four parts
 
@@ -23,32 +23,27 @@ built so that cannot happen.
 | **policy** | scan configs, hooks, manifests and source for what a company would refuse | `packages/guard` |
 | **verification** | check a claim against something outside the claim | `packages/verify` |
 
-## Starting the deployment
+## Running it
 
-Deployment instructions are in
-[docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md).
-[docs/verification.md](docs/verification.md) records the first deployment on 2026-09-16,
-along with what was checked and what remains unverified.
+Server setup is in [docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md).
+The first deployment, on 2026-09-16, is written up in
+[docs/verification.md](docs/verification.md) together with what was checked and what still is not.
 
-## Reading
+## Try it without installing
 
-[Clean is a claim about work that was done](docs/articles/2026-09-clean-is-a-claim.md) — five failures, four of them mine, and what the tool does about them. The short version: ask a scanner what it did not do.
+The service runs at <https://app.xn--5kvo87g.com/>: landing page, pricing, the evidence index
+(rebuilt daily) and the API on the same host.
 
-## Look at it without installing anything
-
-The service is running at <https://app.xn--5kvo87g.com/> — the landing page, the pricing page,
-the browseable evidence index (rebuilt daily) and the API under the same host.
-
-<https://ciceroyang.github.io/agentgate/> — the landing page. The evidence index is one
-browsable page at <https://ciceroyang.github.io/agentgate/evidence.html>, rebuilt daily from
-the live registry: records are embedded, filtering is local, and there is nothing to sign up for.
-Pricing is at [/pricing.html](https://ciceroyang.github.io/agentgate/pricing.html), and
-[/try.html](https://ciceroyang.github.io/agentgate/try.html) walks through using it in ten minutes.
+<https://ciceroyang.github.io/agentgate/> is the landing page on GitHub Pages. The index is a
+single browsable page at <https://ciceroyang.github.io/agentgate/evidence.html>, rebuilt daily
+from the live registry — records are embedded, filtering happens locally, and there is nothing to
+sign up for. [Pricing](https://ciceroyang.github.io/agentgate/pricing.html) and a
+[ten-minute walkthrough](https://ciceroyang.github.io/agentgate/try.html).
 
 ## Quickstart
 
-Node 20 or newer, no dependencies. A repository clone already carries a sample index,
-so the service answers immediately; `refresh` replaces it with a current one.
+Node 20 or newer, no dependencies. A clone already carries a sample index, so the service
+answers immediately; `refresh` replaces it with a current one.
 
 ```sh
 node bin/agentgate.mjs serve
@@ -60,87 +55,85 @@ curl -s localhost:8080/v1/servers/<name>
 curl -s localhost:8080/badge/<name>.svg
 ```
 
-It is published on npm as `@zhiliangtech/agentgate`. Releases go out from CI when a `v*` tag is
-pushed, with provenance — [docs/operations/publish-checklist.md](docs/operations/publish-checklist.md)
-is that setup and the record of what was verified.
+The package is on npm as `@zhiliangtech/agentgate`. Push a `v*` tag and CI publishes it with
+provenance; [publish-checklist.md](docs/operations/publish-checklist.md) has the setup and the
+record of what was verified.
 
 ```sh
 npx @zhiliangtech/agentgate check --root .
 npx @zhiliangtech/agentgate serve
 ```
 
-`npx` resolves the `latest` dist-tag; pin a version (`@zhiliangtech/agentgate@0.1.2`) when you need
+`npx` follows the `latest` dist-tag. Pin a version (`@zhiliangtech/agentgate@0.2.0`) if you need
 an exact one.
 
-With no policy file present `check` uses a built-in default that refuses nothing extra, and
-`serve` answers from the snapshot the package was published with. `refresh` always writes to
-`./data` beside you, never inside the installed package.
+With no policy file, `check` uses a built-in default that refuses nothing extra, and `serve`
+answers from the snapshot the package shipped with. `refresh` writes to `./data` next to you,
+never into the installed package.
 
-Or with docker, which runs the same command in a container:
+Docker works too, and runs the same command:
 
 ```sh
 docker compose up                            # the service on :8080
 docker compose --profile collect run --rm refresh   # rebuild data/index.json and seed the first snapshot
 ```
 
-## My tool inventory
+## Tool inventory
 
-Start `node bin/agentgate.mjs serve` and open `/inventory.html` on the printed local
-address. Paste a tool-name list or choose a text/JSON file, resolve ambiguous matches,
-enter the version you actually use, and download a standalone HTML evidence report.
-The page compares the list in browser memory against its embedded index snapshot:
-it does not upload the list, store it, scan your machine, or execute tools.
+Run `node bin/agentgate.mjs serve` and open `/inventory.html` at the address it prints. Paste a
+list of tool names or pick a text/JSON file, resolve ambiguous matches, fill in the version you
+actually use, and download a standalone HTML report. The comparison happens in browser memory
+against the embedded index snapshot: the list is not uploaded or stored, your machine is not
+scanned, and no tool is executed.
 
-For the same workflow without a browser:
+The same thing without a browser:
 
 ```sh
 node bin/agentgate.mjs inventory --input examples/inventory/tools.json --out my-tools.html
 node bin/agentgate.mjs inventory --input tools.json --index data/index.json --format json
 ```
 
-An input can be one name per line, a JSON array, or `{ "tools": [...] }`. Each object
-accepts only `name`, `server`, `package`, `registry`, and `version`; complete client
-configurations and credentials are deliberately not accepted. See the
-[inventory input and report guide](docs/spec/inventory-v1.md).
+An input is one name per line, a JSON array, or `{ "tools": [...] }`. Each object may carry
+`name`, `server`, `package`, `registry` and `version` — nothing else. Full client
+configurations and credentials are rejected on purpose. The
+[inventory guide](docs/spec/inventory-v1.md) has the details.
 
-Unmatched, ambiguous, missing-version, different-version, and incomplete-evidence
-items stay in the report. A matching version is not proof of what is installed.
-The committed sample is explicitly historical and cannot provide a confirmed match;
-neither can old evidence without an exact content binding. Even a confirmed evidence
-match is not a safety certification or a new scan. Review the checked scopes, findings,
-snapshot date, and gaps before deciding what to use.
+Unmatched, ambiguous, missing-version, mismatched-version and incomplete-evidence items stay in
+the report. A version match is not proof of what is installed. The committed sample is
+historical and cannot produce a confirmed match; neither can old evidence without an exact
+content binding. Even a confirmed match is not a safety certification and not a new scan. Look
+at the scopes, the findings, the snapshot date and the gaps before you rely on it.
 
-The command exits zero when it produces a report, **not** when all tools pass; malformed
-input or unreadable data exits 2. `--out` refuses to overwrite an existing file.
-Use `check`, not `inventory`, for policy enforcement in CI.
+Exit code 0 means a report was produced, not that every tool passed. Malformed input or
+unreadable data exits 2, and `--out` will not overwrite an existing file. When you want CI to
+refuse something, use `check`, not `inventory`.
 
-### Finding the list in the first place
+### Getting the list in the first place
 
-Nobody has the list by hand. `discover` reads the MCP configuration files that are already
-on the machine and prints one line per server, in the format `inventory --input` accepts:
+Nobody has this list by hand. `discover` reads the MCP configuration files already on the
+machine and prints one line per server, in the format `inventory --input` accepts:
 
 ```sh
 node bin/agentgate.mjs discover --out tools.txt          # home directory + current directory
 node bin/agentgate.mjs discover --roots ~/code/a,~/code/b --format json
 ```
 
-It never prints an `env` value, a header or an argument, and a remote address is reduced to
-its host: paths and query strings carry tokens. A file that exists but cannot be read or
-parsed (including `.codex/config.toml`, which this version does not parse) is listed with a
-reason and makes the command exit 2, because a list that is missing something is not
-printed as a complete one.
+It never prints an `env` value, a header or an argument, and a remote address is cut down to its
+host, because paths and query strings carry tokens. A file that exists but cannot be read or
+parsed — including `.codex/config.toml`, which this version does not parse — is listed with a
+reason and makes the command exit 2. A list that is missing something is not printed as a
+complete list.
 
-### Several repositories at once
+### Several repositories
 
 ```sh
 node bin/agentgate.mjs audit --roots ~/code/a,~/code/b,~/code/c --index data/index.json
 ```
 
-The same scan per directory, one verdict for the set: if any directory is incomplete the
-whole audit is incomplete, and a directory that does not exist is an unmeasured repository
-rather than a skipped one.
+One scan per directory, one verdict for the set. Any incomplete directory makes the audit
+incomplete, and a directory that does not exist counts as unmeasured rather than skipped.
 
-### What changed since last time
+### Changes since last time
 
 ```sh
 node bin/agentgate.mjs watch --input tools.txt --index data/index.json --archive ./archive
@@ -149,26 +142,26 @@ node bin/agentgate.mjs watch --input tools.txt --index data/index.json --archive
   --webhook https://example.invalid/hook --webhook-format wecom
 ```
 
-Each run appends one line to a chained archive (`prev` is the previous line's hash) and
-stores what it saw under `snapshots/<sha256>.json`. `--verify` recomputes the chain and
-every retained snapshot and exits 1 on a mismatch. Nothing is sent anywhere unless
-`--webhook` names an address; the archive is written before the push, so a chat service
-being down cannot lose a capture.
+Every run appends one line to a chained archive (`prev` is the previous line's hash) and stores
+what it saw under `snapshots/<sha256>.json`. `--verify` recomputes the chain and every retained
+snapshot, and exits 1 if anything does not match. Nothing is sent anywhere unless `--webhook`
+names an address, and the archive is written before the push, so a chat service being down cannot
+lose a capture.
 
-### Handing the answer to a questionnaire
+### Questionnaire mapping
 
 ```sh
 node bin/agentgate.mjs framework                       # who answers which AI-CAIQ item
 node bin/agentgate.mjs inventory --input tools.json --framework aicaiq --out report.html
 ```
 
-The mapping says, per item, what we provide, where our coverage stops, and whether the
-answer is ours, the customer's, or only an independent assessor's. It is a description of
-evidence, not a compliance conclusion, and it does not reproduce the official text.
+For each AI-CAIQ item the mapping says what we can provide, where our coverage stops, and whether
+the answer is ours, the customer's, or an independent assessor's. It describes evidence. It is
+not a compliance conclusion and it does not reproduce the official text.
 
 ## Policy
 
-A policy says what the company refuses. It is data, not code, and it is specified: see
+A policy states what a company refuses. It is data rather than code, and it has a spec:
 [docs/spec/policy-v1.md](docs/spec/policy-v1.md).
 
 ```json
@@ -184,24 +177,24 @@ A policy says what the company refuses. It is data, not code, and it is specifie
 node bin/agentgate.mjs check --policy agentgate.policy.json --root .
 ```
 
-With no policy file and no `--policy`, the check still runs: it reports what the checks
-found and says it is using the built-in default, which refuses nothing extra. Inventing
-obligations on the user's behalf would make the result mean less, not more. A policy named
-explicitly that cannot be read is still an error, because that is a typo.
+With no policy file and no `--policy`, the check still runs. It reports what the checks found and
+says it used the built-in default, which refuses nothing extra; inventing obligations on your
+behalf would make the result mean less, not more. A policy you name explicitly and that cannot
+be read is an error, because that is a typo.
 
-The same evaluation can be handed to a person rather than a terminal:
+The same evaluation can go to a person instead of a terminal:
 
 ```sh
 node bin/agentgate.mjs check --policy agentgate.policy.json --root . --format html --out report.html
 ```
 
-One static file, printable, no script. Anything that could not be measured gets its own
-section above the findings, because a report that buries what it did not check reads as
-more complete than it is. That file is the deliverable of the free checkup.
+One static, printable file with no script in it. Anything that could not be measured gets its own
+section above the findings: a report that buries what it did not check reads as more complete
+than it is. This file is what the free checkup delivers.
 
-Three outcomes, and `incomplete` outranks `findings`: if a check failed to run, or an
-evidence block the policy requires is `unmeasured`, the exit code is **2** however clean
-the findings look. No threshold can turn a partial answer into a pass.
+There are three outcomes, and `incomplete` outranks `findings`. If a check failed to run, or an
+evidence block the policy requires is `unmeasured`, the exit code is `2` however clean the
+findings look. No threshold turns a partial answer into a pass.
 
 | exit | meaning |
 | --- | --- |
@@ -211,8 +204,8 @@ the findings look. No threshold can turn a partial answer into a pass.
 
 ## Enforcement
 
-A pull request that adds something the policy refuses does not merge, and the reason is in
-the pull request rather than in a log nobody opens.
+A pull request that adds something the policy refuses will not merge, and the reason is posted on
+the pull request rather than left in a log nobody opens.
 
 ```yaml
 - uses: ciceroyang/agentgate@main
@@ -220,30 +213,28 @@ the pull request rather than in a log nobody opens.
     policy: agentgate.policy.json
 ```
 
-See [examples/github-actions/policy.yml](examples/github-actions/policy.yml). The action
-runs the check, writes SARIF for code scanning, comments the human report on the pull
-request, and then exits with the check's own code, so an incomplete scan still fails the
-build at 2.
+See [examples/github-actions/policy.yml](examples/github-actions/policy.yml). The action runs the
+check, writes SARIF for code scanning, comments the report on the pull request, and exits with
+the check's own code — so an incomplete scan still fails the build at 2.
 
 ## Runtime
 
-The same policy applies to what has already shipped, by putting a gateway in front of the
-server instead of pointing the client at it:
+The same policy can apply to what has already shipped, if you put a gateway in front of the
+server instead of pointing your client at it:
 
 ```sh
 node bin/agentgate.mjs proxy --policy agentgate.policy.json --log calls.jsonl -- \
   npx -y @modelcontextprotocol/server-filesystem /data
 ```
 
-A tool call the policy refuses is answered locally with a reason and never reaches the
-server; a forbidden tool is removed from the advertised list so a client cannot ask for it
-at all. Every decision, allowed or refused, is appended to the log, because the log is
-what an audit reads.
+A call the policy refuses is answered locally with a reason and never reaches the server. A
+forbidden tool is removed from the advertised list, so a client cannot ask for it at all. Every
+decision, allowed or refused, is appended to the log.
 
 ## History
 
-The index is kept, so two builds can be compared, and the interesting column is the last
-one: changes that a release would have explained and did not.
+The index is kept, so two builds can be compared. The interesting column is the last one:
+changes that a release would have explained and did not.
 
 ```sh
 node bin/agentgate.mjs diff --from previous-index.json --to data/index.json
@@ -257,9 +248,9 @@ node bin/agentgate.mjs diff --from previous-index.json --to data/index.json
   silent (no version move, different evidence): 1
 ```
 
-A new finding on an unchanged version is the shape of a package replaced without a
-release, a repository edited in place, or a scan that has started seeing something. Nobody
-can back-fill that record; it only exists if someone kept looking.
+A new finding on an unchanged version usually means a package was replaced without a release, a
+repository was edited in place, or the scan has started seeing something. That record cannot be
+back-filled. It only exists if someone was looking at the time.
 
 ## The pipelines behind the index
 
@@ -279,13 +270,9 @@ node packages/collect/bin/agent-add.mjs --index data/index.json <server-name>
 ## Test
 
 ```sh
-npm test
+npm test                              # the whole suite; it prints how many ran
 node scripts/bench.mjs 50000 200      # lookups must stay under 10 ms p50
 node scripts/measure-verify.mjs       # claim extraction, against a small labelled set
-```
-
-```sh
-npm test                              # the whole suite; it prints how many ran
 node packages/guard/scripts/regression.mjs   # benign must stay silent, positives must fire
 ```
 
@@ -304,52 +291,49 @@ docs/              architecture and product notes
 
 ## Verification
 
-Beyond the tests, which are written by the same party as the code,
-[docs/verification.md](docs/verification.md) records the checks against things nobody here
-wrote: a real MCP server through the gateway, and the list of what is still unverified.
+The tests are written by the same people who wrote the code.
+[docs/verification.md](docs/verification.md) records the checks that are not: a real MCP server
+through the gateway, and the list of what is still unverified.
 
 ```sh
 node scripts/verify-real-server.mjs
 ```
 
-To check whether the index's `high` and `critical` findings still match recorded human
-reviews, run `node scripts/review-criticals.mjs` (the command keeps its original name).
-Each review must bind the finding's identity and evidence to an exact package version
-and complete scanned-content provenance, including its SHA-256 digest and scope.
-Missing or changed bindings require another human review. Legacy approval records are
-not automatically upgraded. `--accept` records a completed human review and refuses
-incomplete provenance; it does not perform the review or certify third-party code.
+To see whether the index's `high` and `critical` findings still match recorded human reviews, run
+`node scripts/review-criticals.mjs`. A review has to bind the finding and its evidence to an
+exact package version and to complete scanned-content provenance, including the SHA-256 digest
+and the scope. A missing or changed binding needs another human review, and legacy approvals are
+not upgraded automatically. `--accept` records a review that has already happened and refuses
+incomplete provenance; it neither performs the review nor certifies third-party code.
 
-## Operating this
+## Operations
 
-- [docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md) — aliyun plus the 智量.com domain, with the ICP filing caveat called out.
-- [docs/operations/plan-b-no-icp.md](docs/operations/plan-b-no-icp.md) — what to do when a mainland server has no ICP filing, which is the one thing that can stop a deployment halfway.
+- [docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md) — aliyun plus the 智量.com domain, including the ICP filing caveat.
+- [docs/operations/plan-b-no-icp.md](docs/operations/plan-b-no-icp.md) — what to do when a mainland server has no ICP filing.
 - [deploy/](deploy/) — the Caddyfile and a systemd unit, ready to copy to a server.
-- [docs/operations/pilot-package.md](docs/operations/pilot-package.md) — the one-pager to send a prospective design partner: deliverables, timeline, what we ask for, and what we refuse to ask for.
+- [docs/operations/pilot-package.md](docs/operations/pilot-package.md) — the pilot one-pager: deliverables, timeline, what we ask for and what we do not.
 - [site/index.html](site/index.html) and [site/pricing.html](site/pricing.html) — the landing and pricing pages, self-contained, no external assets.
 - [scripts/onboard-server.sh](scripts/onboard-server.sh) — the deployment steps as a script that prints what it would do and only acts with `--apply`.
-- [scripts/smoke.mjs](scripts/smoke.mjs) — the post-deployment check: reachable, index present, index recent, records real rather than the sample.
+- [scripts/smoke.mjs](scripts/smoke.mjs) — the post-deployment check: reachable, index present and recent, records real rather than the sample.
 
-## Status, honestly
+## Status
 
-This is an early open-source core. It includes collection, an evidence index, scanning,
-policy checks in CI, a runtime gateway for MCP servers over stdio, historical diffs and
-a read-only service. Deployment scripts and a runbook exist; the first server deployment
-and its checks are recorded in [docs/verification.md](docs/verification.md). That record
-does not establish the current health of the hosted service, and the Docker image build
-remains unverified there.
+This is an early open-source core. It covers collection, an evidence index, scanning, policy
+checks in CI, a runtime gateway for MCP servers over stdio, historical diffs and a read-only
+service. Deployment scripts and a runbook are in the tree, and the first deployment with its
+checks is written up in [docs/verification.md](docs/verification.md). That write-up says nothing
+about the current health of the hosted service, and the Docker image build is still unverified.
 
-The enterprise capabilities described in the pricing proposal — SSO/SAML, RBAC,
-multi-tenancy and signed audit export — are not implemented. Team and Enterprise prices
-are hypotheses that have not been validated with customers; the free pilot is intended
-to test that demand. See [the pilot scope](docs/operations/pilot-package.md) and
-[the licence](docs/product/licensing.md).
+The enterprise features described in the pricing proposal — SSO/SAML, RBAC, multi-tenancy and
+signed audit export — are not implemented. The Team and Enterprise prices are unvalidated
+hypotheses; the free pilot is how we test whether anyone wants this. See the
+[pilot scope](docs/operations/pilot-package.md) and the [licence](docs/product/licensing.md).
 
-The scanner's suite includes the invariant that a crashed check can never produce
-`clean`. Run `npm test` for the current results; this page does not repeat a test count.
+One invariant is in the test suite: a crashed check can never produce `clean`. Run `npm test`
+for the current numbers; this page does not repeat a test count.
 
 ## Licence
 
-AGPL-3.0-only. A commercial licence is available for the case the AGPL does not permit:
-offering a modified agentgate as a closed service without publishing your changes. See
+AGPL-3.0-only. If you want to offer a modified agentgate as a closed service without publishing
+your changes — the case the AGPL does not permit — a commercial licence is available. See
 [docs/product/licensing.md](docs/product/licensing.md).
