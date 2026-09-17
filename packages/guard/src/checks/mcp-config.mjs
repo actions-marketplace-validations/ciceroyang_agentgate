@@ -26,6 +26,23 @@ export function looksLiteral(value) {
   return true
 }
 
+/**
+ * Fields that are present but cannot be read as their declared type. These used
+ * to be coerced to a safe default ("" or []), which made a malformed entry scan
+ * as if it were well formed and fully assessed.
+ */
+export function malformedEntryFields(entry) {
+  const bad = []
+  if ("command" in entry && typeof entry.command !== "string") bad.push("command")
+  if ("url" in entry && typeof entry.url !== "string") bad.push("url")
+  if ("args" in entry) {
+    if (!Array.isArray(entry.args)) bad.push("args")
+    else if (entry.args.some(function (a) { return typeof a !== "string" })) bad.push("args elements")
+  }
+  if ("env" in entry && entry.env !== null && (typeof entry.env !== "object" || Array.isArray(entry.env))) bad.push("env")
+  return bad
+}
+
 function pinIn(args) {
   return args.some(function (a) { return PINNED.test(a) })
 }
@@ -50,6 +67,10 @@ export function checkConfig(rel, text) {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
       findings.push({ rule: "AG-MCP-002", severity: "high", file: rel, line: null, message: "server " + name + " is not an object" })
       continue
+    }
+    const malformed = malformedEntryFields(entry)
+    if (malformed.length > 0) {
+      findings.push({ rule: "AG-MCP-016", severity: "low", file: rel, line: null, message: "server " + name + " has a malformed " + malformed.join(", ") + " field; the entry could not be fully assessed" })
     }
     const command = typeof entry.command === "string" ? entry.command : ""
     const args = Array.isArray(entry.args) ? entry.args.filter(function (a) { return typeof a === "string" }) : []

@@ -58,7 +58,7 @@ npm run regression
 Two numbers on every commit, both committed as data rather than described in prose:
 
 - `corpus/benign/**` — six realistic projects (a pinned local server, a secured remote endpoint, a minimal settings file, a conservative agent card, a locked package, clean docs). **Any finding here fails the run.**
-- `corpus/positive/**` — ten projects that should fire, each with an `expect.json` naming the rules it must produce. A missing rule fails the run.
+- `corpus/positive/**` — thirteen projects that should fire, each with an `expect.json` naming the rules it must produce. A missing rule fails the run.
 
 Both run in CI on every push. The outside corpus can be pointed at with `--external <dir>`, which prints recall without gating, since that corpus belongs to someone else and can move:
 
