@@ -65,9 +65,14 @@ jobs:
           cd "$WORK"
           git init -q -b history
           git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
-          git fetch -q --depth 1 origin history 2>/dev/null || true
-          if git rev-parse -q --verify FETCH_HEAD > /dev/null 2>&1; then
-            git checkout -q FETCH_HEAD -- . 2>/dev/null || true
+          # A full fetch, not --depth 1: GitHub refuses a push from a shallow repository, and this
+          # step failing quietly meant the record was not mirrored at all.
+          if git fetch -q origin history 2>/dev/null; then
+            git reset -q --hard FETCH_HEAD
+            # The old scheme wrote whole 2.4 MB indexes into this branch. Their hashes are in the
+            # ledger now, so the branch keeps the record and the diffs, not the bulk.
+            git rm -q -f previous.json 2>/dev/null || true
+            git rm -q -f 20??-??-??.json 2>/dev/null || true
           fi
           # Source paths are absolute: this directory is a fresh empty repo, and copying a file
           # onto itself is not a merge. The first version of this step did exactly that.
