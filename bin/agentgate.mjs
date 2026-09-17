@@ -12,6 +12,7 @@ import { homedir } from "node:os"
 import { fileURLToPath } from "node:url"
 import { execFileSync, spawnSync } from "node:child_process"
 import { start } from "../packages/service/src/start.mjs"
+import { installShutdown } from "../packages/service/src/observability.mjs"
 import { DEFAULT_PORT, DEFAULT_HOST } from "../packages/service/src/defaults.mjs"
 import { runScan } from "../packages/guard/src/engine.mjs"
 import { makeReader } from "../packages/guard/src/fs-scan.mjs"
@@ -73,6 +74,9 @@ function serve(flags) {
   const server = start({
     indexPath: indexPath, samplePath: samplePath, port: port, host: host,
     historyPath: flags.history || process.env.AGENTGATE_HISTORY || join(dirname(resolve(indexPath)), "history"),
+    // Off unless asked for: an access log is operational data, and the data-handling page says
+    // what is and is not recorded.
+    accessLog: process.env.AGENTGATE_ACCESS_LOG === "1" || process.env.AGENTGATE_ACCESS_LOG === "true",
     // Print the port the socket actually got. With --port 0 the requested port is not the one
     // anything can connect to, and a caller that cannot learn it has to guess.
     onListening: function () {
@@ -80,9 +84,11 @@ function serve(flags) {
       console.log("agentgate serving http://" + host + ":" + bound)
       console.log("index: " + which)
       console.log("my tools: http://" + host + ":" + bound + "/inventory.html")
-      console.log("routes: /health /v1/index/summary /v1/servers /v1/servers/:name /badge/:name.svg")
+      console.log("routes: /health /metrics /v1/index/summary /v1/servers /v1/servers/:name /badge/:name.svg")
     },
   })
+  // systemd sends SIGTERM on stop and on deploy; finish the request in flight, then leave.
+  installShutdown(server)
 }
 
 function refresh(flags) {

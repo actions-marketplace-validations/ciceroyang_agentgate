@@ -303,6 +303,25 @@ node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000
 
 `--expect-min 1000` 是关键的一条：样本索引只有 300 条，如果这里过了但数字还是 300，说明**采集没跑成功，服务在读样本**。
 
+## 可观测（2026-09-17 起）
+
+服务自述三样东西，够一个人管一台机器：
+
+- **`/metrics`**（Prometheus 文本，**只在回环可达**；Caddy 不转发这个路径，公网拿不到）。计数器是每路由每状态码的请求数；gauge 有
+  `agentgate_health_ok`、`agentgate_index_records`、`agentgate_index_age_seconds`、`agentgate_history_captures`、
+  `agentgate_history_age_seconds`、`agentgate_history_gaps`、`agentgate_history_stale`。
+  路由标签是**有界的**：认不出的路径一律算 `/other`，所以扫描器刷不出无限多的时间序列。
+- **访问日志默认关闭**。要开就设 `AGENTGATE_ACCESS_LOG=1`（systemd 里加一行 `Environment=`），输出一行一条 JSON：
+  `ts/method/route/status/ms/requestId`。**刻意不记录**客户端 IP、User-Agent 与查询串——这与 `docs/operations/legal/data-handling.md` 的承诺一致，要改先改那份文档。
+- **优雅退出**：`systemctl stop agentgate`（SIGTERM）先关闭监听、等在途请求结束再退出，最多等 5 秒，超时才强制退出并以 1 结束。
+
+本地自查：
+
+```sh
+curl -s localhost:8080/metrics | grep -E "history_(age|captures|stale)|index_age"
+curl -s localhost:8080/health | python3 -m json.tool
+```
+
 ## 上线检查清单
 
 - [ ] `curl https://api.智量.com/health` 返回 200，且 `records` 不是样本的 300 条
