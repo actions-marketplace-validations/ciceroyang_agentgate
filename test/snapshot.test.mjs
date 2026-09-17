@@ -88,3 +88,29 @@ test("a missing index is an error, not a silent no-op", function () {
   assert.match(out.stderr, /run refresh first/)
   rmSync(dir, { recursive: true, force: true })
 })
+
+test("the history command verifies the ledger the daily job wrote, and an edited record fails it", function () {
+  const dir = scratchDir("ag-history-cli-")
+  const history = join(dir, "history")
+  const index = join(dir, "index.json")
+  writeFileSync(index, indexWith([{ server: "a/b", verdict: "clean", packages: [], evidence: [] }]))
+  const job = run(["--index", index, "--history", history, "--date", "2026-09-15"])
+  assert.equal(job.status, 0, job.stderr)
+  assert.match(job.stdout, /ledger: 1 capture\(s\) over 1 day\(s\)/)
+
+  const cli = function () {
+    return spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "history", "--history", history], { encoding: "utf8", timeout: 30000 })
+  }
+  const ok = cli()
+  assert.equal(ok.status, 0, ok.stderr)
+  assert.match(ok.stdout, /chain verified/)
+
+  // The record is the product: an edited one has to fail, not print a warning nobody reads.
+  const ledgerPath = join(history, "ledger.jsonl")
+  const entry = JSON.parse(readFileSync(ledgerPath, "utf8").trim())
+  entry.records = 42
+  writeFileSync(ledgerPath, JSON.stringify(entry) + "\n")
+  const tampered = cli()
+  assert.equal(tampered.status, 1, "an edited ledger must not verify")
+  assert.match(tampered.stderr, /records says 42, the snapshot has 1/)
+})

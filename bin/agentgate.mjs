@@ -20,6 +20,7 @@ import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
 import { toSarif } from "../packages/policy/src/sarif.mjs"
 import { toHtmlReport } from "../packages/policy/src/html-report.mjs"
 import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
+import { readLedger, verifyLedger, backfill } from "../packages/history/src/ledger.mjs"
 import { createProxy } from "../packages/gateway/src/proxy.mjs"
 import { parseInventory, createInventoryReport } from "../packages/inventory/src/inventory.mjs"
 import { renderInventoryReport } from "../packages/inventory/src/report.mjs"
@@ -191,6 +192,39 @@ function diff(flags) {
   process.exit(d.silent.length > 0 ? 1 : 0)
 }
 
+/**
+ * The capture ledger: one chained line per index build.
+ *
+ * Exit 0 means the chain and every retained snapshot re-hash. Exit 1 means the record has been
+ * edited. A missing snapshot is reported separately: pruning old content is a storage decision,
+ * and the chain still proves the capture happened.
+ */
+function history(flags) {
+  const dir = flags.history || "data/history"
+  if (flags.backfill) {
+    const added = backfill(dir)
+    console.log(added.length === 0 ? "nothing to backfill" : "backfilled " + added.length + " capture(s) from the day archives")
+  }
+  const result = verifyLedger(dir)
+  const coverage = result.coverage
+  if (flags.format === "json") {
+    process.stdout.write(JSON.stringify({ ok: result.ok, problems: result.problems, notRetained: result.notRetained, coverage: coverage, entries: result.entries }, null, 2) + "\n")
+    process.exit(result.ok ? 0 : 1)
+  }
+  console.log("captures: " + coverage.captures + " over " + coverage.days + " day(s), " + (coverage.first || "(none)") + " .. " + (coverage.last || "(none)"))
+  if (coverage.gaps.length > 0) console.log("missing day(s): " + coverage.gaps.join(", "))
+  if (result.notRetained.length > 0) console.log("snapshot(s) no longer retained: " + result.notRetained.length)
+  for (const entry of result.entries.slice(-5)) {
+    console.log("  " + entry.capturedAt + "  " + entry.records + " records  clean " + entry.counts.clean + " / findings " + entry.counts.findings + " / incomplete " + entry.counts.incomplete + "  " + (entry.scanner || "(no scanner)") + "  " + String(entry.sha256).slice(0, 12))
+  }
+  if (result.problems.length > 0) {
+    for (const problem of result.problems) console.error("FAIL  " + problem)
+    process.exit(1)
+  }
+  console.log("chain verified: every line's prev matches the line before it, and every retained snapshot hashes to what was recorded")
+  process.exit(0)
+}
+
 const args = parse(process.argv.slice(2))
 function inventory(flags) {
   try {
@@ -248,6 +282,7 @@ else if (args.command === "proxy") proxy(args.flags, args.rest)
 else if (args.command === "diff") diff(args.flags)
 else if (args.command === "serve") serve(args.flags)
 else if (args.command === "refresh") refresh(args.flags)
+else if (args.command === "history") history(args.flags)
 else if (args.command === "version") console.log("agentgate 0.1.0")
 else {
   console.log("agentgate <command>")
@@ -258,5 +293,6 @@ else {
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
   console.log("  refresh   [--max 300]   fetch public sources and rebuild data/index.json")
+  console.log("  history   [--history data/history] [--backfill] [--format json]   verify the chained capture ledger")
   console.log("  version")
 }

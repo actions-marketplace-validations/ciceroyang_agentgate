@@ -13,6 +13,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
+import { appendCapture, readLedger, coverageOf } from "../packages/history/src/ledger.mjs"
 
 const argv = process.argv.slice(2)
 const argOf = function (name, fallback) {
@@ -49,6 +50,13 @@ if (existsSync(previousPath)) {
   // overstatement this project is built to avoid.
   message = "first snapshot: there is nothing to compare against yet, so no diff is written"
 }
-copyFileSync(index, join(history, date + ".json"))
+// The capture is appended to a chained ledger before previous.json moves: the ledger is what
+// makes "we have been watching since" a checkable statement rather than a claim. The day archive
+// is written once, by the first capture of that day.
+const capture = appendCapture(history, { index: today, indexFile: index, scanner: today.scanner || null, day: date, capturedAt: today.generatedAt })
 copyFileSync(index, previousPath)
-if (!quiet) console.log(message)
+const coverage = coverageOf(readLedger(history))
+if (!quiet) {
+  console.log(message)
+  console.log("ledger: " + coverage.captures + " capture(s) over " + coverage.days + " day(s) since " + coverage.first + (capture.wroteDay ? "" : " (day archive already existed)") + (coverage.gaps.length > 0 ? "; missing " + coverage.gaps.join(", ") : ""))
+}
