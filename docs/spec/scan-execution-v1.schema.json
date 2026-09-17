@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentgate.dev/spec/scan-execution-v1.schema.json",
+  "title": "agentgate.scan-execution/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "subject",
+    "scanner_execution",
+    "generatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "agentgate.scan-execution/v1"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "server",
+        "packages"
+      ],
+      "properties": {
+        "server": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "registry",
+              "name",
+              "version"
+            ],
+            "properties": {
+              "registry": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "scanner_execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "components",
+        "required",
+        "completed",
+        "failed",
+        "state"
+      ],
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "required",
+              "status",
+              "exit_code",
+              "output_present",
+              "output_parseable",
+              "semantic_consistency",
+              "findings",
+              "reason"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "status": {
+                "enum": [
+                  "completed",
+                  "failed",
+                  "skipped"
+                ]
+              },
+              "exit_code": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "output_present": {
+                "type": "boolean"
+              },
+              "output_parseable": {
+                "type": "boolean"
+              },
+              "semantic_consistency": {
+                "enum": [
+                  "ok",
+                  "mismatch",
+                  "unverified"
+                ]
+              },
+              "findings": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low",
+                  "info"
+                ],
+                "properties": {
+                  "critical": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "high": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "medium": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "low": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "info": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "required": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "completed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "state": {
+          "enum": [
+            "complete",
+            "incomplete"
+          ]
+        }
+      }
+    },
+    "digest": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "scope",
+        "value",
+        "matches"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string"
+        },
+        "scope": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value": {
+          "type": "string"
+        },
+        "matches": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "generatedAt": {
+      "type": "string"
+    }
+  }
+}

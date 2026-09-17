@@ -3,6 +3,16 @@
 All notable changes to this package. The version here is the version that shipped; the tarball and
 the tag agree with it, and `scripts/release-check.mjs` refuses a release whose section is missing.
 
+## [Unreleased]
+
+- Every index record now carries a `scanExecution` block: which scanners were required, which
+  completed, and whether their output was present, readable and self-consistent. A record with a
+  failed or unmeasured required component can no longer be `clean`, whatever its findings say.
+  Spec: [docs/spec/scan-execution-v1.md](docs/spec/scan-execution-v1.md). The field names inside
+  `scanner_execution` follow the shape discussed in
+  [modelcontextprotocol/registry#1404](https://github.com/modelcontextprotocol/registry/pull/1404)
+  so the two records can be compared field by field.
+
 ## [0.2.0] - 2026-09-17
 
 - The README (English and Chinese) was rewritten in a plainer voice. No behaviour changed.

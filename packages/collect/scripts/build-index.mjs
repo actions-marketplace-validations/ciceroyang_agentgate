@@ -8,6 +8,7 @@
  * clean.
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
+import { canBeClean, executionFromBlocks } from "../src/execution.mjs"
 
 const VERDICT = { CLEAN: "clean", FINDINGS: "findings", INCOMPLETE: "incomplete" }
 // Every severity a rule may emit has to be in here or in UNMEASURED. The scan lives in
@@ -132,13 +133,24 @@ export function buildIndex(options) {
         blocks.repository = { status: "unmeasured", source: "scan-repos", reason: slug ? "not-in-run" : "unsupported-repository", findings: [] }
       }
     }
+    const packages = row.package ? [{ registry: row.registryType || "npm", name: row.package, version: row.version || null }] : []
+    const execution = executionFromBlocks({
+      server: row.server,
+      packages: packages,
+      blocks: blocks,
+      generatedAt: options.generatedAt,
+    })
     records.push({
       server: row.server,
       title: row.title || null,
       repository: row.repository || null,
-      packages: row.package ? [{ registry: row.registryType || "npm", name: row.package, version: row.version || null }] : [],
+      packages: packages,
       evidence: blocks,
-      verdict: deriveVerdict(blocks, threshold),
+      // The execution record says which scanners were required and which finished. If any of them
+      // did not, the verdict is incomplete however clean the findings look: a verdict of clean is
+      // a claim about work that ran, and this is where that claim is held to account.
+      verdict: canBeClean(execution) ? deriveVerdict(blocks, threshold) : VERDICT.INCOMPLETE,
+      scanExecution: execution,
       generatedAt: options.generatedAt || new Date().toISOString(),
     })
   }

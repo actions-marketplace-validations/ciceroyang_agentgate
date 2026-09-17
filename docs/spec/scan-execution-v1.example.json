@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "agentgate.scan-execution/v1",
+  "subject": {
+    "server": "ai.autonomad/computeback",
+    "packages": [
+      {
+        "registry": "npm",
+        "name": "computeback",
+        "version": "1.1.4"
+      }
+    ]
+  },
+  "scanner_execution": {
+    "components": [
+      {
+        "id": "registryDocument",
+        "required": true,
+        "status": "completed",
+        "exit_code": null,
+        "output_present": true,
+        "output_parseable": true,
+        "semantic_consistency": "ok",
+        "findings": {
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 0,
+          "info": 2
+        },
+        "reason": null
+      },
+      {
+        "id": "packageManifest",
+        "required": true,
+        "status": "completed",
+        "exit_code": 0,
+        "output_present": true,
+        "output_parseable": true,
+        "semantic_consistency": "ok",
+        "findings": {
+          "critical": 0,
+          "high": 1,
+          "medium": 0,
+          "low": 0,
+          "info": 0
+        },
+        "reason": null
+      },
+      {
+        "id": "repository",
+        "required": true,
+        "status": "failed",
+        "exit_code": null,
+        "output_present": true,
+        "output_parseable": false,
+        "semantic_consistency": "unverified",
+        "findings": {
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 0,
+          "info": 0
+        },
+        "reason": "not-in-run"
+      }
+    ],
+    "required": 3,
+    "completed": 2,
+    "failed": 1,
+    "state": "incomplete"
+  },
+  "digest": {
+    "algorithm": "sha256",
+    "scope": "published package contents",
+    "value": "0000000000000000000000000000000000000000000000000000000000000000",
+    "matches": true
+  },
+  "generatedAt": "2026-09-17T00:00:00.000Z"
+}
