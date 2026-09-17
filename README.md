@@ -1,3 +1,5 @@
+**English** · [中文](README.zh-CN.md)
+
 # agentgate
 
 **A control plane for the tools agents run.** Inventory what exists, state the evidence
