@@ -78,14 +78,14 @@
 - **做完的**：`CHANGELOG.md`（0.1.0 / 0.1.1 / Unreleased），release-check 会拒绝没有对应小节的版本；`docs/operations/rollback.md` 分 npm 包 / 服务站点 / 数据三层，并写明"绝不 `git reset --hard`""恢复数据要先备份当前，因为采集不可再生"。
 - **`latest` 已提升到 0.1.1（2026-09-17T10:16:51Z）**：`npx @zhiliangtech/agentgate version`、`@latest`、`@next` 三个写法都打印 `agentgate 0.1.1`。写操作要人的动态码，网页授权流程在非交互环境会立刻退出，所以这一步按设计留给人。
 
-## P5 合规资产（客户第一眼要看的）—— **代码与测试完成；等站点部署后核对公网 URL**
+## P5 合规资产（客户第一眼要看的）—— **完成（90f10d2，公网已核对）**
 
 - **为什么**：我们给 Zilliz 发信时夸的"你们有公开的漏洞上报流程"，自己网站上没有。
 - **做什么**：`/.well-known/security.txt`（RFC 9116）、`/security.html`（我们收什么/不收什么/数据在哪/留多久/怎么报漏洞/我们自己的 SBOM 与 attestation 链接）、把 `docs/operations/legal/data-handling.md` 变成公开页。
 - **做到什么算完**：三条 URL 在公网 200 且内容与实现一致（例如"默认不记录 IP"要和 Caddy 与服务的实际行为对得上）。
 - **怎么验**：`node --test test/security-assets.test.mjs`（6 项：三条路径进构建产物、security.txt 的 Expires 未过期且字段合法、页面无脚本无第三方请求、`AGENTGATE_ACCESS_LOG` 与"核不到的"这些"可核的说法"在场、**没有任何肯定式合规声明**、两页进 sitemap）；已进 `scripts/verify-public.mjs`（`/.well-known/security.txt` 与两个页面）。
 - **做法**：公开页不抄草稿，而是**按实际部署核对后**写：服务端访问日志默认关闭且只记 method/路由/状态/耗时/请求 ID；实际服务器 Caddy 配置没有 `log` 指令（`/var/log/caddy/` 为空）；托管商网络层日志与邮件通道**明写"核不到"**。安全页把"零依赖、无安装脚本、provenance + SBOM、账本可校验"这些**可以自己验**的事实列出来，并把"不替任何人认证"写在显眼处。
-- **还没做**：站点部署与公网核对（下一次 `build-site` 或每日 cron 会带上，之后用 `verify-public.mjs` 确认三条 URL 200）。
+- **公网核对（2026-09-17）**：`/security.html`、`/privacy.html`、`/.well-known/security.txt` 三条都 200（分别是 `text/html`、`text/html`、`text/plain`）；`verify-public.mjs` 全过（含"security.txt 在 RFC 规定的路径上""主域原有站点没有被改动"）。构建输出 11 个页面被复制、sitemap 2811 条。
 
 ## P6 运维支撑
 
