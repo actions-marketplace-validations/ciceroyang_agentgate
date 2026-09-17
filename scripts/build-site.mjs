@@ -12,6 +12,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, copyFi
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { renderInventoryPage } from "../packages/inventory/src/web.mjs"
+import { readLedger, coverageOf } from "../packages/history/src/ledger.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const args = process.argv.slice(2)
@@ -22,6 +23,7 @@ const templatePath = argOf("--template", join(ROOT, "site", "evidence.html"))
 const diffPath = argOf("--diff", null)
 const maxRecords = Number(argOf("--max-records", 20000))
 const pagesDir = argOf("--pages", join(ROOT, "site"))
+const historyDir = argOf("--history", join(ROOT, "data", "history"))
 const indexName = argOf("--name", "evidence.html")
 if (!existsSync(indexPath)) { console.error("no index at " + indexPath); process.exit(2) }
 if (!existsSync(templatePath)) { console.error("no template at " + templatePath); process.exit(2) }
@@ -93,6 +95,7 @@ function slugOf(name) { return String(name).split("/").join("__").replace(/[^A-Z
 
 const SERVER_TEMPLATE = join(ROOT, "site", "server.html")
 const OWNER_TEMPLATE = join(ROOT, "site", "owner.html")
+const HISTORY_TEMPLATE = join(ROOT, "site", "history.html")
 
 /** The GitHub login a record's repository belongs to, or null. */
 function ownerOf(record) {
@@ -226,7 +229,7 @@ if (pagesDir && existsSync(pagesDir)) {
   for (const name of readdirSync(pagesDir)) {
     // the plain pages plus the small assets a real site needs (favicon, robots, sitemap, 404)
     if (!/\.[a-z0-9]+$/.test(name)) continue
-    if (name === "evidence.html" || name === "server.html" || name === "owner.html" || name === "inventory.html") continue
+    if (name === "evidence.html" || name === "server.html" || name === "owner.html" || name === "inventory.html" || name === "history.html") continue
     const target = name === "index.html" ? "index.html" : name
     if (target === indexName) continue
     copyFileSync(join(pagesDir, name), join(outDir, target))
@@ -294,6 +297,41 @@ if (existsSync(OWNER_TEMPLATE)) {
   }
   const stale = prunePages(dir, new Set(groups.keys()))
   console.log("wrote " + groups.size + " publisher page(s) into " + dir + (stale > 0 ? " and removed " + stale + " that no longer publish anything in the index" : ""))
+}
+
+// The capture ledger, published. Its whole point is that someone who does not trust us can check
+// it, so the page carries the ledger text itself rather than a summary of it: editing the file on
+// the server afterwards contradicts a copy that is already published.
+if (existsSync(HISTORY_TEMPLATE)) {
+  const entries = readLedger(historyDir)
+  const coverage = coverageOf(entries)
+  const rows = entries.slice().reverse().map(function (e) {
+    return "<tr><td>" + esc(e.capturedAt) + '</td><td class="num">' + e.records
+      + '</td><td class="num">' + ((e.counts && e.counts.clean) || 0)
+      + '</td><td class="num">' + ((e.counts && e.counts.findings) || 0)
+      + '</td><td class="num">' + ((e.counts && e.counts.incomplete) || 0)
+      + "</td><td>" + esc(e.scanner || "(未记录)") + "</td><td>" + esc(String(e.sha256 || "").slice(0, 16)) + "</td></tr>"
+  }).join("\n")
+  // A build without a ledger (the public mirror, built outside the deployment) says so rather
+  // than printing "0 captures", which would read as "nothing was ever captured".
+  const gaps = entries.length === 0
+    ? "这个构建没有携带采集账本；账本在部署实例上。"
+    : coverage.gaps.length === 0
+      ? "没有缺天。"
+      : coverage.gaps.length + " 天没有采集：" + coverage.gaps.join("、")
+  const ledgerPath = join(historyDir, "ledger.jsonl")
+  const ledgerText = existsSync(ledgerPath) ? readFileSync(ledgerPath, "utf8").trim() : ""
+  let historyPage = readFileSync(HISTORY_TEMPLATE, "utf8")
+  historyPage = put(historyPage, "__ROWS__", rows)
+  historyPage = put(historyPage, "__FIRST__", esc(coverage.first || "（还没有采集）"))
+  historyPage = put(historyPage, "__LAST__", esc(coverage.last || "（还没有采集）"))
+  historyPage = put(historyPage, "__CAPTURES__", String(coverage.captures))
+  historyPage = put(historyPage, "__DAYS__", String(coverage.days))
+  historyPage = put(historyPage, "__GAPS__", esc(gaps))
+  historyPage = put(historyPage, "__LEDGER__", esc(ledgerText))
+  historyPage = put(historyPage, "__GENERATED__", esc(new Date().toISOString()))
+  writeFileSync(join(outDir, "history.html"), historyPage)
+  console.log("wrote history.html with " + coverage.captures + " capture(s) over " + coverage.days + " day(s)")
 }
 
 // Every server page belongs in the sitemap, otherwise the only way to reach a record is to

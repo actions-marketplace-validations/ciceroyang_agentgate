@@ -5,6 +5,7 @@ import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
 import { scratchDir } from "./tmpdir.mjs"
+import { appendCapture } from "../packages/history/src/ledger.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -338,4 +339,25 @@ test("the detail drawer is painted above the sticky search bar", function () {
   const detail = zIndexOf("#detail")
   assert.ok(bar > 0, "the bar no longer pins itself with a z-index")
   assert.ok(detail > bar, "the drawer (z-index " + detail + ") is not above the sticky bar (z-index " + bar + ")")
+})
+
+test("the capture ledger is published with its own text, and a missing day is not smoothed over", function () {
+  const out = scratchDir("ag-site-history-")
+  const history = scratchDir("ag-site-history-in-")
+  const source = join(history, "source.json")
+  writeFileSync(source, readFileSync(join(ROOT, "data", "sample-index.json")))
+  const index = JSON.parse(readFileSync(source, "utf8"))
+  appendCapture(history, { index: index, indexFile: source, scanner: "aaa", day: "2026-09-15", capturedAt: "2026-09-15T04:17:00.000Z" })
+  appendCapture(history, { index: index, indexFile: source, scanner: "bbb", day: "2026-09-17", capturedAt: "2026-09-17T04:17:00.000Z" })
+
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site"), "--history", history], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+  const page = readFileSync(join(out, "history.html"), "utf8")
+  assert.match(page, /2 次采集/)
+  assert.match(page, /2026-09-15T04:17:00.000Z/)
+  assert.match(page, /1 天没有采集：2026-09-16/, "a missing day has to be named on the page, not smoothed over")
+  assert.match(page, /&quot;scanner&quot;:&quot;bbb&quot;/, "the published ledger is not the ledger itself")
+  assert.doesNotMatch(page, /__[A-Z]+__/, "a placeholder survived into the published page")
+  const sitemap = readFileSync(join(out, "sitemap.xml"), "utf8")
+  assert.ok(sitemap.indexOf("/history.html") !== -1, "the record page is not in the sitemap")
 })
