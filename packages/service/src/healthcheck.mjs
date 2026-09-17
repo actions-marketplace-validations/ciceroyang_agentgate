@@ -76,7 +76,9 @@ export function checkLedger(result) {
  */
 export function checkBackups(files, options) {
   const opts = options || {}
-  const maxAgeHours = typeof opts.maxAgeHours === "number" ? opts.maxAgeHours : 36
+  // Deliberately its own key: maxAgeHours means the capture age everywhere else, and a check
+  // that silently reads the other option is a check that is not testing what the caller asked for.
+  const maxAgeHours = typeof opts.backupMaxAgeHours === "number" ? opts.backupMaxAgeHours : 36
   const list = (files || []).filter(function (file) { return file && typeof file.name === "string" && /^agentgate-.*\.tgz$/.test(file.name) })
   if (list.length === 0) return [problem("backup_absent", "备份目录里没有 agentgate 的归档")]
   let newest = list[0]

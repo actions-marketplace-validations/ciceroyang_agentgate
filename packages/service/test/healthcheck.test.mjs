@@ -118,3 +118,10 @@ test("only our archives count, and a backup check counts as a check", function (
   assert.equal(result.ok, false)
   assert.deepEqual(result.checked, ["backups"])
 })
+test("the backup window is its own option, not the capture window wearing another name", function () {
+  const now = Date.UTC(2026, 8, 17, 12)
+  const files = [{ name: "agentgate-20260917T030000Z.tgz", mtimeMs: now - 3 * 3600 * 1000 }]
+  assert.deepEqual(checkBackups(files, { nowMs: now }), [])
+  assert.deepEqual(checkBackups(files, { nowMs: now, backupMaxAgeHours: 0 }).map(function (p) { return p.id }), ["backup_age"])
+  assert.deepEqual(checkBackups(files, { nowMs: now, maxAgeHours: 0 }), [], "the capture window must not tighten the backup check")
+})
