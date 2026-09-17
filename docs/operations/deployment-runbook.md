@@ -400,6 +400,22 @@ sudo -u agentgate /opt/agentgate/scripts/healthcheck.sh ; echo "exit=$?"
 
 本地排查用 `--no-alert`（只巡检）或 `--dry-run`（打印将要发送的邮件，不发送）。
 
+## 两个部署陷阱（2026-09-17 实际踩到）
+
+1. **服务代码改了，必须重启。** 每日链只重建 `data/`（索引、站点、账本），运行中的进程不会重新加载
+   `packages/service/`。症状很隐蔽：数据是新的（`generatedAt` 是当天、记录数也对），但接口缺字段——
+   因为代码还是进程启动时那份。命令：`sudo systemctl restart agentgate`。
+2. **如果远端历史被重写过，机器上的旧 checkout 无法 fast-forward。** 症状是
+   `fatal: Not possible to fast-forward`。正确做法是先 `sudo git status --porcelain` 确认**没有已跟踪的改动**
+   （只有 `?? data/...` 这类未跟踪文件是正常的，切分支不会动它们），然后：
+
+   ```sh
+   sudo git fetch origin
+   sudo git checkout -B main origin/main
+   ```
+
+   **不要**用 `git reset --hard` 去猜；先看 status，再切分支。
+
 ## 上线检查清单
 
 - [ ] `curl https://api.智量.com/health` 返回 200，且 `records` 不是样本的 300 条
