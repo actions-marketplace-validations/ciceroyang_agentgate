@@ -26,6 +26,9 @@ import { parseInventory, createInventoryReport } from "../packages/inventory/src
 import { renderInventoryReport } from "../packages/inventory/src/report.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+// Read the published version instead of writing it down twice: the two copies drifted
+// once, and "agentgate version" reported a number the package no longer had.
+const VERSION = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version
 
 
 function parse(argv) {
@@ -169,7 +172,7 @@ function check(flags) {
   lines.push("  verdict: " + result.verdict.toUpperCase() + (result.verdict === "incomplete" ? "  (this is not a pass)" : ""))
   const human = lines.join("\n")
   const format = flags.format || "console"
-  const rendered = format === "sarif" ? toSarif(result, { version: "0.1.0" })
+  const rendered = format === "sarif" ? toSarif(result, { version: VERSION })
     : format === "json" ? JSON.stringify(result, null, 2)
     : format === "html" ? toHtmlReport(result, { root: root, policy: policy, generatedAt: new Date().toISOString() })
     : human
@@ -285,7 +288,7 @@ else if (args.command === "diff") diff(args.flags)
 else if (args.command === "serve") serve(args.flags)
 else if (args.command === "refresh") refresh(args.flags)
 else if (args.command === "history") history(args.flags)
-else if (args.command === "version") console.log("agentgate 0.1.0")
+else if (args.command === "version") console.log("agentgate " + VERSION)
 else {
   console.log("agentgate <command>")
   console.log("")
