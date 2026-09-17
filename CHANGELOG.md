@@ -18,6 +18,11 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   scanners it insists on.
 - The index diff gained a `coverage changed` category: a record that stopped being fully measured
   (or started being) is reported on its own, because no version change explains it.
+- The inventory report now shows, per tool, which scanners actually ran: the coverage state, the
+  required/completed/failed counts and one row per scanner. A record whose own coverage block says a
+  required scanner did not finish can no longer reach `matched`, however complete the rest of its
+  evidence looks, and a coverage block whose counts disagree with its own components is treated the
+  same way. Spec: [docs/spec/inventory-v1.md](docs/spec/inventory-v1.md).
 
 ## [0.2.0] - 2026-09-17
 

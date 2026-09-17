@@ -43,6 +43,8 @@ test("inventory report escapes every input, candidate, finding and provenance fi
       evidence: [{ block: payload, status: payload, source: payload, reason: payload, provenance: {
         package: { registry: payload, name: payload, version: payload }, content: { algorithm: payload, digest: payload, scope: payload }, complete: false,
       }, findings: [] }],
+      execution: { state: payload, required: payload, completed: payload, failed: payload, generatedAt: payload,
+        components: [{ id: payload, required: payload, status: payload, output_present: payload, output_parseable: payload, semantic_consistency: payload, reason: payload }] },
       findings: [{ rule: payload, severity: payload, file: payload, message: payload, reason: payload }],
     }],
   };
@@ -119,3 +121,34 @@ test("the shared matcher supplies the report's boolean sample warning and actual
   assert.match(html, /2026-09-15T08:30:00Z/);
   assert.match(html, /<b>0<\/b><span>证据已对应/);
 });
+test("each item shows which scanners ran, and a pre-coverage record says so instead", () => {
+  const withCoverage = fixture();
+  withCoverage.items[0].execution = {
+    state: "incomplete", required: 2, completed: 1, failed: 1, generatedAt: "2026-09-15T12:30:00Z",
+    components: [
+      { id: "registryDocument", required: true, status: "completed", output_present: true, output_parseable: true, semantic_consistency: "ok", reason: null, findings: {} },
+      { id: "repository", required: true, status: "failed", output_present: true, output_parseable: false, semantic_consistency: "unverified", reason: "not-in-run", findings: {} },
+    ],
+  };
+  const html = renderInventoryReport(withCoverage);
+  assert.match(html, /扫描覆盖/);
+  assert.match(html, /必需 2 个，跑完 1 个，没跑成 1 个/);
+  assert.match(html, /registryDocument/);
+  assert.match(html, /not-in-run/);
+  assert.match(html, /没跑成的部分没有算作通过/);
+  assert.ok(html.indexOf("扫描覆盖") < html.indexOf("目录中的证据与检查范围"));
+
+  const legacy = renderInventoryReport(fixture());
+  assert.match(legacy, /写于 scan-execution 之前/);
+  assert.match(legacy, /没有记录不等于跑完过/);
+});
+
+test("an item with no selected record makes no coverage claim", () => {
+  const data = fixture();
+  data.items[0].selected = null;
+  data.items[0].execution = null;
+  const html = renderInventoryReport(data);
+  assert.doesNotMatch(html, /扫描覆盖/);
+  assert.doesNotMatch(html, /写于 scan-execution 之前/);
+});
+

@@ -192,3 +192,54 @@ test('input is treated as inert text; report generation does not mutate inputs o
   assert.equal(JSON.stringify({ entries, index }), before)
   delete globalThis.inventoryExecuted
 })
+
+const component = (overrides = {}) => ({ id: 'registryDocument', required: true, status: 'completed', output_present: true, output_parseable: true, semantic_consistency: 'ok', reason: null, ...overrides })
+const coverage = (overrides = {}) => ({
+  scanner_execution: { components: [component()], required: 1, completed: 1, failed: 0, state: 'complete', ...overrides },
+})
+
+test('a complete coverage block travels with the item, field by field', () => {
+  const result = report(explicit(), indexOf(record({ scanExecution: coverage() })))
+  assert.equal(result.items[0].state, 'matched')
+  assert.equal(result.items[0].execution.state, 'complete')
+  assert.equal(result.items[0].execution.required, 1)
+  assert.equal(result.items[0].execution.completed, 1)
+  assert.equal(result.items[0].execution.failed, 0)
+  assert.deepEqual(result.items[0].execution.components[0], {
+    id: 'registryDocument', required: true, status: 'completed', output_present: true, output_parseable: true,
+    semantic_consistency: 'ok', reason: null, findings: { critical: 0, high: 0, medium: 0, low: 0, info: 0 },
+  })
+})
+
+test('a record whose own coverage block says a scanner did not finish cannot be matched', () => {
+  const result = report(explicit(), indexOf(record({ scanExecution: coverage({ state: 'incomplete', completed: 0, failed: 1, components: [component({ status: 'failed', output_parseable: false, semantic_consistency: 'unverified', reason: 'not-in-run' })] }) })))
+  assert.equal(result.items[0].state, 'insufficient')
+  assert.match(result.items[0].reason, /扫描覆盖块/)
+  // The projection still travels so the report can show what did not run.
+  assert.equal(result.items[0].execution.state, 'incomplete')
+  assert.equal(result.items[0].execution.components[0].reason, 'not-in-run')
+})
+
+test('a coverage block that contradicts itself or its counts is not complete', () => {
+  const cases = [
+    { scanner_execution: { components: [], required: 0, completed: 0, failed: 0, state: 'complete' } },
+    coverage({ required: 2, completed: 1, failed: 1 }),
+    coverage({ components: [component({ output_parseable: false, semantic_consistency: 'unverified' })] }),
+    coverage({ components: [component({ status: 'skipped' })] }),
+    coverage({ state: 'incomplete' }),
+  ]
+  for (const scanExecution of cases) {
+    assert.equal(report(explicit(), indexOf(record({ scanExecution }))).items[0].state, 'insufficient', JSON.stringify(scanExecution))
+  }
+  const badDigest = record({ scanExecution: { ...coverage(), digest: { algorithm: 'sha256', value: 'b'.repeat(64), matches: false } } })
+  assert.equal(report(explicit(), indexOf(badDigest)).items[0].state, 'insufficient')
+  const malformed = record({ scanExecution: { scanner_execution: { state: 'complete' } } })
+  assert.equal(report(explicit(), indexOf(malformed)).items[0].state, 'insufficient')
+})
+
+test('records written before scan-execution carry a null execution and still match on block evidence', () => {
+  const result = report(explicit(), indexOf(record()))
+  assert.equal(result.items[0].state, 'matched')
+  assert.equal(result.items[0].execution, null)
+})
+

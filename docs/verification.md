@@ -455,6 +455,16 @@ Caddy 配置（本轮没有改 Caddy，也没有跑 `--apply`）。
 - 服务器（Node v20.20.2）部署后：`daily-job.sh` 以 cron 用户手跑一次，refresh ok、账本因索引真的变了追加第 3 行、站点重建、`history --max-age 26` 与复核都通过，退出 0；`/health` 的 `history` 块为 `{captures:3, days:2, gaps:[], ageHours:0, stale:false}`；公开的 `/v1/history` 与 `/v1/history/diff` 都是 200，`/history.html` 显示“3 次采集，覆盖 2 天”。
 - **CI 镜像第一次跑就暴露了两个错，都已修**：`cp "$WORK/ledger.jsonl" ledger.jsonl` 把文件拷到自己身上（临时目录就是当前目录），步骤直接失败；改成用 `$GITHUB_WORKSPACE` 的绝对路径。修完仍没记录——`git fetch --depth 1` 之后再 push 会被 GitHub 以 `shallow update not allowed` 拒绝，而 push 失败被 `|| echo` 吞掉了，所以步骤“成功”但分支没动；改成完整 fetch + `reset --hard FETCH_HEAD`（并顺手删掉旧方案写进分支的 2.4 MB 索引）。现在 `history` 分支上是一条普通提交 `ledger 2026-09-17`，带 `ledger.jsonl` 与最新 diff。
 
+## 清单报告显示每个扫描器跑没跑（2026-09-18）
+
+`scanExecution` 上线后，网站的证据页已经写清“哪些扫描器跑完了”，但用户自己生成的那份报告还没有。这一轮把它接到清单报告里，并顺手堵住一个矛盾：**证据块看起来完整、记录自带的覆盖块却说必需扫描器没跑完**。
+
+- 报告每条工具新增“扫描覆盖”：状态、必需/跑完/没跑成的数量、每个扫描器的状态、输出是否可读、一致性与未跑成的原因；写于该块之前的记录显示“没有记录不等于跑完过”。版本未对应时，覆盖一节只描述目录记录。
+- 匹配器新增规则：`scanExecution.scanner_execution` 存在但 `state` 不是 `complete`、没有必需的扫描器、必需扫描器未全部完成、计数与列出的组件不一致、或摘要记录为不匹配，一律不得进入 `matched`。
+- **拿服务器上的真索引取证**（`/opt/agentgate/data/index.json`，2,057 条，全部带 `scanExecution`）：194 条 `clean` 仍然全部 `matched`，没有一条被新规则误杀；`ai.adeu/adeu@1.7.1` 报告显示“`complete` · 必需 2 个，跑完 2 个，没跑成 0 个”（registryDocument、packageManifest 都 completed）；`ai.dinglebear/apprise-rmcp@0.1.3` 仍按 `insufficient` 处理，但覆盖一节保留“`incomplete` · 必需 2 个，跑完 1 个，没跑成 1 个”。
+- 用这份真索引跑一次静态构建：`inventory.html` 内嵌的索引带着 `scanner_execution`，`s/ai.adeu__adeu.html` 的“哪些扫描器跑完了”段落显示“必需 2 个,跑完 2 个,没跑成 0 个”。浏览器端用的 `inventory.mjs` / `inventory-report.mjs` 与仓库里是同一份复制。
+- 本机 `npm test`：554 项测试、552 通过、0 失败、2 跳过（新增 4 条匹配器测试、2 条报告测试，并让转义夹具覆盖新的组件字段）。
+
 
 
 

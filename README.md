@@ -84,7 +84,9 @@ Run `node bin/agentgate.mjs serve` and open `/inventory.html` at the address it 
 list of tool names or pick a text/JSON file, resolve ambiguous matches, fill in the version you
 actually use, and download a standalone HTML report. The comparison happens in browser memory
 against the embedded index snapshot: the list is not uploaded or stored, your machine is not
-scanned, and no tool is executed.
+scanned, and no tool is executed. When a record carries a coverage block, the report also lists
+which scanners ran and which did not, and why; a record whose own coverage block says a required
+scanner did not finish will not be shown as matched, however complete the rest of its evidence looks.
 
 The same thing without a browser:
 

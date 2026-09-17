@@ -57,6 +57,29 @@ function renderEvidence(evidence) {
   ]) + "</tbody></table></section>";
 }
 
+/**
+ * The coverage block, per item. It answers "which scanners ran", which is a different question
+ * from "what did they find" and from "is this safe". A record written before the block existed
+ * says so; the absence is not a pass.
+ */
+function renderExecution(item) {
+  if (!item.selected) return "";
+  const execution = item.execution;
+  if (!execution) return "<h4>扫描覆盖</h4><p class=\"gap\">这条目录记录写于 scan-execution 之前，没有记录哪些扫描器跑过。没有记录不等于跑完过。</p>";
+  const components = Array.isArray(execution.components) ? execution.components : [];
+  const counted = ["required", "completed", "failed"].every(key => Number.isInteger(execution[key]));
+  const summary = counted
+    ? "状态：" + valueText(execution.state, "未提供") + " · 必需 " + execution.required + " 个，跑完 " + execution.completed + " 个，没跑成 " + execution.failed + " 个"
+    : "状态：" + valueText(execution.state, "未提供") + " · 计数未提供；不能据此判断跑完与否";
+  const table = components.length
+    ? "<table><thead><tr><th>扫描器</th><th>是否必需</th><th>状态</th><th>输出</th><th>一致性</th><th>原因</th></tr></thead><tbody>" +
+      components.map(component => "<tr><td>" + esc(component.id) + "</td><td>" + (component.required ? "必需" : "可选") + "</td><td>" + esc(component.status) + "</td><td>" + (component.output_present ? "有" : "无") + " / " + (component.output_parseable ? "可读" : "不可读") + "</td><td>" + esc(component.semantic_consistency) + "</td><td>" + esc(component.reason || "") + "</td></tr>").join("") +
+      "</tbody></table>"
+    : "<p class=\"gap\">这条记录没有列出任何扫描器，所以它不可能被算作完整。</p>";
+  return "<h4>扫描覆盖</h4><p class=\"" + (execution.state === "complete" && counted ? "muted" : "gap") + "\">" + esc(summary) + "</p>" + table +
+    "<p class=\"muted\">以上覆盖只描述这份目录记录；没跑成的部分没有算作通过。版本未对应时，它也不能证明你的实际安装。</p>";
+}
+
 function renderItem(item, index) {
   const input = item.input || {};
   const selected = item.selected || {};
@@ -70,6 +93,7 @@ function renderItem(item, index) {
       ["Server", selected.server || "尚未确认"], ["包名", selected.package], ["注册表", selected.registry], ["目录版本", selected.version || "未提供；不能代替实际版本"], ["证据生成时间", item.evidenceGeneratedAt],
     ]) + "</tbody></table></section></div>" +
     (!item.selected && candidates.length ? "<h4>尚待确认的候选</h4><ul>" + candidates.map(candidate => "<li>" + esc([candidate.server, candidate.package, candidate.registry, candidate.version].filter(Boolean).join(" / ")) + "</li>").join("") + "</ul>" : "") +
+    renderExecution(item) +
     (evidence.length ? "<h4>目录中的证据与检查范围</h4>" + evidence.map(renderEvidence).join("") : "<p class=\"gap\">没有可用于本条清单的证据块。未覆盖不等于未发现问题。</p>") + "</article>";
 }
 

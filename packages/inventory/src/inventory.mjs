@@ -97,12 +97,60 @@ function evidenceOf(record) {
   })
 }
 
+function executionProjection(wrapper) {
+  if (!object(wrapper) || !object(wrapper.scanner_execution)) return null
+  const exec = wrapper.scanner_execution
+  const components = (Array.isArray(exec.components) ? exec.components : []).map((component) => ({
+    id: textOrNull(component?.id),
+    required: component?.required === true,
+    status: textOrNull(component?.status),
+    output_present: component?.output_present === true,
+    output_parseable: component?.output_parseable === true,
+    semantic_consistency: textOrNull(component?.semantic_consistency),
+    reason: textOrNull(component?.reason),
+    findings: Object.fromEntries(SEVERITIES.map((severity) => [severity, Number.isInteger(component?.findings?.[severity]) ? component.findings[severity] : 0])),
+  }))
+  const count = (value) => Number.isInteger(value) && value >= 0 ? value : null
+  return {
+    state: textOrNull(exec.state),
+    required: count(exec.required),
+    completed: count(exec.completed),
+    failed: count(exec.failed),
+    generatedAt: textOrNull(wrapper.generatedAt),
+    components,
+  }
+}
+
+/**
+ * The coverage block is its own claim about which scanners ran. Evidence that looks complete while
+ * its own coverage block says a required scanner did not finish is a contradiction, and a
+ * contradiction cannot be matched. Records written before the block existed carry no
+ * `scanExecution` and are unaffected; they are handled by the block-level checks above.
+ */
+function coverageProblem(record) {
+  const wrapper = record?.scanExecution
+  if (!object(wrapper)) return null
+  const exec = wrapper.scanner_execution
+  if (!object(exec) || !Array.isArray(exec.components)) return '这条记录带有扫描覆盖块，但格式不完整，不能作为完整证据。'
+  const required = exec.components.filter((component) => object(component) && component.required === true)
+  const finished = required.filter((component) => component.status === 'completed' && component.output_present === true && component.output_parseable === true && component.semantic_consistency === 'ok')
+  if ([exec.required, exec.completed, exec.failed].some((value) => Number.isInteger(value) && value >= 0) &&
+      (exec.required !== required.length || exec.completed !== finished.length || exec.failed !== required.length - finished.length)) {
+    return '这条记录的扫描覆盖块计数与列出的扫描器不一致，不能作为完整证据。'
+  }
+  if (exec.state !== 'complete' || required.length === 0 || finished.length !== required.length) return '这条记录的扫描覆盖块显示并非所有必需的扫描器都跑完，不能作为完整证据。'
+  if (object(wrapper.digest) && wrapper.digest.matches === false) return '这条记录的内容摘要与扫描覆盖块记录不一致，不能作为完整证据。'
+  return null
+}
+
 function bindingProblem(record, candidate) {
   if (!object(record) || !nonempty(record.server) || !Array.isArray(record.packages) ||
       record.packages.some((pkg) => !object(pkg) || !nonempty(pkg.registry) || !nonempty(pkg.name) || !exactVersion(pkg.version, pkg.registry))) return '索引记录缺少可核对的精确包身份，或包记录格式不完整。'
   if (!nonempty(candidate.package) || !nonempty(candidate.registry) || !exactVersion(candidate.version, candidate.registry)) return '该记录没有可核对的精确包身份和版本。'
   if (candidate.registry === 'npm' && !npmName(candidate.package)) return '索引中的 npm 包名格式不完整，不能核对包身份。'
   if (record.verdict === 'incomplete' || (record.verdict !== undefined && !['clean', 'findings', 'incomplete'].includes(record.verdict))) return '索引将这条记录标为未完成或未知状态。'
+  const coverage = coverageProblem(record)
+  if (coverage) return coverage
   if (!object(record.evidence) || Object.keys(record.evidence).length === 0) return '索引没有提供检查证据。'
   for (const [block, evidence] of Object.entries(record.evidence)) {
     if (!object(evidence) || !['clean', 'findings'].includes(evidence.status) || !nonempty(evidence.source) || !Array.isArray(evidence.findings)) return block + ' 未完成检查，或证据格式不完整。'
@@ -178,7 +226,7 @@ export function createInventoryReport(entries, index, options = {}) {
   const items = entries.map((entry, position) => {
     const input = inputProjection(entry)
     const id = typeof entry?.id === 'string' ? entry.id : 'tool-' + (position + 1)
-    let item = { id, input, state: 'insufficient', label: LABELS.insufficient, reason: '', nextSteps: [], candidates: [], selected: null, evidenceGeneratedAt: null, evidence: [], findings: [] }
+    let item = { id, input, state: 'insufficient', label: LABELS.insufficient, reason: '', nextSteps: [], candidates: [], selected: null, evidenceGeneratedAt: null, evidence: [], execution: null, findings: [] }
     const wellFormed = object(entry) && /^tool-[1-9]\d*$/.test(id) && nonempty(entry.name) &&
       Object.keys(entry).every((key) => INPUT_FIELDS.includes(key) || key === 'id') &&
       INPUT_FIELDS.every((key) => entry[key] === null || entry[key] === undefined || typeof entry[key] === 'string')
@@ -201,6 +249,7 @@ export function createInventoryReport(entries, index, options = {}) {
     item.selected = selectedProjection(candidate)
     item.evidenceGeneratedAt = textOrNull(candidate.records[0].generatedAt ?? index.generatedAt)
     item.evidence = evidenceOf(candidate.records[0])
+    item.execution = executionProjection(candidate.records[0].scanExecution)
     item.findings = item.evidence.flatMap((evidence) => evidence.findings)
     if (candidate.records.length !== 1) return setState(item, 'insufficient', '索引中有相同包身份的重复记录，无法确认哪一份证据有效。', ['先核对重复索引记录，再生成报告。'])
     if (!nonempty(candidate.package) || !nonempty(candidate.registry) || !exactVersion(candidate.version, candidate.registry)) return setState(item, 'insufficient', '索引记录缺少精确包身份或版本，不能核对你所用的版本。', ['获取带有准确包名、来源和精确版本的索引记录。'])
