@@ -211,6 +211,8 @@ test("the evidence page says which scanners finished", function () {
   assert.match(done, /状态:<b>complete<\/b>/)
   const old = readFileSync(join(out, "s", slugOf("c/old") + ".html"), "utf8")
   assert.match(old, /写于 scan-execution 之前/)
+  const evidence = readFileSync(join(out, "evidence.html"), "utf8")
+  assert.match(evidence, /完全测过 1\/3 \(33\.3%\)/)
 })
 
 test("a page for a record that is gone is removed, and nothing else in the directory is", function () {

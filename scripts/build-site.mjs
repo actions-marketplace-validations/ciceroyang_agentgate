@@ -62,6 +62,15 @@ const records = kept.map(function (r) {
 })
 const counts = { clean: 0, findings: 0, incomplete: 0 }
 for (const r of records) counts[r.verdict] = (counts[r.verdict] || 0) + 1
+// The coverage block lives on the raw records; the projection above drops it. Count how many of
+// the records actually shown are fully measured, because a headline number whose denominator a
+// reader cannot see is the kind of claim this page exists to avoid.
+const measured = { complete: 0, total: kept.length }
+for (const r of kept) {
+  const exec = r.scanExecution && r.scanExecution.scanner_execution
+  if (exec && exec.state === "complete") measured.complete += 1
+}
+const measuredPct = measured.total ? (measured.complete / measured.total * 100).toFixed(1) : "0.0"
 
 /**
  * Substitute a placeholder with literal text.
@@ -233,7 +242,8 @@ page = put(page, "__TOTAL__", jsonForScript(all.length))
 page = put(page, "__SHOWN__", jsonForScript(records.length))
 page = put(page, "__TRUNCATED__", jsonForScript(truncated))
 page = put(page, "window.__COUNTS__", jsonForScript(
-    '<span class="v clean">clean ' + (counts.clean || 0) + '</span> · <span class="v findings">findings ' + (counts.findings || 0) + '</span> · <span class="v incomplete">incomplete ' + (counts.incomplete || 0) + "</span>"
+    '<span class="v clean">clean ' + (counts.clean || 0) + '</span> · <span class="v findings">findings ' + (counts.findings || 0) + '</span> · <span class="v incomplete">incomplete ' + (counts.incomplete || 0) + '</span>' +
+    ' · 完全测过 ' + measured.complete + "/" + measured.total + " (" + measuredPct + "%)"
   ))
 
 mkdirSync(outDir, { recursive: true })
