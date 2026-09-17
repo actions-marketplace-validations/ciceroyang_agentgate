@@ -19,6 +19,7 @@ import { discover, renderText } from "../packages/guard/src/discover.mjs"
 import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
 import { loadPolicy, defaultPolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
+import { aggregateAudit, renderAudit } from "../packages/policy/src/audit.mjs"
 import { toSarif } from "../packages/policy/src/sarif.mjs"
 import { toHtmlReport } from "../packages/policy/src/html-report.mjs"
 import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
@@ -119,8 +120,8 @@ function recordsFor(root, indexPath) {
   })
 }
 
-function check(flags) {
-  const root = resolve(flags.root || ".")
+/** One directory: policy, scan, evaluation. Fatal input errors exit here; the caller decides the rest. */
+function runCheck(root, flags) {
   const policyPath = flags.policy || join(root, "agentgate.policy.json")
   let policy
   let policyNote = null
@@ -172,19 +173,64 @@ function check(flags) {
   }
   lines.push("")
   lines.push("  verdict: " + result.verdict.toUpperCase() + (result.verdict === "incomplete" ? "  (this is not a pass)" : ""))
-  const human = lines.join("\n")
+  return { result: result, policy: policy, human: lines.join("\n") }
+}
+
+function renderResult(run, root, flags) {
   const format = flags.format || "console"
-  const rendered = format === "sarif" ? toSarif(result, { version: VERSION })
-    : format === "json" ? JSON.stringify(result, null, 2)
-    : format === "html" ? toHtmlReport(result, { root: root, policy: policy, generatedAt: new Date().toISOString() })
-    : human
+  return format === "sarif" ? toSarif(run.result, { version: VERSION })
+    : format === "json" ? JSON.stringify(run.result, null, 2)
+    : format === "html" ? toHtmlReport(run.result, { root: root, policy: run.policy, generatedAt: new Date().toISOString() })
+    : run.human
+}
+
+function check(flags) {
+  const root = resolve(flags.root || ".")
+  const run = runCheck(root, flags)
+  const rendered = renderResult(run, root, flags)
   if (flags.out) {
     writeFileSync(flags.out, rendered + "\n")
-    process.stdout.write(human + "\n")
+    process.stdout.write(run.human + "\n")
   } else {
     process.stdout.write(rendered + "\n")
   }
-  process.exit(exitCodeFor(result))
+  process.exit(exitCodeFor(run.result))
+}
+
+/**
+ * The same scan, once per repository, with one verdict for the set.
+ *
+ * A directory that does not exist is not skipped: it is an unmeasured repository, which makes
+ * the whole audit incomplete. That is the only honest reading of "scan these ten repos".
+ */
+function audit(flags) {
+  if (flags.roots === true || !String(flags.roots || "").trim()) {
+    console.error("usage: agentgate audit --roots repoA,repoB [--policy p.json] [--index data/index.json] [--fail-on medium] [--format text|json] [--out file]")
+    process.exit(3)
+  }
+  const roots = String(flags.roots).split(",").map(function (s) { return resolve(s.trim()) }).filter(Boolean)
+  const entries = []
+  for (const root of roots) {
+    if (!existsSync(root)) {
+      entries.push({ root: root, verdict: "incomplete", exitCode: 2, findings: 0, checksFailed: 0, evidenceMissing: 0, reason: "目录不存在" })
+      continue
+    }
+    const run = runCheck(root, flags)
+    entries.push({
+      root: root,
+      verdict: run.result.verdict,
+      exitCode: exitCodeFor(run.result),
+      findings: run.result.findings.length,
+      rules: Array.from(new Set(run.result.findings.map(function (f) { return f.rule }))).slice(0, 3),
+      checksFailed: run.result.coverage.checksFailed.length,
+      evidenceMissing: run.result.coverage.evidenceMissing.length,
+      reason: null,
+    })
+  }
+  const aggregate = aggregateAudit(entries)
+  if (flags.format === "json") process.stdout.write(JSON.stringify({ schemaVersion: 1, aggregate: aggregate, entries: entries }, null, 2) + "\n")
+  else process.stdout.write(renderAudit(entries, aggregate) + "\n")
+  process.exit(aggregate.exitCode)
 }
 
 function diff(flags) {
@@ -321,6 +367,7 @@ function proxy(flags, rest) {
 
 if (args.command === "inventory") inventory(args.flags)
 else if (args.command === "discover") discoverCommand(args.flags)
+else if (args.command === "audit") audit(args.flags)
 else if (args.command === "check") check(args.flags)
 else if (args.command === "proxy") proxy(args.flags, args.rest)
 else if (args.command === "diff") diff(args.flags)
@@ -334,6 +381,7 @@ else {
   console.log("  discover  [--home <dir>] [--roots a,b] [--format text|json] [--out report.txt]   read the MCP configs already on this machine")
   console.log("  inventory --input tools.txt [--index data/index.json] [--format html|json] [--out report.html]")
   console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")
+  console.log("  audit     --roots a,b,c [--policy p.json] [--index data/index.json] [--fail-on medium] [--format text|json]")
   console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
