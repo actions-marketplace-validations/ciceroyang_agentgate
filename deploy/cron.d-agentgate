@@ -12,4 +12,11 @@ PATH=/usr/bin:/bin
 # Every hour: is the deployment still working? The daily job's own log sits on the machine it
 # would be reporting about, and a missing capture is the one thing that cannot be recovered
 # later. Alerting needs /etc/agentgate/alert.env (mode 0600); without it the check still runs.
-7 * * * * agentgate /opt/agentgate/scripts/healthcheck.sh >> /var/log/agentgate-health.log 2>&1
+7 * * * * agentgate /opt/agentgate/scripts/healthcheck.sh --backup-dir /var/backups/agentgate >> /var/log/agentgate-health.log 2>&1
+
+# Nightly backup of the only data that cannot be rebuilt. The restore drill that follows is the
+# part that matters: an archive nobody has ever restored is a belief, not a backup.
+30 3 * * * agentgate /opt/agentgate/scripts/backup.mjs --data /opt/agentgate/data --site /var/www/zhiliang --out-dir /var/backups/agentgate --keep-days 14 >> /var/log/agentgate-backup.log 2>&1
+# Monthly: restore the newest archive into a temporary directory, verify the chain in it, and start
+# the service against it. A failure here is the one alert that must never be missed.
+0 5 1 * * agentgate /opt/agentgate/scripts/restore-drill.mjs --out-dir /var/backups/agentgate >> /var/log/agentgate-backup.log 2>&1

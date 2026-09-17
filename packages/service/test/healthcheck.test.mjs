@@ -1,6 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { buildMessage, checkDisk, checkHealth, checkLedger, checkUrls, decideAlert, renderText, runChecks } from "../src/healthcheck.mjs"
+import { buildMessage, checkBackups, checkDisk, checkHealth, checkLedger, checkUrls, decideAlert, renderText, runChecks } from "../src/healthcheck.mjs"
 
 function healthy(overrides) {
   return Object.assign({
@@ -100,4 +100,21 @@ test("the text output names what was and was not checked", function () {
   const text = renderText(runChecks({}), null)
   assert.match(text, /PROBLEMS/)
   assert.match(text, /什么都没检查|无（什么都没检查/)
+})
+test("a backup that stopped happening is a problem even though the old one still restores", function () {
+  const now = Date.UTC(2026, 8, 17, 12)
+  const fresh = [{ name: "agentgate-20260917T030000Z.tgz", mtimeMs: now - 3 * 3600 * 1000 }]
+  assert.deepEqual(checkBackups(fresh, { nowMs: now }), [])
+  assert.deepEqual(checkBackups([], { nowMs: now }).map(function (p) { return p.id }), ["backup_absent"])
+  const old = checkBackups([{ name: "agentgate-20260901T030000Z.tgz", mtimeMs: now - 300 * 3600 * 1000 }], { nowMs: now })
+  assert.deepEqual(old.map(function (p) { return p.id }), ["backup_age"])
+  assert.match(old[0].detail, /agentgate-20260901/)
+})
+
+test("only our archives count, and a backup check counts as a check", function () {
+  const now = Date.UTC(2026, 8, 17, 12)
+  assert.deepEqual(checkBackups([{ name: "notes.txt", mtimeMs: now }], { nowMs: now }).map(function (p) { return p.id }), ["backup_absent"])
+  const result = runChecks({ backups: [], options: { nowMs: now } })
+  assert.equal(result.ok, false)
+  assert.deepEqual(result.checked, ["backups"])
 })

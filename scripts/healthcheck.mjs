@@ -10,7 +10,7 @@
  *
  * Exit 0 fine, 1 problems found, 3 could not alert (which is itself worth failing loudly for).
  */
-import { existsSync, mkdirSync, readFileSync, statfsSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, statfsSync, statSync, writeFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { checkLedger, decideAlert, buildMessage, renderText, runChecks } from "../packages/service/src/healthcheck.mjs"
@@ -101,6 +101,17 @@ if (!existsSync(historyDir)) ledger = { ok: false, problems: ["账本目录不�
 else ledger = verifyLedger(historyDir, { maxAgeHours: maxAgeHours })
 const urls = []
 for (const site of sites) urls.push(await statusOf(site))
+// Opt-in: a machine that keeps its backups somewhere else simply does not pass --backup-dir.
+let backups
+const backupDir = args["backup-dir"] ? resolve(String(args["backup-dir"])) : null
+if (backupDir) {
+  backups = []
+  if (existsSync(backupDir)) {
+    for (const name of readdirSync(backupDir)) {
+      try { backups.push({ name: name, mtimeMs: statSync(join(backupDir, name)).mtimeMs }) } catch (error) { /* unreadable entries are not archives */ }
+    }
+  }
+}
 
 const facts = {
   health_url: url,
@@ -110,6 +121,7 @@ const facts = {
   history_age_hours: health.body && health.body.history ? health.body.history.ageHours : "unknown",
   ledger_captures: Array.isArray(ledger.entries) ? ledger.entries.length : "unknown",
   ledger_not_retained: Array.isArray(ledger.notRetained) ? ledger.notRetained.length : "unknown",
+  backups_found: Array.isArray(backups) ? backups.filter(function (file) { return /\.tgz$/.test(file.name) }).length : "not checked",
   disk_free_bytes: disk ? disk.freeBytes : "unknown",
 }
 
@@ -125,7 +137,8 @@ const result = runChecks({
   disk: disk,
   ledger: ledger,
   urls: urls.length > 0 ? urls : undefined,
-  options: { maxAgeHours: maxAgeHours },
+  backups: backups,
+  options: { maxAgeHours: maxAgeHours, backupMaxAgeHours: Number(args["backup-max-age"] || 36) },
   facts: facts,
 })
 

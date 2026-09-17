@@ -33,6 +33,8 @@ jobs:
         run: node scripts/acceptance-m3.mjs
       - name: M4 acceptance (the gateway refuses, filters and logs)
         run: node scripts/acceptance-m4.mjs
+      - name: M5 acceptance (backup, restore, and a truncated archive that must fail)
+        run: node scripts/acceptance-m5.mjs
       - name: Scale check (20k records; fails if a lookup exceeds 10 ms p50)
         run: node scripts/bench.mjs 20000 100
       - name: Corpus regression (benign silent, positives fire)

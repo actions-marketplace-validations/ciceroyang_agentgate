@@ -1,0 +1,15 @@
+# Keep the operational logs from growing forever. Install as /etc/logrotate.d/agentgate
+# (mode 0644, owner root) and make sure /var/log/agentgate-*.log exist and are owned by agentgate:
+# without the file, cron's redirect cannot create it and the output is lost silently.
+/var/log/agentgate.log
+/var/log/agentgate-health.log
+/var/log/agentgate-backup.log {
+	weekly
+	rotate 12
+	compress
+	delaycompress
+	missingok
+	notifempty
+	copytruncate
+	su agentgate agentgate
+}

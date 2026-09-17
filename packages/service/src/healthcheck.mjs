@@ -70,6 +70,25 @@ export function checkLedger(result) {
   return [problem("ledger_broken", detail)]
 }
 
+/**
+ * A backup that stopped happening is silent: the archive from last month still restores. So the
+ * age of the newest archive is a check, not something to remember to look at.
+ */
+export function checkBackups(files, options) {
+  const opts = options || {}
+  const maxAgeHours = typeof opts.maxAgeHours === "number" ? opts.maxAgeHours : 36
+  const list = (files || []).filter(function (file) { return file && typeof file.name === "string" && /^agentgate-.*\.tgz$/.test(file.name) })
+  if (list.length === 0) return [problem("backup_absent", "备份目录里没有 agentgate 的归档")]
+  let newest = list[0]
+  for (const file of list) if (file.mtimeMs > newest.mtimeMs) newest = file
+  const now = typeof opts.nowMs === "number" ? opts.nowMs : Date.now()
+  const ageHours = (now - newest.mtimeMs) / 3600000
+  if (!Number.isFinite(ageHours) || ageHours > maxAgeHours) {
+    return [problem("backup_age", "最新备份 " + newest.name + " 是 " + ageHours.toFixed(1) + " 小时前（上限 " + maxAgeHours + " 小时）")]
+  }
+  return []
+}
+
 export function checkUrls(results) {
   const problems = []
   for (const result of results || []) {
@@ -86,13 +105,14 @@ export function runChecks(sources) {
   const checked = []
   // Nothing checked is not fine. It is the same rule the scanner applies to a check that did not
   // run: an unmeasured deployment is not a healthy one.
-  if (["health", "disk", "ledger", "urls"].every(function (key) { return input[key] === undefined })) {
+  if (["health", "disk", "ledger", "urls", "backups"].every(function (key) { return input[key] === undefined })) {
     return { ok: false, checked: [], problems: [problem("nothing_checked", "没有任何一项被检查；没检查不等于通过")], facts: input.facts || {} }
   }
   if (input.health !== undefined) { problems.push.apply(problems, checkHealth(input.health, input.options)); checked.push("health") }
   if (input.disk !== undefined) { problems.push.apply(problems, checkDisk(input.disk, input.options)); checked.push("disk") }
   if (input.ledger !== undefined) { problems.push.apply(problems, checkLedger(input.ledger)); checked.push("ledger") }
   if (input.urls !== undefined) { problems.push.apply(problems, checkUrls(input.urls)); checked.push("urls") }
+  if (input.backups !== undefined) { problems.push.apply(problems, checkBackups(input.backups, input.options)); checked.push("backups") }
   return { ok: problems.length === 0, checked: checked, problems: problems, facts: input.facts || {} }
 }
 

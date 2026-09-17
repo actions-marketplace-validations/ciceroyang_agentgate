@@ -112,3 +112,18 @@ test("--site checks the public URLs", async function () {
     assert.match(bad.stdout, /url/)
   })
 })
+test("--backup-dir turns a stopped backup into an alert condition", async function () {
+  const deployment = buildDeployment(1, 1)
+  const backups = join(deployment.dir, "backups")
+  mkdirSync(backups, { recursive: true })
+  const nowName = "agentgate-19700101T000000Z.tgz"
+  writeFileSync(join(backups, nowName), "x")
+  const fresh = await runCli(["--url", "http://127.0.0.1:9/health", "--history", deployment.historyPath, "--state", join(deployment.dir, "s1.json"), "--no-alert", "--backup-dir", backups])
+  assert.equal(fresh.status, 1)
+  assert.equal(fresh.stdout.indexOf("backup_age"), -1, "a just-written archive is not old")
+  assert.equal(fresh.stdout.indexOf("health_not_ok") !== -1, true)
+
+  const missing = await runCli(["--url", "http://127.0.0.1:9/health", "--history", deployment.historyPath, "--state", join(deployment.dir, "s2.json"), "--no-alert", "--backup-dir", join(deployment.dir, "nope")])
+  assert.equal(missing.status, 1)
+  assert.match(missing.stdout, /backup_absent/)
+})

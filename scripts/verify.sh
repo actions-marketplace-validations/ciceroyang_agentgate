@@ -17,6 +17,7 @@ node scripts/acceptance.mjs > /dev/null && echo "M1 ok"
 node scripts/acceptance-m2.mjs > /dev/null && echo "M2 ok"
 node scripts/acceptance-m3.mjs > /dev/null && echo "M3 ok"
 node scripts/acceptance-m4.mjs > /dev/null && echo "M4 ok"
+node scripts/acceptance-m5.mjs > /dev/null && echo "M5 ok"
 echo "== supply chain =="
 node scripts/check-zero-deps.mjs
 node scripts/sbom.mjs --out "${TMPDIR:-/tmp}/agentgate-sbom.cdx.json" > /dev/null && echo "sbom ok"
