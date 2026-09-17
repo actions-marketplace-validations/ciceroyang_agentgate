@@ -18,6 +18,21 @@ function packageKey(record) {
   return pkgs.map(function (p) { return (p && p.name) + "@" + ((p && p.version) || "unpinned") }).join(",")
 }
 
+/**
+ * Whether the record was actually measured, and by what. A version change can explain a finding
+ * appearing; nothing explains a record that stopped being measurable except the measuring.
+ */
+function executionKey(record) {
+  const exec = record && record.scanExecution && record.scanExecution.scanner_execution
+  if (!exec) return "absent"
+  const failed = (exec.components || [])
+    .filter(function (c) { return c.required && c.status !== "completed" })
+    .map(function (c) { return c.id })
+    .sort()
+    .join(",")
+  return (exec.state || "unknown") + (failed ? "[" + failed + "]" : "")
+}
+
 function findingsKey(record) {
   const out = []
   const evidence = record && typeof record.evidence === "object" && record.evidence ? record.evidence : {}
@@ -37,11 +52,13 @@ export function diffIndex(from, to) {
   const verdictChanged = []
   const packageChanged = []
   const silent = []
+  const executionChanged = []
   for (const server of after.keys()) {
     if (!before.has(server)) { added.push(server); continue }
     const a = before.get(server)
     const b = after.get(server)
     if (a.verdict !== b.verdict) verdictChanged.push({ server: server, from: a.verdict, to: b.verdict })
+    if (executionKey(a) !== executionKey(b)) executionChanged.push({ server: server, from: executionKey(a), to: executionKey(b) })
     if (packageKey(a) !== packageKey(b)) packageChanged.push({ server: server, from: packageKey(a), to: packageKey(b) })
     else if (findingsKey(a) !== findingsKey(b)) {
       silent.push({ server: server, from: findingsKey(a), to: findingsKey(b) })
@@ -59,6 +76,7 @@ export function diffIndex(from, to) {
     removed: removed.sort(),
     verdictChanged: verdictChanged,
     packageChanged: packageChanged,
+    executionChanged: executionChanged,
     silent: silent,
   }
 }
@@ -74,10 +92,20 @@ export function renderDiff(d) {
   lines.push("  verdict changed: " + d.verdictChanged.length)
   lines.push("  package changed: " + d.packageChanged.length)
   lines.push("  silent (no version move, different evidence): " + d.silent.length)
+  lines.push("  coverage changed: " + ((d.executionChanged || []).length))
   if (d.scanner && d.scanner.changed) {
     lines.push("")
     lines.push("  the scanner changed between these two snapshots: " + (d.scanner.from || "(none)") + " -> " + (d.scanner.to || "(none)"))
     lines.push("  so some of what follows may be ours rather than theirs, and nothing here says which.")
+  }
+  if ((d.executionChanged || []).length > 0) {
+    lines.push("")
+    lines.push("  coverage changes, where a record stopped being fully measured or started being:")
+    for (const e of d.executionChanged.slice(0, 20)) {
+      lines.push("    " + e.server)
+      lines.push("      before: " + e.from)
+      lines.push("      after:  " + e.to)
+    }
   }
   if (d.silent.length > 0) {
     lines.push("")

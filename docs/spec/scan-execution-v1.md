@@ -106,6 +106,7 @@ fields, so the schema cannot drift away from the code that writes the records.
 | `/v1/index/summary` | `execution: { complete, incomplete, absent, byReason }` next to the verdict counts |
 | `/v1/servers` | one word per row: `complete`, `incomplete` or `null` (a record written before this block existed) |
 | policy | `required.scanners` names components a company insists on; an incomplete state is already an invariant, so it does not need to be asked for |
+| index diff (`agentgate diff`, the daily history page) | `coverage changed`, listing records that stopped being fully measured or started being — a record that became unmeasurable is not explained by any version change, so it gets its own category |
 
 An older index without the block is not treated as complete: it reads as `absent`, and a policy that
 names scanners will report it as missing rather than assume the work happened.

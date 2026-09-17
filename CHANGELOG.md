@@ -16,6 +16,8 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   tool notification per failed component, `/v1/index/summary` reports coverage counts and reasons,
   `/v1/servers` rows carry the one-word state, and `required.scanners` lets a policy name the
   scanners it insists on.
+- The index diff gained a `coverage changed` category: a record that stopped being fully measured
+  (or started being) is reported on its own, because no version change explains it.
 
 ## [0.2.0] - 2026-09-17
 

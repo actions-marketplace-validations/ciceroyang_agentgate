@@ -36,6 +36,26 @@ test("different evidence on the same version is the silent category", function (
   assert.equal(d.packageChanged.length, 0)
 })
 
+test("a record that stopped being measurable is reported as a coverage change", function () {
+  const before = index([{ server: "a/one", verdict: "clean", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "complete", components: [] } } }])
+  const after = index([{ server: "a/one", verdict: "incomplete", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "incomplete", components: [{ id: "repository", required: true, status: "failed" }] } } }])
+  const d = diffIndex(before, after)
+  assert.deepEqual(d.executionChanged, [{ server: "a/one", from: "complete", to: "incomplete[repository]" }])
+  assert.match(renderDiff(d), /coverage changes/)
+})
+
+test("a record written before the block existed reads as absent, not as complete", function () {
+  const before = index([{ server: "a/one", verdict: "clean", packages: [], evidence: {} }])
+  const after = index([{ server: "a/one", verdict: "clean", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "complete", components: [] } } }])
+  const d = diffIndex(before, after)
+  assert.deepEqual(d.executionChanged, [{ server: "a/one", from: "absent", to: "complete" }])
+})
+
+test("an unchanged execution is not a change", function () {
+  const rec = function () { return { server: "a/one", verdict: "clean", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "complete", components: [] } } } }
+  assert.deepEqual(diffIndex(index([rec()]), index([rec()])).executionChanged, [])
+})
+
 test("the rendering names the silent category rather than burying it", function () {
   const d = diffIndex(index([record("a/one", "clean", "pkg")]), index([record("a/one", "findings", "pkg", [{ rule: "r", severity: "high" }], "findings")]))
   assert.match(renderDiff(d), /silent changes/)
