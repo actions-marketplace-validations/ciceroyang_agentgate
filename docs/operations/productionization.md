@@ -28,7 +28,7 @@
 
 - **为什么**：现在 `/health` 有结果但没人能画图，访问日志默认没有，systemd 发 SIGTERM 时进程没有明确的收尾动作。
 - **做到什么算完**：`/metrics` 只在回环可达；路由标签是有界的（未知路径一律 `/other`）；日志不写 IP / UA / 查询串；SIGTERM 退出码 0。
-- **怎么验**：`node --test packages/service/test/observability.test.mjs packages/service/test/metrics-http.test.mjs`（12 项）；提交 `（本条提交号见 git log）`。
+- **怎么验**：`node --test packages/service/test/observability.test.mjs packages/service/test/metrics-http.test.mjs`（12 项，含"一千个不同路径只产生一个标签""扫描路径不出现在指标与日志里""SIGTERM 退出码 0"三条负路径）；提交 `f7fdb25`；门禁 `scripts/verify.sh` 全绿。
 
 ### P0-2 故障能自己喊出来 —— **待做**
 
