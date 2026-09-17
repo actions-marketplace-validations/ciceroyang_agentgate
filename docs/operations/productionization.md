@@ -30,12 +30,13 @@
 - **做到什么算完**：`/metrics` 只在回环可达；路由标签是有界的（未知路径一律 `/other`）；日志不写 IP / UA / 查询串；SIGTERM 退出码 0。
 - **怎么验**：`node --test packages/service/test/observability.test.mjs packages/service/test/metrics-http.test.mjs`（12 项，含"一千个不同路径只产生一个标签""扫描路径不出现在指标与日志里""SIGTERM 退出码 0"三条负路径）；提交 `f7fdb25`；门禁 `scripts/verify.sh` 全绿。
 
-### P0-2 故障能自己喊出来 —— **待做**
+### P0-2 故障能自己喊出来 —— **在做（代码与文档完成 cb81f93；服务器安装与真实演练待做）**
 
 - **为什么**：`daily-job.sh` 失败只在机器上的 log 里留一行，`/health` 的 `stale` 没有任何外部东西在看。**采集断一天是补不回来的**，这是唯一无法回溯的失败。
 - **做什么**：`scripts/healthcheck.mjs`（检查 /health 的 ageHours/stale/gaps、磁盘余量、归档链 verify、站点关键 URL 200），退出码非 0 即异常；异常时通过现有阿里云 DirectMail SMTP 发一封告警到我们自己的信箱（`curl --url smtps://... --user ... --upload-file`，零依赖）；cron 每小时跑一次，连续失败不静默。
 - **做到什么算完**：拔掉 daily-job（或把 index 改旧）后，一小时内收到一封告警邮件；恢复正常后收到恢复通知；`--dry-run` 不真的发信。
-- **怎么验**：`node --test test/healthcheck.test.mjs` + 在服务器上做一次真实的拔插演练，把时间与邮件留着。
+- **怎么验（已完成的部分）**：`node --test packages/service/test/healthcheck.test.mjs packages/service/test/alert.test.mjs test/healthcheck-cli.test.mjs`（33 项，含"服务不可达必须算问题""什么都没检查不算通过""凭据不进 argv""缺凭据时退出码 3"）；提交 `cb81f93`；门禁全绿。
+- **还差什么（这才算完）**：在服务器上装 `/etc/agentgate/alert.env`（0600）、更新 `/etc/cron.d/agentgate`、然后**真做一次拔插演练**——制造异常收到"巡检异常"邮件、恢复后收到"巡检已恢复"邮件，并把两次时间记在这里。没做这一步之前，告警只是一个文件。
 
 ## P1 供应链自保
 
