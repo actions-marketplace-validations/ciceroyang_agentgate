@@ -303,6 +303,16 @@ node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000
 
 `--expect-min 1000` 是关键的一条：样本索引只有 300 条，如果这里过了但数字还是 300，说明**采集没跑成功，服务在读样本**。
 
+## 服务自身的限制（P2）
+
+服务不假定"外面那层一定挡住了"：
+
+- **方法**：只服务 GET；HEAD 走同一个处理并丢掉响应体；其它方法由服务层返回 405。
+- **请求体**：一条也不需要。带 `Content-Length` 或 `Transfer-Encoding` 的请求在读任何内容之前就返回 **413**。
+- **速率**：`AGENTGATE_RATE_LIMIT`（次/分钟，**0 表示关闭**，service 单元里设的是 1200）。超限返回 **429 + Retry-After**。注意：Caddy 反代下所有请求都来自 127.0.0.1，所以这实际上是**一个全局上限**——它的作用是保护进程不被拖垮，按访客限流应该在边缘做。`/metrics` 不占这个额度。
+- **连接超时**：headers 15s / request 20s / keep-alive 5s（Node 默认分别是 60s / 300s / 5s）。
+- **响应头**：`x-content-type-options: nosniff`、`referrer-policy: no-referrer`、`cache-control: no-store`（Caddy 那层另有 HSTS 等）。
+
 ## 可观测（2026-09-17 起）
 
 服务自述三样东西，够一个人管一台机器：

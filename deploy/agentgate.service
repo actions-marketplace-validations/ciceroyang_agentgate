@@ -13,6 +13,9 @@ Environment=AGENTGATE_INDEX=/opt/agentgate/data/index.json
 Environment=AGENTGATE_SAMPLE=/opt/agentgate/data/sample-index.json
 Environment=AGENTGATE_HOST=127.0.0.1
 Environment=AGENTGATE_PORT=8080
+# A global cap, because behind Caddy every request arrives from 127.0.0.1. It protects the
+# process from a runaway client; per-visitor limiting belongs at the edge. 0 disables it.
+Environment=AGENTGATE_RATE_LIMIT=1200
 ExecStart=/usr/bin/node bin/agentgate.mjs serve
 Restart=always
 RestartSec=5
