@@ -51,6 +51,11 @@ test("every entry reaches the text output with its owner spelled out", function 
   assert.match(text, /第三方/)
 })
 
+test("the AICM alias resolves to the questionnaire mapping, not to a control-set mapping", function () {
+  assert.equal(frameworkById("aicm").id, "aicaiq")
+  assert.equal(frameworkById("aicaiq").id, "aicaiq")
+})
+
 test("an unknown framework is refused with the ones that exist", function () {
   assert.throws(function () { frameworkById("soc2") }, /不认识的框架：soc2/)
   assert.deepEqual(Object.keys(FRAMEWORKS), ["aicaiq"])

@@ -77,8 +77,16 @@ export const FRAMEWORKS = {
   },
 }
 
+/**
+ * AICM is the control set the questionnaire is built on; AI-CAIQ is the questionnaire. Only the
+ * latter is mapped here, so the alias is accepted (people say "AICM") but the caller can see
+ * that the name it asked for is not the artifact it got.
+ */
+export const ALIASES = { aicm: "aicaiq" }
+
 export function frameworkById(id) {
-  const framework = FRAMEWORKS[id]
+  const resolved = Object.prototype.hasOwnProperty.call(FRAMEWORKS, id) ? id : ALIASES[id]
+  const framework = resolved ? FRAMEWORKS[resolved] : null
   if (!framework) throw new Error("不认识的框架：" + id + "（可用：" + Object.keys(FRAMEWORKS).join(", ") + "）")
   return framework
 }

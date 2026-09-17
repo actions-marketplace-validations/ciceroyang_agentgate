@@ -363,6 +363,7 @@ function inventory(flags) {
     if (flags.framework !== undefined) {
       if (flags.framework === true) { console.error("inventory: --framework 需要一个框架 id，例如 aicaiq"); process.exit(3) }
       try { framework = frameworkById(String(flags.framework)) } catch (error) { console.error("inventory: " + error.message); process.exit(3) }
+      if (String(flags.framework) !== framework.id) console.error("inventory: --framework " + String(flags.framework) + " 指向 " + framework.name + "；AICM 控制集本身还没有逐条映射。")
     }
     const report = createInventoryReport(entries, index, { generatedAt: new Date().toISOString() })
     const rendered = format === "json" ? JSON.stringify(framework ? Object.assign({}, report, { framework: framework }) : report, null, 2) : renderInventoryReport(report, { framework: framework })
