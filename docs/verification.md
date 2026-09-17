@@ -348,6 +348,74 @@ v1→v2 的迁移**尚未发生**：`data/reviewed-criticals.json` 里的 11 条
 当前的高/危发现全部按新发现处理并退出非零，直到人工重读后 `--accept` 重新记录
 （绑定 finding 身份 + 精确版本 + 扫描输入 SHA-256）。在那之前不声称迁移完成。
 
+## 部署到服务器与复核基线 v1→v2（2026-09-17）
+
+用户确认后把 `bc1ae3e` 部署到 `/opt/agentgate`，并按目标记录完成复核基线迁移。
+
+部署过程：
+
+- **部署前逐文件核对**：服务器工作区那 4 个 `M`（`scripts/build-site.mjs`、`site/index.html`、
+  `site/try.html`、`site/sitemap.xml`）与 3 个未跟踪但上游已跟踪的路径（`packages/inventory/`、
+  `site/inventory-page.mjs`、`site/inventory.html`）与上游 `bc1ae3e` **逐字节相同**；
+  `data/reviewed-criticals.json` 也与上游相同。所谓“承重的未提交改动”没有任何上游没有的内容。
+- **备份**：`/var/backups/agentgate-deploy-20260917T021506Z.tgz`（整个 `/opt/agentgate`）、
+  `/var/backups/zhiliang-deploy-20260917T021506Z.tgz`（`/var/www/zhiliang`），外加部署前的
+  `git status` / `git diff` 文本；三个被移开的路径原样保留在
+  `/var/backups/agentgate-pre-deploy-20260917T021506Z/`，与 checkout 出来的版本逐字节相同。
+- `git fetch` + `git merge --ff-only`（第一次因为工作区改动被拒，按计划先 `git checkout --` 那 4 个
+  文件再合并），HEAD 到 `bc1ae3e`。部署后整棵树与全新克隆逐文件比较（排除 `.git` 与 `data/`）
+  **没有差异**；`data/` 下的采集产物（`index.json`、`census.*`、`guard-scan.json`、`history/`）没有被触碰。
+  上一轮的旧固定名残留 `/tmp/agentgate.service.new`、`/tmp/agentgate-caddy-block` 已在部署前删除。
+- 服务器上全新克隆 `bc1ae3e` 跑 `scripts/verify.sh`：345 项测试、343 通过、0 失败、2 跳过，全部检查通过。
+- `systemctl restart agentgate` 后 `/health` 返回新的 2,072 条索引（`generatedAt` `2026-09-17T02:16:20.314Z`）。
+
+索引重建（新代码第一次跑完整 cron 链）：
+
+- `refresh --max 300`：census 2,072 个服务器，guard-scan 238 个包（clean 221 / findings 6 /
+  metadata-unavailable 11）；census 明细 auditedNpm 238、auditedPypi 38、remoteOnly 1,781、
+  notAuditedPackages 15。
+- **结论分布大幅变化**：`clean 1991 → 195`、`incomplete 60 → 1845`、`findings 30 → 32`。
+  原因是 `build-index.mjs` 现在真的使用 census 一直在记录的 `audited` 标志：1,781 个没有可审计包的
+  remote-only 服务器只有一个 `registryDocument` 块，状态是 `unmeasured`（reason `not-audited`），
+  而旧代码把“没有 findings”当成 clean 发布。这正是该提交的自我说明“证据不再夸大自己”，
+  首页原本写的就是“查不到的我会写成‘没查到’，不写成干净”。
+- 快照 `data/history/diff-2026-09-17.md`：verdict changed 1,807、silent 1,803，并且明确写着
+  `the scanner changed between these two snapshots: 5b06c01 -> bc1ae3e` 与
+  “so some of what follows may be ours rather than theirs, and nothing here says which”——
+  没有把扫描器自己的改动算到别人头上。
+- `build-site.mjs`：evidence.html 503 KB / 2,072 条、2,072 张 server 页、738 张 publisher 页、
+  sitemap 2,816 条；`inventory.html` 因为内嵌新索引变成 1.5 MB。
+- 公网核对：`/health` 2,072；`/v1/index/summary` `{clean:195, findings:32, incomplete:1845}`；
+  `/`、`/evidence.html`(503 KB)、`/inventory.html`(1.5 MB)、`/pricing.html`、`/try.html` 全 200；
+  evidence 页上的计数与 summary 一致；`/badge/ai.dinglebear%2Fcortex.svg` 200 且显示 findings；
+  `/s/ac.inference.sh__mcp.html` 200。
+- 已知遗留（本轮没有改）：`build-site.mjs` 不清理输出目录，`/var/www/zhiliang/s` 有 2,107 个页而索引是
+  2,072 条，**35 张是被移除或改名的旧记录留下的孤儿页**（`/o` 也有同类积压，754 个文件）。它们仍可被
+  直接访问，只是没有任何页面链接过去。
+
+复核基线 v1→v2（本轮完成）：
+
+- 新代码先跑一次（不带 `--accept`）：打印 `LEGACY BASELINE`，
+  `high/critical findings: 24 | reviewed: 0 | new: 24`，退出 1，旧基线未被改写。24 条 = 11 条
+  `install-hook-script-critical`（critical）+ 13 条 `install-time-execution`（high）；旧脚本只覆盖 critical，
+  新脚本覆盖 high 与 critical。
+- 重读方式：从 npm 逐个拉取已发布 tarball，读 `scripts/install.js`（11 个）与 `package.json` 的
+  `postinstall`（13 个）。11 个 install 脚本都是同一形状：http(s) 下载对应平台 release 二进制、`tar` 解包、
+  `chmodSync 0o755`、`spawnSync` 执行（yarr 还会执行 `--version` 自检）；13 条 high 的 postinstall 分别是
+  `node scripts/install.js`、`node install.js`，以及 `ai.etincel/etincel-nonfiction` 的内联
+  `node -e ... execSync('npm run build')`。证据与结论一致。
+- `--accept` 写入 24 条，每条绑定 server/block/rule/file/severity + evidence 文本 + 精确包版本 + 扫描输入
+  SHA-256；随后补上每条 note（脚本会保留）。再跑一次：`24 | reviewed: 24 | new: 0 | changed: 0 | cleared: 0`，
+  退出 0（本机对着线上索引、以及服务器本机各跑一次）。
+- 基线提交为 `6bb3557` 并推送；服务器 `git merge --ff-only` 到同一提交后重跑，同样 24/24、退出 0。
+  每天的 cron 仍然**不带** `--accept`：任何一条证据、版本或扫描内容变了，它就会重新报 changed 并退出 1。
+- 迁移期间观察到的行为（本轮没有改）：旧基线没有 `schemaVersion`，新脚本按设计整体忽略它，
+  因此 `--accept` 不会把旧 note 带过来（写入的是空 note）。这会把“必须重新读一遍”变成强制；本轮由人工
+  把 24 条 note 写回。若希望将来迁移自动保留 note，需要显式修改脚本。
+
+仍然没有验证的边界：Windows；Docker 只在 CI 跑过（本机与服务器都没有 docker）；服务器上的
+Caddy 配置（本轮没有改 Caddy，也没有跑 `--apply`）。
+
 仍然没有验证的边界：Windows（部署相关测试依赖 `bash`）；服务器上真正的 `systemd` 与
 `caddy validate`/`reload`（本轮只跑彩排，没有 `--apply`）；公网页面本轮没有改动。
 
