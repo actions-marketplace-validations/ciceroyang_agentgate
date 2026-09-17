@@ -118,7 +118,23 @@ export function createService(options) {
       if (path === "/v1/index/summary") {
         const verdicts = {}
         for (const r of records) verdicts[r.verdict] = (verdicts[r.verdict] || 0) + 1
-        return json(200, { generatedAt: index.generatedAt, threshold: index.threshold, count: index.count, verdicts: verdicts, source: loaded.path })
+        // Coverage, not just outcomes: how many records carry a finished scan, how many do not,
+        // and the reasons, so "clean" can be read next to what could not be measured.
+        const execution = { complete: 0, incomplete: 0, absent: 0, byReason: {} }
+        for (const r of records) {
+          const state = r.scanExecution && r.scanExecution.scanner_execution ? r.scanExecution.scanner_execution.state : null
+          if (state === "complete") execution.complete += 1
+          else if (state === "incomplete") {
+            execution.incomplete += 1
+            for (const c of (r.scanExecution.scanner_execution.components || [])) {
+              if (c.required && c.status !== "completed") {
+                const reason = c.reason || c.status
+                execution.byReason[reason] = (execution.byReason[reason] || 0) + 1
+              }
+            }
+          } else execution.absent += 1
+        }
+        return json(200, { generatedAt: index.generatedAt, threshold: index.threshold, count: index.count, verdicts: verdicts, execution: execution, source: loaded.path })
       }
       // The ledger itself, so the record can be mirrored somewhere other than this machine.
       // It is the raw JSONL: whoever mirrors it can check the chain without trusting this route.
@@ -141,7 +157,19 @@ export function createService(options) {
         const limit = Math.min(Number(url.searchParams.get("limit") || 50) || 50, 500)
         let out = q ? matchRecords(records, q) : records.slice()
         if (verdict) out = out.filter(function (r) { return r.verdict === verdict })
-        return json(200, { count: out.length, returned: Math.min(out.length, limit), records: out.slice(0, limit).map(function (r) { return { server: r.server, verdict: r.verdict, packages: r.packages } }) })
+        return json(200, {
+          count: out.length,
+          returned: Math.min(out.length, limit),
+          records: out.slice(0, limit).map(function (r) {
+            return {
+              server: r.server,
+              verdict: r.verdict,
+              packages: r.packages,
+              // The list stays small: one word per record, and the full record is one request away.
+              execution: r.scanExecution && r.scanExecution.scanner_execution ? r.scanExecution.scanner_execution.state : null,
+            }
+          }),
+        })
       }
       const serverMatch = /^\/v1\/servers\/(.+)$/.exec(path)
       if (serverMatch) {

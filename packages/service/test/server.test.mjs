@@ -62,6 +62,28 @@ test("the summary counts verdicts", function () {
   assert.deepEqual(body.verdicts, { clean: 1, findings: 1, incomplete: 1 })
 })
 
+test("the summary reports coverage, and the server list carries the state", function () {
+  const dir = scratchDir("ag-execution-")
+  const p = join(dir, "index.json")
+  const index = {
+    generatedAt: "2026-09-17T00:00:00.000Z",
+    threshold: "medium",
+    count: 3,
+    records: [
+      { server: "a/done", verdict: "clean", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "complete", components: [] } } },
+      { server: "b/partial", verdict: "incomplete", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "incomplete", components: [{ id: "repository", required: true, status: "failed", reason: "not-in-run" }] } } },
+      { server: "c/old", verdict: "incomplete", packages: [], evidence: {} },
+    ],
+  }
+  writeFileSync(p, JSON.stringify(index))
+  const svc = createService({ indexPath: p })
+  const summary = JSON.parse(svc.handle("GET", "/v1/index/summary").body)
+  assert.deepEqual(summary.execution, { complete: 1, incomplete: 1, absent: 1, byReason: { "not-in-run": 1 } })
+  const list = JSON.parse(svc.handle("GET", "/v1/servers").body)
+  const byName = Object.fromEntries(list.records.map(function (r) { return [r.server, r.execution] }))
+  assert.deepEqual(byName, { "a/done": "complete", "b/partial": "incomplete", "c/old": null })
+})
+
 test("an exact server name wins, and a partial one is ambiguous", function () {
   const svc = withIndex()
   const exact = JSON.parse(svc.handle("GET", "/v1/servers/acme/weather").body)

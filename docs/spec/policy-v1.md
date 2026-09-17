@@ -28,6 +28,7 @@ does not read JSON for a living.
 | `version` | the format version. Defaults to `agentgate.policy/v1`. |
 | `threshold` | the severity at which a *local scan* finding fails the check. One of `critical`, `high`, `medium`, `low`, `info`. Defaults to `high`. |
 | `required.pinnedPackages` | every declared package must carry a version. |
+| `required.scanners` | scanner ids a record must show as `completed`. The record's own `scanExecution` state already has to be `complete` before anything may be clean; this names specific components on top of that. |
 | `required.measuredEvidence` | evidence blocks that must not be `unmeasured`: `registryDocument`, `packageManifest`, `repository`. |
 | `forbidden.rules` | rule identifiers that fail the check regardless of severity. |
 | `forbidden.severities` | severities that fail the check regardless of the threshold. |

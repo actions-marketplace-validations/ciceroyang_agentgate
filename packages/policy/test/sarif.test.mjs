@@ -21,3 +21,17 @@ test("a failed check is an error in SARIF", function () {
   const sarif = JSON.parse(toSarif({ findings: [], coverage: { checksFailed: [{ id: "mcp-config", error: "boom" }], evidenceMissing: [] } }, {}))
   assert.equal(sarif.runs[0].results[0].ruleId, "AG-INTERNAL-CHECK-FAIL")
 })
+
+test("an incomplete run says so in the invocation, not only in the results", function () {
+  const clean = JSON.parse(toSarif({ verdict: "clean", findings: [], coverage: { checksFailed: [], evidenceMissing: [] } }, {}))
+  assert.equal(clean.runs[0].invocations[0].executionSuccessful, true)
+  const partial = JSON.parse(toSarif({ verdict: "incomplete", findings: [], coverage: { checksFailed: [], evidenceMissing: [{ server: "a/b", block: "packageManifest", reason: "metadata-unavailable" }] } }, {}))
+  assert.equal(partial.runs[0].invocations[0].executionSuccessful, false)
+  assert.match(partial.runs[0].invocations[0].toolExecutionNotifications[0].message.text, /metadata-unavailable/)
+})
+
+test("an unfinished scan execution becomes a notification", function () {
+  const sarif = JSON.parse(toSarif({ verdict: "incomplete", findings: [], coverage: { checksFailed: [], evidenceMissing: [], executionIncomplete: [{ server: "a/b", state: "incomplete", failed: ["repository"] }] } }, {}))
+  assert.equal(sarif.runs[0].invocations[0].executionSuccessful, false)
+  assert.match(JSON.stringify(sarif.runs[0].invocations[0].toolExecutionNotifications), /repository/)
+})

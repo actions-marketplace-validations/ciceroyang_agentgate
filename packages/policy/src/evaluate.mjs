@@ -15,6 +15,7 @@ export function evaluate(options) {
   const findings = []
   const checksFailed = []
   const evidenceMissing = []
+  const executionIncomplete = []
   const malformed = []
   const threshold = severityRank(policy.threshold)
 
@@ -48,6 +49,26 @@ export function evaluate(options) {
       if (!block) { evidenceMissing.push({ server: record.server, block: blockName, reason: "the evidence block is absent" }); continue }
       if (block.status === "unmeasured") evidenceMissing.push({ server: record.server, block: blockName, reason: block.reason || "unmeasured" })
     }
+    // A scan-execution record that is not complete cannot support `clean`, whatever the findings
+    // say. That is an invariant, not a policy option: it is checked for every record that carries
+    // the block. A policy may additionally name scanners it insists on.
+    const execution = record.scanExecution && record.scanExecution.scanner_execution
+    const requiredScanners = policy.requiredScanners || []
+    if (requiredScanners.length === 0) {
+      if (execution && (execution.state !== "complete" || (execution.components || []).some(function (c) { return c.required && c.status !== "completed" }))) {
+        executionIncomplete.push({
+          server: record.server,
+          state: execution.state === "complete" ? "incomplete" : (execution.state || "unknown"),
+          failed: (execution.components || []).filter(function (c) { return c.required && c.status !== "completed" }).map(function (c) { return c.id }),
+        })
+      }
+    } else {
+      const missing = requiredScanners.filter(function (id) {
+        const component = (execution && execution.components || []).filter(function (c) { return c.id === id })[0]
+        return !component || component.status !== "completed"
+      })
+      if (missing.length > 0) executionIncomplete.push({ server: record.server, state: execution ? (execution.state || "unknown") : "absent", failed: missing })
+    }
     if (policy.pinPackages) {
       for (const pkg of record.packages || []) {
         if (!pkg.version) evidenceMissing.push({ server: record.server, block: "packageManifest", reason: "package " + pkg.name + " has no pinned version" })
@@ -55,12 +76,12 @@ export function evaluate(options) {
     }
   }
 
-  const verdict = checksFailed.length > 0 || evidenceMissing.length > 0 || malformed.length > 0 ? "incomplete" : findings.length > 0 ? "findings" : "clean"
+  const verdict = checksFailed.length > 0 || evidenceMissing.length > 0 || executionIncomplete.length > 0 || malformed.length > 0 ? "incomplete" : findings.length > 0 ? "findings" : "clean"
   return {
     policyVersion: policy.version || POLICY_VERSION,
     verdict: verdict,
     findings: findings,
-    coverage: { checksFailed: checksFailed, evidenceMissing: evidenceMissing, malformed: malformed },
+    coverage: { checksFailed: checksFailed, evidenceMissing: evidenceMissing, executionIncomplete: executionIncomplete, malformed: malformed },
   }
 }
 

@@ -12,6 +12,10 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   `scanner_execution` follow the shape discussed in
   [modelcontextprotocol/registry#1404](https://github.com/modelcontextprotocol/registry/pull/1404)
   so the two records can be compared field by field.
+- The record is surfaced where it is read: SARIF carries `invocations[].executionSuccessful` and one
+  tool notification per failed component, `/v1/index/summary` reports coverage counts and reasons,
+  `/v1/servers` rows carry the one-word state, and `required.scanners` lets a policy name the
+  scanners it insists on.
 
 ## [0.2.0] - 2026-09-17
 

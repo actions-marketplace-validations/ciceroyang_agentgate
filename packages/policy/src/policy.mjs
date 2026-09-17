@@ -32,6 +32,9 @@ export function normalizePolicy(doc) {
     threshold: threshold,
     pinPackages: required.pinnedPackages === true,
     measuredEvidence: asArray(required.measuredEvidence),
+    // Named scanners a company insists on: the record's own `state` already has to be complete
+    // before anything may be clean, and this lets a policy demand specific components on top.
+    requiredScanners: asArray(required.scanners),
     forbiddenRules: asArray(forbidden.rules),
     forbiddenSeverities: asArray(forbidden.severities),
     forbiddenServers: asArray(forbidden.servers),

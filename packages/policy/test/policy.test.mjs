@@ -57,6 +57,43 @@ test("required but unmeasured evidence is incomplete, never clean", function () 
   assert.equal(exitCodeFor(out), 2)
 })
 
+test("a record whose scan execution is not complete is incomplete, whatever the policy says", function () {
+  const policy = normalizePolicy(base({}))
+  const records = [{
+    server: "a/b",
+    packages: [],
+    evidence: {},
+    scanExecution: { scanner_execution: { state: "incomplete", components: [{ id: "repository", required: true, status: "failed", reason: "not-in-run" }] } },
+  }]
+  const out = evaluate({ policy: policy, records: records })
+  assert.equal(out.verdict, "incomplete")
+  assert.deepEqual(out.coverage.executionIncomplete, [{ server: "a/b", state: "incomplete", failed: ["repository"] }])
+  assert.equal(exitCodeFor(out), 2)
+})
+
+test("a complete scan execution does not by itself make a record clean", function () {
+  const policy = normalizePolicy(base({ required: { measuredEvidence: ["packageManifest"] } }))
+  const records = [{
+    server: "a/b",
+    packages: [],
+    evidence: { packageManifest: { status: "unmeasured", reason: "metadata-unavailable" } },
+    scanExecution: { scanner_execution: { state: "complete", components: [{ id: "packageManifest", required: true, status: "completed" }] } },
+  }]
+  const out = evaluate({ policy: policy, records: records })
+  assert.equal(out.verdict, "incomplete")
+  assert.equal(out.coverage.evidenceMissing.length, 1)
+})
+
+test("a policy can name the scanners it insists on", function () {
+  const policy = normalizePolicy(base({ required: { scanners: ["packageManifest"] } }))
+  assert.deepEqual(policy.requiredScanners, ["packageManifest"])
+  const missing = evaluate({ policy: policy, records: [{ server: "a/b", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "complete", components: [{ id: "registryDocument", required: true, status: "completed" }] } } }] })
+  assert.equal(missing.verdict, "incomplete")
+  assert.deepEqual(missing.coverage.executionIncomplete, [{ server: "a/b", state: "complete", failed: ["packageManifest"] }])
+  const present = evaluate({ policy: policy, records: [{ server: "a/b", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "complete", components: [{ id: "packageManifest", required: true, status: "completed" }] } } }] })
+  assert.equal(present.verdict, "clean")
+})
+
 test("an unpinned package fails a pinning policy", function () {
   const policy = normalizePolicy(base({ required: { pinnedPackages: true } }))
   const records = [{ server: "a/b", packages: [{ registry: "npm", name: "x", version: null }], evidence: {} }]

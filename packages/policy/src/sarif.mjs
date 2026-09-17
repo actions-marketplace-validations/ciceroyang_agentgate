@@ -41,9 +41,30 @@ export function toSarif(result, meta) {
       locations: [],
     })
   }
+  // SARIF has one field that means "this run did not finish": executionSuccessful. It is the
+  // conventional place a consumer looks before trusting an empty result list, so a partial scan
+  // is declared here as well as in the results. Everything that made the run incomplete becomes a
+  // tool notification, which is where readers of an invocation expect it.
+  const notifications = []
+  for (const m of (result.coverage && result.coverage.evidenceMissing) || []) {
+    notifications.push({ level: "error", message: { text: m.server + " / " + m.block + " could not be measured: " + m.reason } })
+  }
+  for (const c of (result.coverage && result.coverage.checksFailed) || []) {
+    notifications.push({ level: "error", message: { text: "check " + c.id + " failed to run: " + c.error } })
+  }
+  for (const m of (result.coverage && result.coverage.malformed) || []) {
+    notifications.push({ level: "error", message: { text: m.source + ": " + m.detail } })
+  }
+  for (const e of (result.coverage && result.coverage.executionIncomplete) || []) {
+    notifications.push({ level: "error", message: { text: "scan execution for " + e.server + " is " + e.state + ": " + ((e.failed && e.failed.length) ? e.failed.join(", ") : "required work did not complete") } })
+  }
   return JSON.stringify({
     version: "2.1.0",
     $schema: "https://json.schemastore.org/sarif-2.1.0.json",
-    runs: [{ tool: { driver: { name: "agentgate", version: (meta && meta.version) || "0.1.0" } }, results: results }],
+    runs: [{
+      tool: { driver: { name: "agentgate", version: (meta && meta.version) || "0.1.0" } },
+      invocations: [{ executionSuccessful: result.verdict !== "incomplete", toolExecutionNotifications: notifications }],
+      results: results,
+    }],
   }, null, 2)
 }

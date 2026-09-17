@@ -97,3 +97,15 @@ is the list of components, which is why the list is in the record.
 `validateScanExecution` in the module above is the reference implementation (no dependencies). The
 JSON Schema is provided for other consumers, and a test asserts that the two agree on the required
 fields, so the schema cannot drift away from the code that writes the records.
+## Where the record appears
+
+| surface | what a reader sees |
+| --- | --- |
+| index record (`data/index.json`) | `scanExecution` on every record; the verdict is `incomplete` whenever the state is not `complete` |
+| SARIF (`check --format sarif`) | `runs[].invocations[].executionSuccessful`, plus one `toolExecutionNotification` per failed component — the conventional place a consumer looks before trusting an empty result list |
+| `/v1/index/summary` | `execution: { complete, incomplete, absent, byReason }` next to the verdict counts |
+| `/v1/servers` | one word per row: `complete`, `incomplete` or `null` (a record written before this block existed) |
+| policy | `required.scanners` names components a company insists on; an incomplete state is already an invariant, so it does not need to be asked for |
+
+An older index without the block is not treated as complete: it reads as `absent`, and a policy that
+names scanners will report it as missing rather than assume the work happened.
