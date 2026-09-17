@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
-import { appendCapture, readLedger, coverageOf } from "../packages/history/src/ledger.mjs"
+import { appendCapture, readLedger, coverageOf, fileDigest } from "../packages/history/src/ledger.mjs"
 
 const argv = process.argv.slice(2)
 const argOf = function (name, fallback) {
@@ -53,10 +53,22 @@ if (existsSync(previousPath)) {
 // The capture is appended to a chained ledger before previous.json moves: the ledger is what
 // makes "we have been watching since" a checkable statement rather than a claim. The day archive
 // is written once, by the first capture of that day.
-const capture = appendCapture(history, { index: today, indexFile: index, scanner: today.scanner || null, day: date, capturedAt: today.generatedAt })
+//
+// One line per capture, not per run. A retry that sees exactly what the last capture saw adds
+// nothing, which is what lets this job run more than once a day: a failed 04:17 then costs a few
+// hours instead of a day, and the record does not fill up with identical lines.
+const digest = fileDigest(index)
+const entries = readLedger(history)
+const last = entries.length > 0 ? entries[entries.length - 1] : null
+const unchanged = !!last && last.day === date && last.sha256 === digest
+const capture = unchanged ? null : appendCapture(history, { index: today, indexFile: index, scanner: today.scanner || null, day: date, capturedAt: today.generatedAt })
 copyFileSync(index, previousPath)
 const coverage = coverageOf(readLedger(history))
 if (!quiet) {
   console.log(message)
-  console.log("ledger: " + coverage.captures + " capture(s) over " + coverage.days + " day(s) since " + coverage.first + (capture.wroteDay ? "" : " (day archive already existed)") + (coverage.gaps.length > 0 ? "; missing " + coverage.gaps.join(", ") : ""))
+  if (unchanged) {
+    console.log("ledger: unchanged since the capture on " + date + " (" + coverage.captures + " capture(s) over " + coverage.days + " day(s))")
+  } else {
+    console.log("ledger: " + coverage.captures + " capture(s) over " + coverage.days + " day(s) since " + coverage.first + (capture.wroteDay ? "" : " (day archive already existed)") + (coverage.gaps.length > 0 ? "; missing " + coverage.gaps.join(", ") : ""))
+  }
 }

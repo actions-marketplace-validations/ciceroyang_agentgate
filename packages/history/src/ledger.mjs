@@ -25,6 +25,9 @@ function sha256Hex(buffer) { return createHash("sha256").update(buffer).digest("
 /** The hash a line is referenced by, computed over the exact bytes that are stored. */
 export function hashOfLine(raw) { return sha256Hex(Buffer.from(raw, "utf8")) }
 
+/** The SHA-256 of a file, which is what a capture records about the index it saw. */
+export function fileDigest(path) { return sha256Hex(readFileSync(path)) }
+
 export function countsOf(index) {
   const counts = { clean: 0, findings: 0, incomplete: 0 }
   for (const r of (index && index.records) || []) {
@@ -153,7 +156,23 @@ export function coverageOf(entries) {
  * storage decision, and the ledger still proves the capture happened. A snapshot whose bytes no
  * longer match, or a line whose prev does not match the line before it, is tampering.
  */
-export function verifyLedger(historyDir) {
+/** What the service can say about the record without reading the snapshots. */
+export function summarize(historyDir) {
+  const entries = readLedger(historyDir)
+  const coverage = coverageOf(entries)
+  const last = entries.length > 0 ? entries[entries.length - 1] : null
+  return {
+    captures: coverage.captures,
+    days: coverage.days,
+    first: coverage.first,
+    last: coverage.last,
+    gaps: coverage.gaps,
+    lastCapturedAt: last ? last.capturedAt : null,
+  }
+}
+
+export function verifyLedger(historyDir, options) {
+  const opts = options || {}
   const entries = readLedger(historyDir)
   const problems = []
   const notRetained = []
@@ -184,11 +203,24 @@ export function verifyLedger(historyDir) {
       problems.push("line " + entry.line + ": the retained snapshot is not readable JSON")
     }
   }
+  // A day with no capture is the failure this whole file exists to make visible, so the age of
+  // the last capture is part of verification, not a separate thing to remember to check.
+  const last = entries.length > 0 ? entries[entries.length - 1] : null
+  let ageHours = null
+  let stale = false
+  if (last && typeof opts.maxAgeHours === "number" && isFinite(opts.maxAgeHours)) {
+    const now = opts.now ? opts.now.getTime() : Date.now()
+    ageHours = (now - Date.parse(last.capturedAt)) / 3600000
+    stale = ageHours > opts.maxAgeHours
+    if (stale) problems.push("the last capture is " + ageHours.toFixed(1) + "h old (limit " + opts.maxAgeHours + "h)")
+  }
   return {
     ok: problems.length === 0,
     problems: problems,
     notRetained: notRetained,
     coverage: coverageOf(entries),
     entries: entries,
+    stale: stale,
+    ageHours: ageHours,
   }
 }

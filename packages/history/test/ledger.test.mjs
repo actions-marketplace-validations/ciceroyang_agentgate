@@ -129,6 +129,19 @@ test("a lost ledger is rebuilt from the day archives, and backfilling twice chan
   assert.equal(readLedger(dir).length, 2)
 })
 
+test("a record whose last capture is too old fails verification", function () {
+  const dir = scratchDir("ag-ledger-stale-")
+  const file = fixture(dir, "s.json", indexOf(1, 0, 0))
+  appendCapture(dir, { index: JSON.parse(readFileSync(file, "utf8")), indexFile: file, scanner: "aaa", capturedAt: "2026-01-01T04:17:00.000Z" })
+  const fresh = verifyLedger(dir, { maxAgeHours: 26, now: new Date("2026-01-01T20:00:00.000Z") })
+  assert.equal(fresh.ok, true)
+  assert.equal(fresh.stale, false)
+  const stale = verifyLedger(dir, { maxAgeHours: 26, now: new Date("2026-01-03T04:17:00.000Z") })
+  assert.equal(stale.ok, false, "a two-day-old record passed a 26h limit")
+  assert.equal(stale.stale, true)
+  assert.match(stale.problems.join(" "), /the last capture is 48\.0h old/)
+})
+
 test("a day with no capture is reported as a gap", function () {
   const entries = [
     { day: "2026-01-01", hash: "a" },

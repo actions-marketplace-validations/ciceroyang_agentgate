@@ -1,8 +1,11 @@
 name: pages
 
-# Publish the evidence index as a browsable page, rebuilt daily from the live registry, with
-# the changes since the previous snapshot. The snapshot lives on a history branch so the
-# record accumulates: nobody can back-fill what this saw today.
+# Publish the evidence index as a browsable page, and mirror the deployment's capture ledger
+# somewhere other than the deployment. This job used to make its own snapshots here and force-push
+# a single-commit history branch: a record that can be replaced at will, and which could hold the
+# committed sample when the refresh failed. It now copies the chain the deployment actually wrote
+# (GET /v1/history) and appends it to the branch with normal commits, so the copy on GitHub is a
+# second location that cannot be rewritten retroactively without contradicting a commit.
 on:
   push:
     branches: [main]
@@ -32,44 +35,51 @@ jobs:
       - name: Refresh from the live registry
         run: |
           node bin/agentgate.mjs refresh --max 300 && echo "refreshed" || echo "refresh failed; falling back to the committed sample"
-      - name: Take the previous snapshot from the history branch
+      - name: Mirror the deployment's capture ledger
         run: |
-          git fetch origin history --depth 1 2>/dev/null || true
-          if git show origin/history:previous.json > data/previous.json 2>/dev/null; then
-            echo "previous snapshot: $(node -e "console.log(require('./data/previous.json').count)") records"
+          mkdir -p data/history
+          BASE=https://app.xn--5kvo87g.com
+          if curl -fsS --max-time 60 "$BASE/v1/history" -o data/history/ledger.jsonl; then
+            echo "mirrored $(wc -l < data/history/ledger.jsonl) capture(s)"
+            node bin/agentgate.mjs history --history data/history || echo "the mirrored ledger did not verify"
           else
-            echo "no history yet; nothing to compare against, so no diff will be produced"
+            echo "the deployment did not serve a ledger; nothing is mirrored"
+            rm -f data/history/ledger.jsonl
           fi
-      - name: What changed
-        run: |
-          INDEX=data/index.json
-          test -s "$INDEX" || INDEX=data/sample-index.json
-          if [ -f data/previous.json ]; then
-            node bin/agentgate.mjs diff --from data/previous.json --to "$INDEX" --out data/diff.md || echo "no diff produced"
+          if curl -fsS --max-time 60 "$BASE/v1/history/diff" -o data/diff.md; then
+            echo "diff: $(head -c 60 data/diff.md)"
           else
-            echo "first snapshot: no previous state, so no diff is written rather than inventing one"
+            echo "no diff was served; the page will be built without one"
             rm -f data/diff.md
           fi
-          cat data/diff.md 2>/dev/null | head -20 || true
       - name: Build the browsable index
         run: |
           INDEX=data/index.json
           test -s "$INDEX" || INDEX=data/sample-index.json
           echo "building from $INDEX"
-          node scripts/build-site.mjs --index "$INDEX" --out dist --diff data/diff.md
-      - name: Keep the snapshot on the history branch
+          node scripts/build-site.mjs --index "$INDEX" --out dist --diff data/diff.md --history data/history
+      - name: Keep the mirrored record on the history branch
         run: |
-          INDEX=data/index.json
-          test -s "$INDEX" || INDEX=data/sample-index.json
+          test -s data/history/ledger.jsonl || { echo "no ledger to record"; exit 0; }
           WORK=$(mktemp -d)
-          cp "$INDEX" "$WORK/previous.json"
-          cp "$INDEX" "$WORK/$(date -u +%F).json"
+          cp data/history/ledger.jsonl "$WORK/ledger.jsonl"
           if [ -f data/diff.md ]; then cp data/diff.md "$WORK/diff-$(date -u +%F).md"; fi
           cd "$WORK"
           git init -q -b history
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q --depth 1 origin history || true
+          if git rev-parse -q --verify FETCH_HEAD > /dev/null; then
+            git checkout -q FETCH_HEAD -- . 2>/dev/null || true
+            # our copy is the source: the branch copy is only kept so the history accumulates
+            cp "$WORK/ledger.jsonl" ledger.jsonl
+          fi
           git -c user.name="github-actions" -c user.email="actions@github.com" add -A
-          git -c user.name="github-actions" -c user.email="actions@github.com" commit -q -m "snapshot $(date -u +%F)" || echo "nothing to commit"
-          git push --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" history || echo "history push failed; the page is still correct"
+          if git -c user.name="github-actions" -c user.email="actions@github.com" diff --cached --quiet; then
+            echo "the mirrored record is unchanged"
+          else
+            git -c user.name="github-actions" -c user.email="actions@github.com" commit -q -m "ledger $(date -u +%F)"
+            git push -q origin history || echo "history push failed; the page is still correct"
+          fi
       - name: A sample report, from the project that breaks its own policy
         run: |
           node bin/agentgate.mjs check --root examples/action-verify --policy examples/action-verify/agentgate.policy.json --format html --out dist/report-sample.html || echo "expected: the sample is meant to fail the check"

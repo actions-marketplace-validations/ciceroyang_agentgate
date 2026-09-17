@@ -64,6 +64,7 @@ function serve(flags) {
   const which = existsSync(indexPath) ? indexPath : (existsSync(samplePath) ? samplePath + " (committed sample)" : "none")
   const server = start({
     indexPath: indexPath, samplePath: samplePath, port: port, host: host,
+    historyPath: flags.history || process.env.AGENTGATE_HISTORY || join(dirname(resolve(indexPath)), "history"),
     // Print the port the socket actually got. With --port 0 the requested port is not the one
     // anything can connect to, and a caller that cannot learn it has to guess.
     onListening: function () {
@@ -201,17 +202,18 @@ function diff(flags) {
  */
 function history(flags) {
   const dir = flags.history || "data/history"
+  const maxAge = flags["max-age"] !== undefined ? Number(flags["max-age"]) : null
   if (flags.backfill) {
     const added = backfill(dir)
     console.log(added.length === 0 ? "nothing to backfill" : "backfilled " + added.length + " capture(s) from the day archives")
   }
-  const result = verifyLedger(dir)
+  const result = verifyLedger(dir, maxAge !== null ? { maxAgeHours: maxAge } : {})
   const coverage = result.coverage
   if (flags.format === "json") {
     process.stdout.write(JSON.stringify({ ok: result.ok, problems: result.problems, notRetained: result.notRetained, coverage: coverage, entries: result.entries }, null, 2) + "\n")
     process.exit(result.ok ? 0 : 1)
   }
-  console.log("captures: " + coverage.captures + " over " + coverage.days + " day(s), " + (coverage.first || "(none)") + " .. " + (coverage.last || "(none)"))
+  console.log("captures: " + coverage.captures + " over " + coverage.days + " day(s), " + (coverage.first || "(none)") + " .. " + (coverage.last || "(none)") + (result.ageHours !== null ? " (last " + result.ageHours.toFixed(1) + "h ago)" : ""))
   if (coverage.gaps.length > 0) console.log("missing day(s): " + coverage.gaps.join(", "))
   if (result.notRetained.length > 0) console.log("snapshot(s) no longer retained: " + result.notRetained.length)
   for (const entry of result.entries.slice(-5)) {
@@ -293,6 +295,6 @@ else {
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
   console.log("  refresh   [--max 300]   fetch public sources and rebuild data/index.json")
-  console.log("  history   [--history data/history] [--backfill] [--format json]   verify the chained capture ledger")
+  console.log("  history   [--history data/history] [--backfill] [--max-age 26] [--format json]   verify the chained capture ledger")
   console.log("  version")
 }

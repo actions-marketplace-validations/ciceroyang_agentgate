@@ -5,8 +5,10 @@
  * with a 503 rather than serving an empty, reassuring answer: a control plane that
  * cannot answer must not look like one that answered "nothing wrong".
  */
-import { readFileSync, existsSync, statSync } from "node:fs"
+import { readFileSync, existsSync, statSync, readdirSync } from "node:fs"
+import { join } from "node:path"
 import { inventoryResource } from "../../inventory/src/web.mjs"
+import { summarize } from "../../history/src/ledger.mjs"
 
 const COLORS = { clean: "#2ea043", findings: "#d29922", incomplete: "#8b949e" }
 
@@ -84,6 +86,19 @@ export function createService(options) {
   const opts = options || {}
   const load = function () { return loadIndex([opts.indexPath, opts.samplePath]) }
   const json = function (status, body) { return { status: status, type: "application/json; charset=utf-8", body: JSON.stringify(body, null, 2) + "\n" } }
+  // How far back the record goes, and whether the last capture is recent. A daily job that stops
+  // running is the one failure this project cannot recover from, so it belongs where anything
+  // watching the service can see it, not only in a log on the same machine.
+  const history = function () {
+    if (!opts.historyPath) return null
+    try {
+      const s = summarize(opts.historyPath)
+      const age = s.lastCapturedAt ? (Date.now() - Date.parse(s.lastCapturedAt)) / 3600000 : null
+      return Object.assign({}, s, { ageHours: age === null ? null : Math.round(age * 10) / 10, stale: age === null || age > 26 })
+    } catch (error) {
+      return { error: "the ledger could not be read: " + String((error && error.message) || error) }
+    }
+  }
   return {
     handle: function (method, rawPath) {
       const url = new URL(rawPath, "http://localhost")
@@ -94,7 +109,7 @@ export function createService(options) {
       if (path === "/health") {
         const loaded = load()
         if (!loaded) return json(503, { ok: false, reason: "no usable index is present", hint: "run: node bin/agentgate.mjs refresh" })
-        return json(200, { ok: true, index: loaded.path, generatedAt: loaded.data.generatedAt, records: loaded.data.count, threshold: loaded.data.threshold })
+        return json(200, { ok: true, index: loaded.path, generatedAt: loaded.data.generatedAt, records: loaded.data.count, threshold: loaded.data.threshold, history: history() })
       }
       const loaded = load()
       if (!loaded) return json(503, { error: "no usable index is present; a file without a records array is not an index", hint: "run: node bin/agentgate.mjs refresh" })
@@ -104,6 +119,21 @@ export function createService(options) {
         const verdicts = {}
         for (const r of records) verdicts[r.verdict] = (verdicts[r.verdict] || 0) + 1
         return json(200, { generatedAt: index.generatedAt, threshold: index.threshold, count: index.count, verdicts: verdicts, source: loaded.path })
+      }
+      // The ledger itself, so the record can be mirrored somewhere other than this machine.
+      // It is the raw JSONL: whoever mirrors it can check the chain without trusting this route.
+      if (path === "/v1/history") {
+        const ledgerPath = opts.historyPath ? join(opts.historyPath, "ledger.jsonl") : null
+        if (!ledgerPath || !existsSync(ledgerPath)) return json(404, { error: "this deployment has no capture ledger" })
+        return { status: 200, type: "application/x-ndjson; charset=utf-8", body: readFileSync(ledgerPath, "utf8") }
+      }
+      // The newest day-over-day diff, so the public mirror shows the same "what changed" the
+      // deployment pages show without shipping a 2 MB index per day into git.
+      if (path === "/v1/history/diff") {
+        if (!opts.historyPath || !existsSync(opts.historyPath)) return json(404, { error: "this deployment has no capture ledger" })
+        const names = readdirSync(opts.historyPath).filter(function (n) { return /^diff-[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$/.test(n) }).sort()
+        if (names.length === 0) return json(404, { error: "no diff has been written yet" })
+        return { status: 200, type: "text/markdown; charset=utf-8", body: readFileSync(join(opts.historyPath, names[names.length - 1]), "utf8") }
       }
       if (path === "/v1/servers") {
         const q = url.searchParams.get("q")
@@ -130,7 +160,7 @@ export function createService(options) {
         const verdict = VERDICTS[record.verdict] || "unknown"
         return { status: 200, type: "image/svg+xml", body: svg("badge", COLORS[verdict] || "#8b949e", verdict) }
       }
-      return json(404, { error: "no such route", routes: ["/health", "/v1/index/summary", "/v1/servers", "/v1/servers/:name", "/badge/:name.svg"] })
+      return json(404, { error: "no such route", routes: ["/health", "/v1/index/summary", "/v1/history", "/v1/servers", "/v1/servers/:name", "/badge/:name.svg"] })
     },
   }
 }

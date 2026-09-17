@@ -444,4 +444,14 @@ Caddy 配置（本轮没有改 Caddy，也没有跑 `--apply`）。
 
 服务器：部署后 `history --backfill` 用已有的两天归档播种账本，`history --verify` 退出 0。
 
+## 采集账本的第二轮：不丢天，并且放到第二个位置（2026-09-17）
+
+账本上线后还剩两个洞：**一天没采集没人知道**，以及**账本和站点在同一台机器上**（所以“已发布的一份”并不算外部锚点）。这一轮补上这两条。
+
+- **不丢天**：`scripts/daily-job.sh`（版本化，不再靠机器上的手抄 cron 链）把所有步骤写成互不连累的一组，refresh 失败也照样把盘上已有的索引记成一次采集；`daily-snapshot` 只在记录真的变了时才追加一行，所以同一天可以安全地跑多次。`deploy/cron.d-agentgate` 是 `17 4,8,12,16,20 * * *`，一天五次，夜里那次失败最多损失几小时。
+- **迟到会自己暴露**：`history --max-age 26` 把“最近一次采集有多旧”变成退出码；`/health` 新增 `history` 块（captures / days / first / last / gaps / ageHours / stale），外部监视不用读这台机器上的文件就能发现停摆。
+- **第二个位置**：`/v1/history` 按原样返回 `ledger.jsonl`，`/v1/history/diff` 返回最新一天的 diff。GitHub 的 `pages` 工作流改成**镜像**这份账本：拉取 → 用仓库自己的 `history --verify` 核对链 → 以**普通提交追加**到 `history` 分支（原来是一次性的单提交 + `--force`，而且 refresh 失败时会把 300 条的样本当快照写进去，那两条都已删掉）。站点那边 `build-site.mjs --history <dir>` 也从镜像出来的账本渲染公开页。
+- 本机 `verify.sh`：360 项测试、358 通过、0 失败、2 跳过（新增：账本过期、重复运行的幂等、`/health` 的 history 块、`/v1/history` 与 diff 路由、daily-job/cron 的结构断言）。
+
+
 

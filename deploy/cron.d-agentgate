@@ -1,0 +1,10 @@
+SHELL=/bin/sh
+PATH=/usr/bin:/bin
+
+# The daily chain. It runs more than once a day on purpose: a day with no capture cannot be
+# recovered later, and the snapshot step appends a line only when the record actually changed, so
+# the extra runs cost a refresh and nothing else. The review is the last step inside the script
+# because it exits non-zero whenever a person is needed.
+#
+# Install as /etc/cron.d/agentgate (mode 0644, owner root). See docs/operations/deployment-runbook.md.
+17 4,8,12,16,20 * * * agentgate /opt/agentgate/scripts/daily-job.sh >> /var/log/agentgate.log 2>&1

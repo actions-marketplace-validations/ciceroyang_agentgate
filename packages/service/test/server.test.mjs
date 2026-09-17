@@ -4,6 +4,7 @@ import { writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { createService, matchRecords, clearIndexCache } from "../src/server.mjs"
 import { scratchDir } from "../../../test/tmpdir.mjs"
+import { appendCapture } from "../../history/src/ledger.mjs"
 
 const SAMPLE = {
   generatedAt: "2026-09-15T00:00:00.000Z",
@@ -37,6 +38,23 @@ test("health reports the index it actually read", function () {
   assert.equal(body.ok, true)
   assert.equal(body.records, 3)
   assert.match(body.index, /index\.json$/)
+})
+
+test("health says how far back the record goes, and whether it is stale", function () {
+  // A daily job that stops running is the one failure this project cannot recover from, so the
+  // service reports it where anything watching the deployment can see it.
+  const dir = scratchDir("ag-health-history-")
+  const index = join(dir, "index.json")
+  writeFileSync(index, JSON.stringify(SAMPLE))
+  appendCapture(dir, { index: SAMPLE, indexFile: index, scanner: "abc1234", capturedAt: new Date().toISOString() })
+  const svc = createService({ indexPath: index, historyPath: dir })
+  const body = JSON.parse(svc.handle("GET", "/health").body)
+  assert.equal(body.history.captures, 1)
+  assert.equal(body.history.stale, false)
+  assert.equal(body.history.days, 1)
+
+  const noLedger = JSON.parse(createService({ indexPath: index }).handle("GET", "/health").body)
+  assert.equal(noLedger.history, null, "a service without a ledger path must not invent one")
 })
 
 test("the summary counts verdicts", function () {

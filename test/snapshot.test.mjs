@@ -89,6 +89,23 @@ test("a missing index is an error, not a silent no-op", function () {
   rmSync(dir, { recursive: true, force: true })
 })
 
+test("a retry on the same day with an unchanged index adds no second line", function () {
+  const dir = scratchDir("ag-snap-retry-")
+  const history = join(dir, "history")
+  const index = join(dir, "index.json")
+  writeFileSync(index, indexWith([{ server: "a/b", verdict: "clean", packages: [], evidence: [] }]))
+  const first = run(["--index", index, "--history", history, "--date", "2026-09-15"])
+  assert.equal(first.status, 0, first.stderr)
+  assert.match(first.stdout, /ledger: 1 capture\(s\) over 1 day\(s\)/)
+
+  // The point of the retry is that a failed 04:17 costs hours instead of a day, not that the
+  // record fills up with the same line every few hours.
+  const retry = run(["--index", index, "--history", history, "--date", "2026-09-15"])
+  assert.equal(retry.status, 0, retry.stderr)
+  assert.match(retry.stdout, /unchanged since the capture on 2026-09-15/)
+  assert.equal(readFileSync(join(history, "ledger.jsonl"), "utf8").trim().split("\n").length, 1)
+})
+
 test("the history command verifies the ledger the daily job wrote, and an edited record fails it", function () {
   const dir = scratchDir("ag-history-cli-")
   const history = join(dir, "history")

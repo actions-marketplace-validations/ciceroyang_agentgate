@@ -107,6 +107,22 @@ test("the onboarding script leaves nothing behind in the temporary directory", f
   rmSync(scratch, { recursive: true, force: true })
 })
 
+test("the daily job cannot lose a day, and the review cannot skip a step", function () {
+  const scriptPath = join(ROOT, "scripts", "daily-job.sh")
+  const syntax = spawnSync("sh", ["-n", scriptPath], { encoding: "utf8" })
+  assert.equal(syntax.status, 0, syntax.stderr)
+  const script = readFileSync(scriptPath, "utf8")
+  // A failed refresh must not cost the day: the index already on disk is still a capture.
+  assert.match(script, /refresh: failed, capturing the index already on disk/)
+  assert.match(script, /history --max-age/, "the job never checks how old the record is")
+  // review-criticals exits 1 by design whenever a person is needed. It is last, and it is not in
+  // the same && chain as the capture, or a finding would silently stop the record.
+  assert.ok(script.indexOf("history --max-age") < script.indexOf("review-criticals.mjs"))
+  assert.doesNotMatch(script, /daily-snapshot\.mjs &&/, "the capture is in an && chain again")
+  const cron = readFileSync(join(ROOT, "deploy", "cron.d-agentgate"), "utf8")
+  assert.match(cron, /17 4,8,12,16,20 \* \* \* agentgate \/opt\/agentgate\/scripts\/daily-job\.sh/, "the job has to run more than once a day")
+})
+
 test("the installer picks the package manager the distribution actually has", function () {
   // Alibaba Cloud Linux is RHEL family: no apt-get, dnf instead, SELinux enforcing. The script
   // called apt-get unconditionally, which stops at the first step on the default Aliyun image.
