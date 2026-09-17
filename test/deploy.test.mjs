@@ -206,7 +206,7 @@ test("every name Caddy serves is a name the runbook tells the user to create", f
     }
   }
   assert.ok(served.has("app.xn--5kvo87g.com"), "the product host app. is not served: " + Array.from(served).join(", "))
-  // The apex already serves the personal site on that machine. A Caddyfile that claims it would
+  // The apex already serves another site on that machine. A Caddyfile that claims it would
   // take the site over the moment it is installed, which is not a deploy script\u0027s call to make.
   assert.equal(served.has("xn--5kvo87g.com"), false, "the Caddyfile claims the apex, which is in use")
   assert.equal(served.has("www.xn--5kvo87g.com"), false, "the Caddyfile claims www, which is in use")
@@ -269,7 +269,7 @@ test("--with-caddy still installs the service, and puts the TLS step last", func
 })
 
 test("--with-caddy appends to an existing Caddyfile instead of replacing it", function () {
-  // The target machine already runs Caddy for the personal site on the apex. The first version of
+  // The target machine already runs Caddy for another site on the apex. The first version of
   // this step copied our Caddyfile over /etc/caddy/Caddyfile, which would have taken that site
   // down. It must back up and append, and roll back if the result does not validate.
   const fakeBin = scratchDir("ag-caddy-")
@@ -347,7 +347,7 @@ test("no public page points at a 智量.com host that nothing serves", function 
   // try.html told readers to curl https://api.智量.com while the Caddyfile serves app. and api. was
   // never created. A page that sends somebody to a dead host is worse than a page that says
   // nothing, because they conclude the product is broken rather than the instruction.
-  const served = new Set(["xn--5kvo87g.com", "www.xn--5kvo87g.com"])   // the personal site already there
+  const served = new Set(["xn--5kvo87g.com", "www.xn--5kvo87g.com"])   // another site already served there
   const caddy = readFileSync(join(ROOT, "deploy", "Caddyfile"), "utf8")
   for (const m of caddy.matchAll(/^[a-z0-9.,-]*xn--[a-z0-9-]+\.com[^{]*\{/gm)) {
     for (const h of m[0].replace("\{", "").split(",")) served.add(h.trim())

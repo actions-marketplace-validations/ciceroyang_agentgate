@@ -1,8 +1,8 @@
 # agentgate 的站点。复制到 /etc/caddy/Caddyfile —— 但如果那个文件里已经有别的东西,
 # **不要覆盖**,只把这个文件的内容追加进去(onboard-server.sh --with-caddy 就是这么做的)。
 #
-# 这里刻意不声明主域 xn--5kvo87g.com:那台机器的主域上已经跑着另一个站点(Next.js,由 Caddy
-# 提供 HTTPS)。声明主域会把站点从另一个站点抢过来,而那不该由部署脚本单方面决定。
+# 这里刻意不声明主域 xn--5kvo87g.com:那台机器的主域上已经在提供另一个站点(Next.js,由 Caddy
+# 提供 HTTPS)。声明主域会把那个站点抢过来,而那不该由部署脚本单方面决定。
 #
 # 智量.com 是中文域名,证书与路由都用 punycode 写,Caddy 不接受中文字面量。
 

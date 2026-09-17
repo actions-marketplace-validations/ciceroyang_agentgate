@@ -37,8 +37,7 @@ along with what was checked and what remains unverified.
 ## Look at it without installing anything
 
 The service is running at <https://app.xn--5kvo87g.com/> — the landing page, the pricing page,
-the browseable evidence index (rebuilt daily) and the API under the same host. The personal site
-that was already on that machine is untouched.
+the browseable evidence index (rebuilt daily) and the API under the same host.
 
 <https://ciceroyang.github.io/agentgate/> — the landing page. The evidence index is one
 browsable page at <https://ciceroyang.github.io/agentgate/evidence.html>, rebuilt daily from

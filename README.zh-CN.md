@@ -29,7 +29,7 @@
 
 ## 什么都不装先看看
 
-服务跑在 <https://app.xn--5kvo87g.com/>：落地页、价格页、可浏览的证据索引（每天重建）和同一个域名下的 API。那台机器上原有的另一个站点没有被改动。
+服务跑在 <https://app.xn--5kvo87g.com/>：落地页、价格页、可浏览的证据索引（每天重建）和同一个域名下的 API。
 
 <https://ciceroyang.github.io/agentgate/> 是落地页；证据索引是一页可以浏览的 <https://ciceroyang.github.io/agentgate/evidence.html>，每天从实时注册表重建：记录内嵌在页面里，筛选在本地跑，不需要注册任何东西。价格在 [/pricing.html](https://ciceroyang.github.io/agentgate/pricing.html)，[/try.html](https://ciceroyang.github.io/agentgate/try.html) 用十分钟带你走一遍。
 

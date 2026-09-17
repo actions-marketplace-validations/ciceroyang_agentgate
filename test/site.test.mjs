@@ -186,7 +186,7 @@ test("a page for a record that is gone is removed, and nothing else in the direc
   // The record set moves every day: a server leaves the registry, or is renamed and gets a new
   // slug. A page left behind stays reachable, says the site was rebuilt today, and nothing links
   // to it. The removal has to stay inside s/ and o/ -- the output directory also holds the
-  // personal site's releases/ and the hand-written root pages, which are not this script's.
+  // other site's releases/ and the hand-written root pages, which are not this script's.
   const out = scratchDir("ag-site-prune-")
   const run = function () {
     return spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })

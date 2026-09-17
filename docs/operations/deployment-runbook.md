@@ -31,7 +31,7 @@
 - **这台机器的主域上已经跑着另一个站点(Next.js + Caddy)。产品放子域,不动主域。**
 
 ```
-# 已经存在,不要动——它们指向正在运行的另一个站点:
+# 已经存在,不要动——它们指向正在运行的那个站点:
 xn--5kvo87g.com          主机记录 @      类型 A   值 <公网IP>
 www.xn--5kvo87g.com      主机记录 www    类型 A   值 <公网IP>
 
@@ -79,7 +79,7 @@ aliyun alidns AddDomainRecord --DomainName xn--5kvo87g.com --RR api --Type A --V
 
 **怎么知道加对了**:等 1–10 分钟,在这台机器上执行 `nc -vz -w 5 app.xn--5kvo87g.com 443`,
 看到 `succeeded` 就说明解析生效了。也可以直接告诉我,我从外网查。
-**要把产品挪到主域时**:先把另一个站点迁到别处或 `me.` 子域,再改 `deploy/Caddyfile`。
+**要把产品挪到主域时**:先停掉或迁走那个站点,再改 `deploy/Caddyfile`。
 这件事不该由部署脚本单方面做——它会覆盖一个正在运行的站点。
 
 **大陆服务器需要 ICP 备案才能用 80/443**，见 `what-i-need.md` 第三节。

@@ -147,7 +147,7 @@ caddy validate --adapter caddyfile --config merged.caddy
 caddy adapt --adapter caddyfile --config merged.caddy
 #   -> 同一个 server 上有四个 host:
 #      xn--5kvo87g.com www.xn--5kvo87g.com app.xn--5kvo87g.com api.xn--5kvo87g.com
-#      主域的另一个站点与产品共存,Caddy 会为四个名字各自签发证书
+#      主域上原有的站点与产品共存,Caddy 会为四个名字各自签发证书
 
 # 失败路径:已有配置里也声明了 app.
 caddy validate --adapter caddyfile --config dup.caddy
@@ -185,7 +185,7 @@ GET /nope.html              404                     兜底是文件服务,不是
 服务      https://app.xn--5kvo87g.com/   systemd active + enabled, 监听 127.0.0.1:8080
 索引      2114 条, generatedAt 是当天(不是样本的 300 条)
 证书      Caddy 自动签发; 五个页面 / /health /v1/* /badge/* 从外网全部 200
-另一个站点    未改动; 改动前备份 /etc/caddy/Caddyfile.bak.*
+原有站点  未改动; 改动前备份 /etc/caddy/Caddyfile.bak.*
 历史      data/history/{2026-09-16.json, diff-2026-09-16.md, previous.json}
 外网验收  node scripts/verify-public.mjs --base https://app.xn--5kvo87g.com  -> 14 项全过
 ```

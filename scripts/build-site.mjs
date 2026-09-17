@@ -255,7 +255,7 @@ if (pagesDir && existsSync(pagesDir)) {
  * slug. Without this, the page for the old name stays reachable and says the site was rebuilt
  * today, and the sitemap no longer mentions it -- an evidence page nobody links to and nobody
  * can tell is stale. Only *.html inside the two directories this script owns is removed:
- * /var/www/zhiliang also holds the personal site's releases/ and the hand-written root pages,
+ * /var/www/zhiliang also holds another site's releases/ and the hand-written root pages,
  * and none of that is this script's to delete.
  */
 function prunePages(dir, keep) {

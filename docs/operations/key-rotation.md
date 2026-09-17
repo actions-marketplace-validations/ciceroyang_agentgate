@@ -6,7 +6,7 @@
 
 | 凭据 | 存在哪 | 用来做什么 | 泄露的后果 |
 | --- | --- | --- | --- |
-| `SMTP_PASS`（阿里云 DirectMail） | `/etc/agentgate/alert.env`（0600，agentgate）+ 本地 `finding-drafts/smtp.env`（**不进版本库**） | 发外联邮件与巡检告警 | 别人可以用我们的域名发信（SPF/DKIM 会替它背书） |
+| `SMTP_PASS`（阿里云 DirectMail） | `/etc/agentgate/alert.env`（0600，agentgate）+ 本机保存凭据的那个文件（**不进版本库**） | 发外联邮件与巡检告警 | 别人可以用我们的域名发信（SPF/DKIM 会替它背书） |
 | SSH 部署私钥 | 本机 `~/.ssh/agentgate_deploy`（+ `ProxyCommand`）；服务器 `authorized_keys` | 登录服务器 | 服务器完全控制权 |
 | npm | **没有长期 token**：Trusted Publishing + OIDC；账号 2FA 为 `auth-and-writes` | 发版 | 需要同时拿到 GitHub Actions 与 npm 账号 |
 | GitHub | 浏览器会话 + 仓库写权限；CI 用 OIDC，**仓库里不需要任何 secret** | 代码、发版、Pages 镜像 | 仓库被改 |
@@ -17,7 +17,7 @@
 
 1. 阿里云邮件推送控制台 → 发信地址 → 重新生成 SMTP 密码；
 2. 更新服务器：`sudo install -m 600 -o agentgate -g agentgate 新 alert.env /etc/agentgate/alert.env`（内容照 `deploy/alert.env.example`）；
-3. 更新本机 `finding-drafts/smtp.env`；
+3. 更新本机那个凭据文件；
 4. 验证读得到、发得出：
 
 ```sh
