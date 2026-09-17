@@ -59,12 +59,15 @@
 - **怎么验**：`node --test packages/service/test/limits.test.mjs packages/service/test/limits-http.test.mjs`（14 项：带体 413、无体 POST 405、超限 429 + Retry-After、`/metrics` 不占额度、桶表有界、默认关闭、HEAD 无响应体、超时值）；`scripts/bench.mjs 20000 100` 不回归。
 - **服务器上实做（2026-09-17，部署 `d6281e0`）**：unit 里的 `AGENTGATE_RATE_LIMIT=1200` 已生效——`/metrics` 读出 `agentgate_rate_limit_per_minute 1200`；`HEAD /health` = 200；`POST /health` 带体 = **413**；1400 个并发请求打 `/health` 得到 **1350×200 + 50×429**，限流确实在这个部署上生效，而不只是配置里写着。
 
-## P3 数据与恢复
+## P3 数据与恢复 —— **完成（f856109、ee3de03；服务器已实测）**
 
 - **为什么**：账本是唯一不可再生的东西；"有备份"和"能恢复"是两件事。
 - **做什么**：每日归档打包（index + history + site 产物）到 `/var/backups/agentgate/`，保留 N 天；**恢复演练脚本**：把备份还原到临时目录并跑 `history --verify` + 起服务读一遍；磁盘阈值与快照/日档留存策略；把演练写进 cron 每月一次。
 - **做到什么算完**：演练脚本能在一台干净目录上从备份恢复并验证通过，且能人为让一个坏备份失败。
-- **怎么验**：`node scripts/restore-drill.mjs --from <备份>`；`node --test test/restore-drill.test.mjs`。
+- **怎么验**：`node scripts/acceptance-m5.mjs`（备份 → 恢复 → 账本校验 → 起服务 → **截断的归档必须失败**，已进 `verify.sh` 与 CI）；`node --test packages/backup/test/backup.test.mjs test/backup-cli.test.mjs`（含"manifest 路径跑到归档外""最新一份永不被清""没有 index 的归档被拒绝"）。
+- **服务器上实做（2026-09-17，`f856109` + `ee3de03`）**：cron 装了每晚 03:30 备份与每月 1 日演练；logrotate 装了；`/var/log/agentgate-backup.log` 与 `/var/backups/agentgate` 预建（这两个目录 agentgate 自己建不了）。**真实归档** 6.2 MB / 3072 文件 / 索引 2066 条 / 账本 5 次采集；**真实演练通过**（链一致、服务从恢复的索引返回 2066 条）；巡检加上 `--backup-dir` 后"已检查"里多了 backups，把窗口收紧到 0 小时能如期报 `backup_age`。
+- **实现过程中被自己抓到的一个 bug**：`checkBackups` 一开始读的是 `options.maxAgeHours`（那是采集年龄的窗口），于是 `--backup-max-age` 被接受却完全不起作用——一个读了错参数的检查就是在检查错的东西。已改成自己的键，并加了一条"收紧采集窗口不得影响备份检查"的测试。
+- **遗留（下一轮或 P6）**：`/var/backups` 只有本机一份；异地副本没有做（账本本身有 GitHub `history` 分支镜像）。
 
 ## P4 发布工程
 

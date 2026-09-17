@@ -303,6 +303,29 @@ node scripts/smoke.mjs http://127.0.0.1:8080 --expect-min 1000
 
 `--expect-min 1000` 是关键的一条：样本索引只有 300 条，如果这里过了但数字还是 300，说明**采集没跑成功，服务在读样本**。
 
+## 备份与恢复（P3）
+
+- **每晚 03:30** 归档到 `/var/backups/agentgate`（保留 14 天，但**最新那份永不删除**——窗口比故障还短的清理会删掉唯一还能恢复服务的那份）。**每月 1 日 05:00** 自动做一次恢复演练。cron 见 `deploy/cron.d-agentgate`，日志轮转见 `deploy/logrotate-agentgate`。
+- 安装（`/var/log` 与 `/var/backups` 都不能由 agentgate 自己创建）：
+
+```sh
+sudo install -d -m 755 -o agentgate -g agentgate /var/backups/agentgate
+sudo install -m 644 -o agentgate -g agentgate /dev/null /var/log/agentgate-backup.log
+sudo install -m 644 -o root -g root deploy/logrotate-agentgate /etc/logrotate.d/agentgate
+```
+
+- 手动跑：
+
+```sh
+sudo -u agentgate node scripts/backup.mjs --data /opt/agentgate/data --site /var/www/zhiliang --out-dir /var/backups/agentgate
+sudo -u agentgate node scripts/restore-drill.mjs --out-dir /var/backups/agentgate
+```
+
+- 演练做的事：解开归档 → 按 manifest 重算每个文件的 SHA-256（字节数也要对）→ 拒绝任何跑到目标目录之外的 manifest 路径 → 校验账本哈希链 → **用恢复出来的索引起一次服务并读 `/health`**。任何一步不过就退出 1；没有可演练的归档退出 3。
+- **巡检也看备份年龄**（每小时，`--backup-dir /var/backups/agentgate`）：备份停了不会自己喊，因为上个月那份照样能恢复。
+- 实测（2026-09-17）：6.2 MB / 3072 个文件 / 索引 2066 条 / 账本 5 次采集；演练通过（链一致、服务从恢复的索引返回 2066 条）；把窗口收紧到 0 小时后 `backup_age` 如期报警。
+- 还没做的：**异地副本**。账本本身每天被镜像到 GitHub 的 `history` 分支（算异地），但 `/var/backups` 目前只在本机——见 P3 遗留项。
+
 ## 服务自身的限制（P2）
 
 服务不假定"外面那层一定挡住了"：
