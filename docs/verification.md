@@ -452,6 +452,9 @@ Caddy 配置（本轮没有改 Caddy，也没有跑 `--apply`）。
 - **迟到会自己暴露**：`history --max-age 26` 把“最近一次采集有多旧”变成退出码；`/health` 新增 `history` 块（captures / days / first / last / gaps / ageHours / stale），外部监视不用读这台机器上的文件就能发现停摆。
 - **第二个位置**：`/v1/history` 按原样返回 `ledger.jsonl`，`/v1/history/diff` 返回最新一天的 diff。GitHub 的 `pages` 工作流改成**镜像**这份账本：拉取 → 用仓库自己的 `history --verify` 核对链 → 以**普通提交追加**到 `history` 分支（原来是一次性的单提交 + `--force`，而且 refresh 失败时会把 300 条的样本当快照写进去，那两条都已删掉）。站点那边 `build-site.mjs --history <dir>` 也从镜像出来的账本渲染公开页。
 - 本机 `verify.sh`：360 项测试、358 通过、0 失败、2 跳过（新增：账本过期、重复运行的幂等、`/health` 的 history 块、`/v1/history` 与 diff 路由、daily-job/cron 的结构断言）。
+- 服务器（Node v20.20.2）部署后：`daily-job.sh` 以 cron 用户手跑一次，refresh ok、账本因索引真的变了追加第 3 行、站点重建、`history --max-age 26` 与复核都通过，退出 0；`/health` 的 `history` 块为 `{captures:3, days:2, gaps:[], ageHours:0, stale:false}`；公开的 `/v1/history` 与 `/v1/history/diff` 都是 200，`/history.html` 显示“3 次采集，覆盖 2 天”。
+- **CI 镜像第一次跑就暴露了两个错，都已修**：`cp "$WORK/ledger.jsonl" ledger.jsonl` 把文件拷到自己身上（临时目录就是当前目录），步骤直接失败；改成用 `$GITHUB_WORKSPACE` 的绝对路径。修完仍没记录——`git fetch --depth 1` 之后再 push 会被 GitHub 以 `shallow update not allowed` 拒绝，而 push 失败被 `|| echo` 吞掉了，所以步骤“成功”但分支没动；改成完整 fetch + `reset --hard FETCH_HEAD`（并顺手删掉旧方案写进分支的 2.4 MB 索引）。现在 `history` 分支上是一条普通提交 `ledger 2026-09-17`，带 `ledger.jsonl` 与最新 diff。
+
 
 
 
