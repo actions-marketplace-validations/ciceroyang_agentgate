@@ -1,15 +1,15 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, readFileSync, writeFileSync, existsSync, rmSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { readFileSync, writeFileSync, existsSync, rmSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
+import { scratchDir } from "./tmpdir.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 function buildPage(indexPath, diffText) {
-  const out = mkdtempSync(join(tmpdir(), "ag-site-"))
+  const out = scratchDir("ag-site-")
   const args = [join(ROOT, "scripts", "build-site.mjs"), "--index", indexPath, "--out", out, "--name", "index.html"]
   if (diffText !== undefined) {
     const diffPath = join(out, "diff.md")
@@ -56,7 +56,7 @@ test("the page renders a diff when one is given", function () {
 })
 
 test("a record with no packages still renders", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-site-fixture-"))
+  const dir = scratchDir("ag-site-fixture-")
   const indexPath = join(dir, "index.json")
   writeFileSync(indexPath, JSON.stringify({ generatedAt: "T", threshold: "medium", count: 1, records: [{ server: "a/b", verdict: "incomplete", packages: [], evidence: { packageManifest: { status: "unmeasured", source: "guard-scan", reason: "metadata-unavailable", findings: [] } } }] }))
   const made = runPageScript(buildPage(indexPath))
@@ -65,14 +65,14 @@ test("a record with no packages still renders", function () {
 })
 
 test("a large index is capped and the page says so", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-cap-"))
+  const dir = scratchDir("ag-cap-")
   const indexPath = join(dir, "index.json")
   const records = []
   for (let i = 0; i < 40; i += 1) {
     records.push({ server: "s/" + i, verdict: i === 3 ? "incomplete" : i < 8 ? "findings" : "clean", packages: [], evidence: {} })
   }
   writeFileSync(indexPath, JSON.stringify({ generatedAt: "T", threshold: "medium", count: records.length, records: records }))
-  const out = mkdtempSync(join(tmpdir(), "ag-cap-out-"))
+  const out = scratchDir("ag-cap-out-")
   const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", indexPath, "--out", out, "--name", "index.html", "--max-records", "10"], { encoding: "utf8" })
   assert.equal(run.status, 0, run.stderr)
   const html = readFileSync(join(out, "index.html"), "utf8")
@@ -96,7 +96,7 @@ test("a small index is not marked truncated", function () {
 
 
 test("the plain pages are published beside the index, and the index does not overwrite them", function () {
-  const out = mkdtempSync(join(tmpdir(), "ag-site-full-"))
+  const out = scratchDir("ag-site-full-")
   const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
   assert.equal(run.status, 0, run.stderr)
 
@@ -135,7 +135,7 @@ test("the plain pages are published beside the index, and the index does not ove
 })
 
 test("a repository field that is an empty object does not render as an object", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-site-repo-"))
+  const dir = scratchDir("ag-site-repo-")
   const index = join(dir, "index.json")
   writeFileSync(index, JSON.stringify({ generatedAt: "T", threshold: "medium", count: 1, records: [
     { server: "a/empty-repo", verdict: "clean", packages: [], repository: {}, evidence: { registryDocument: { status: "clean", source: "mcp-census", findings: [] } }, generatedAt: "T" },
@@ -149,7 +149,7 @@ test("a repository field that is an empty object does not render as an object", 
 })
 
 test("every server gets a page of its own, and the page says what it did not measure", function () {
-  const out = mkdtempSync(join(tmpdir(), "ag-site-servers-"))
+  const out = scratchDir("ag-site-servers-")
   const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
   assert.equal(run.status, 0, run.stderr)
 
@@ -181,8 +181,35 @@ test("every server gets a page of its own, and the page says what it did not mea
   assert.ok(!existsSync(join(out, "server.html")), "the template was published as a page")
 })
 
+test("a page for a record that is gone is removed, and nothing else in the directory is", function () {
+  // The record set moves every day: a server leaves the registry, or is renamed and gets a new
+  // slug. A page left behind stays reachable, says the site was rebuilt today, and nothing links
+  // to it. The removal has to stay inside s/ and o/ -- the output directory also holds the
+  // personal site's releases/ and the hand-written root pages, which are not this script's.
+  const out = scratchDir("ag-site-prune-")
+  const run = function () {
+    return spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  }
+  const first = run()
+  assert.equal(first.status, 0, first.stderr)
+
+  const staleServer = join(out, "s", "old.example__gone.html")
+  const staleOwner = join(out, "o", "ghost.html")
+  const keep = join(out, "s", "notes.txt")
+  writeFileSync(staleServer, "<html>gone</html>")
+  writeFileSync(staleOwner, "<html>gone</html>")
+  writeFileSync(keep, "not a page\n")
+
+  const second = run()
+  assert.equal(second.status, 0, second.stderr)
+  assert.ok(!existsSync(staleServer), "a page for a record that is gone is still published")
+  assert.ok(!existsSync(staleOwner), "a publisher page with no records left is still published")
+  assert.ok(existsSync(keep), "pruning removed a file that is not a page this script writes")
+  assert.match(second.stdout, /removed 1 that are no longer in the index/, second.stdout)
+})
+
 test("every publisher gets a page listing their servers, and the sitemap carries it", function () {
-  const out = mkdtempSync(join(tmpdir(), "ag-site-owners-"))
+  const out = scratchDir("ag-site-owners-")
   const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
   assert.equal(run.status, 0, run.stderr)
 
@@ -230,7 +257,7 @@ function block(html, id) {
 }
 
 test("registry data cannot break out of the embedded json", function () {
-  const dir = mkdtempSync(join(tmpdir(), "ag-hostile-"))
+  const dir = scratchDir("ag-hostile-")
   const idx = join(dir, "index.json")
   const payload = "</" + "script><script>window.__pwned=1</" + "script>"
   writeFileSync(idx, JSON.stringify({
@@ -276,7 +303,7 @@ test("the built site carries the pieces a public site needs", function () {
   // No favicon (a browser tab shows a default globe), no preview when the link is shared, no 404
   // page, a plain 404 body from Caddy -- each of those reads as unfinished to somebody opening the
   // URL for the first time, which is exactly what the first outreach asks them to do.
-  const out = mkdtempSync(join(tmpdir(), "ag-assets-"))
+  const out = scratchDir("ag-assets-")
   const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
   assert.equal(run.status, 0, run.stderr)
   for (const name of ["favicon.svg", "robots.txt", "sitemap.xml", "404.html", "index.html", "pricing.html", "try.html", "evidence.html"]) {

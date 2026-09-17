@@ -8,7 +8,7 @@
  *
  *   node scripts/build-site.mjs --index data/index.json --out dist
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, copyFileSync } from "node:fs"
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, copyFileSync, rmSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { renderInventoryPage } from "../packages/inventory/src/web.mjs"
@@ -235,6 +235,26 @@ if (pagesDir && existsSync(pagesDir)) {
 }
 // The personal inventory never leaves the browser. Ship the public snapshot and the same
 // matching/report modules used by the offline CLI, not a name-querying upload endpoint.
+/** Remove the pages this build no longer produces.
+ *
+ * The record set moves every day: a server leaves the registry, or is renamed and gets a new
+ * slug. Without this, the page for the old name stays reachable and says the site was rebuilt
+ * today, and the sitemap no longer mentions it -- an evidence page nobody links to and nobody
+ * can tell is stale. Only *.html inside the two directories this script owns is removed:
+ * /var/www/zhiliang also holds the personal site's releases/ and the hand-written root pages,
+ * and none of that is this script's to delete.
+ */
+function prunePages(dir, keep) {
+  let removed = 0
+  for (const name of readdirSync(dir)) {
+    if (!name.endsWith(".html")) continue
+    if (keep.has(name.slice(0, -".html".length))) continue
+    rmSync(join(dir, name), { force: true })
+    removed += 1
+  }
+  return removed
+}
+
 const inventoryTemplate = join(ROOT, "site", "inventory.html")
 if (existsSync(inventoryTemplate)) {
   const inventoryIndex = { ...index, records: kept, count: kept.length, total: all.length, truncated }
@@ -254,7 +274,8 @@ if (existsSync(SERVER_TEMPLATE)) {
     bySlug.set(slug, r.server)
     writeFileSync(join(dir, slug + ".html"), renderServer(r, slug, serverTpl, index))
   }
-  console.log("wrote " + bySlug.size + " per-server page(s) into " + dir)
+  const stale = prunePages(dir, new Set(bySlug.keys()))
+  console.log("wrote " + bySlug.size + " per-server page(s) into " + dir + (stale > 0 ? " and removed " + stale + " that are no longer in the index" : ""))
 }
 if (existsSync(OWNER_TEMPLATE)) {
   const ownerTpl = readFileSync(OWNER_TEMPLATE, "utf8")
@@ -271,7 +292,8 @@ if (existsSync(OWNER_TEMPLATE)) {
   for (const [key, group] of groups) {
     writeFileSync(join(dir, key + ".html"), renderOwner(group, key, ownerTpl, index))
   }
-  console.log("wrote " + groups.size + " publisher page(s) into " + dir)
+  const stale = prunePages(dir, new Set(groups.keys()))
+  console.log("wrote " + groups.size + " publisher page(s) into " + dir + (stale > 0 ? " and removed " + stale + " that no longer publish anything in the index" : ""))
 }
 
 // Every server page belongs in the sitemap, otherwise the only way to reach a record is to
