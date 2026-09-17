@@ -29,6 +29,7 @@ export function createRateLimiter(options) {
 
   return {
     enabled: perMinute > 0,
+    perMinute: perMinute,
     size: function () { return buckets.size },
     allow: function (key, nowMs) {
       if (perMinute === 0) return { allowed: true }

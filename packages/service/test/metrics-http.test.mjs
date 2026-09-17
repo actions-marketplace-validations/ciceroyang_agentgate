@@ -62,6 +62,17 @@ test("a scanned path cannot appear in the metrics or in the access log", async f
   })
 })
 
+test("the configured rate limit is visible in the metrics", async function () {
+  const dir = scratchDir("ag-metrics-")
+  const indexPath = fixtureIndex(dir, [{ server: "a/one", verdict: "clean" }])
+  await withServer({ indexPath: indexPath }, async function (base) {
+    assert.match(await (await fetch(base + "/metrics")).text(), /agentgate_rate_limit_per_minute 0/)
+  })
+  await withServer({ indexPath: indexPath, rateLimitPerMinute: 60 }, async function (base) {
+    assert.match(await (await fetch(base + "/metrics")).text(), /agentgate_rate_limit_per_minute 60/)
+  })
+})
+
 test("the history ledger turns into gauges", async function () {
   const dir = scratchDir("ag-metrics-")
   const indexPath = fixtureIndex(dir, [{ server: "a/one", verdict: "clean" }])

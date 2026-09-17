@@ -11,8 +11,11 @@ import { createRateLimiter, securityHeaders } from "./limits.mjs"
  * /health, and it never throws: a service that cannot answer is reported as health_ok 0 with the
  * other gauges absent, which is the same shape as every other "unmeasured" answer here.
  */
-function gaugeSnapshot(service, nowMs) {
+function gaugeSnapshot(service, nowMs, limiter) {
   const gauges = {}
+  // The configured cap is a fact about this process; without it, "the limit is on in production"
+  // is something an operator has to remember rather than something they can read.
+  if (limiter) gauges.rate_limit_per_minute = limiter.perMinute
   try {
     const out = service.handle("GET", "/health")
     if (!out || out.status !== 200) { gauges.health_ok = 0; return gauges }
@@ -90,7 +93,7 @@ export function start(options) {
         finish(404)
         return
       }
-      const body = metrics.render(gaugeSnapshot(service, now()), now())
+      const body = metrics.render(gaugeSnapshot(service, now(), limiter), now())
       res.writeHead(200, { "content-type": "text/plain; version=0.0.4; charset=utf-8", "cache-control": "no-store" })
       res.end(body)
       finish(200)
