@@ -8,12 +8,14 @@
  */
 import { existsSync, readFileSync, writeFileSync, statSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
+import { homedir } from "node:os"
 import { fileURLToPath } from "node:url"
 import { execFileSync, spawnSync } from "node:child_process"
 import { start } from "../packages/service/src/start.mjs"
 import { DEFAULT_PORT, DEFAULT_HOST } from "../packages/service/src/defaults.mjs"
 import { runScan } from "../packages/guard/src/engine.mjs"
 import { makeReader } from "../packages/guard/src/fs-scan.mjs"
+import { discover, renderText } from "../packages/guard/src/discover.mjs"
 import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
 import { loadPolicy, defaultPolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
@@ -260,6 +262,42 @@ function inventory(flags) {
     process.exitCode = 2
   }
 }
+/**
+ * The list a customer cannot produce by hand, produced from what is already on the machine.
+ * Nothing leaves the process: there is no request here, and no argument or env value is printed.
+ */
+function discoverCommand(flags) {
+  if (flags.home === true) { console.error("discover: --home needs a directory"); process.exit(3) }
+  if (flags.roots === true) { console.error("discover: --roots needs a comma-separated list of directories"); process.exit(3) }
+  const home = flags.home ? resolve(String(flags.home)) : homedir()
+  const roots = String(flags.roots || ".").split(",").map(function (s) { return resolve(s.trim()) }).filter(Boolean)
+  const format = flags.format || "text"
+  if (["text", "json"].indexOf(format) === -1) { console.error("discover: --format only supports text or json"); process.exit(3) }
+  const report = discover({
+    home: home,
+    roots: roots,
+    platform: process.platform,
+    exists: existsSync,
+    readFile: function (p) { return readFileSync(p, "utf8") },
+  })
+  const rendered = format === "json" ? JSON.stringify(report, null, 2) : renderText(report)
+  if (flags.out) {
+    if (resolve(String(flags.out)) === resolve(join(home, ".claude.json"))) { console.error("discover: 报告不能覆盖配置文件"); process.exit(3) }
+    try {
+      writeFileSync(String(flags.out), rendered, { flag: "wx", mode: 0o600 })
+    } catch (error) {
+      console.error("discover: 写不了 " + resolve(String(flags.out)) + "：" + error.message + "（已有文件不会被覆盖）")
+      process.exit(3)
+    }
+    console.error("清单已保存：" + resolve(String(flags.out)))
+  } else process.stdout.write(rendered)
+  const bad = report.sources.filter(function (s) { return s.status !== "read" })
+  console.error("找到 " + report.counts.sourcesFound + " 个配置文件，读到 " + report.counts.sourcesRead + " 个；服务器 " + report.counts.servers + " 个。")
+  for (const s of bad) console.error("  没读成： " + s.abs + "  (" + s.reason + ")")
+  if (report.incomplete) console.error("这份清单不完整：" + bad.length + " 个来源存在但没读成，别把它当成全部。")
+  // Same rule as everywhere else: a list that is missing something does not exit 0.
+  process.exitCode = report.incomplete ? 2 : 0
+}
 function proxy(flags, rest) {
   if (rest.length === 0) { console.error("usage: agentgate proxy --policy policy.json [--log calls.jsonl] -- <server command> [args...]"); process.exit(3) }
   let policy
@@ -282,6 +320,7 @@ function proxy(flags, rest) {
 }
 
 if (args.command === "inventory") inventory(args.flags)
+else if (args.command === "discover") discoverCommand(args.flags)
 else if (args.command === "check") check(args.flags)
 else if (args.command === "proxy") proxy(args.flags, args.rest)
 else if (args.command === "diff") diff(args.flags)
@@ -292,6 +331,7 @@ else if (args.command === "version") console.log("agentgate " + VERSION)
 else {
   console.log("agentgate <command>")
   console.log("")
+  console.log("  discover  [--home <dir>] [--roots a,b] [--format text|json] [--out report.txt]   read the MCP configs already on this machine")
   console.log("  inventory --input tools.txt [--index data/index.json] [--format html|json] [--out report.html]")
   console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")
   console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")
