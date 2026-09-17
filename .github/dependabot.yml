@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # There are no npm dependencies on purpose - scripts/check-zero-deps.mjs fails the build if one
+  # appears. What does need watching is the actions themselves: a pinned action is still a
+  # third-party artifact, and the only way to keep it current without opening the door to
+  # arbitrary code is to let a bot propose the bump and CI judge it.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"

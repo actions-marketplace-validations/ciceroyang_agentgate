@@ -11,7 +11,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # contents: write is for attaching the SBOM to the release, not for the publish itself.
+  contents: write
   id-token: write
 
 jobs:
@@ -32,8 +33,23 @@ jobs:
           tag="${GITHUB_REF_NAME#v}"
           version="$(node -p "require('./package.json').version")"
           test "$tag" = "$version" || { echo "tag $tag does not match version $version"; exit 1; }
+      - name: Generate our own SBOM before publishing
+        run: node scripts/sbom.mjs --out sbom/agentgate.cdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom/
       - name: Publish to the next tag first
         run: npm publish --provenance --access public --tag next
+      - name: Attach the SBOM to the release when there is one
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" sbom/agentgate.cdx.json --clobber
+          else
+            echo "no GitHub release for $GITHUB_REF_NAME; the SBOM is on this workflow run"
+          fi
       - name: How to promote
         run: |
           echo "Published as next. Once the deployment demo is verified, promote with:"

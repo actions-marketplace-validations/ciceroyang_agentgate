@@ -20,7 +20,9 @@ jobs:
         # job at all and the failure looked like a quiet success. It is asserted now.
         run: |
           python3 -m pip install --quiet pyyaml
-          python3 -c "import yaml; [yaml.safe_load(open(f)) for f in ['action.yml', '.github/workflows/test.yml', 'examples/github-actions/policy.yml']]; print('yaml ok')"
+          # Every workflow, not just this one: a broken publish.yml is discovered at release time
+          # otherwise, which is the worst moment to discover it.
+          python3 -c "import yaml, glob; [yaml.safe_load(open(f)) for f in glob.glob('.github/workflows/*.yml') + ['action.yml', '.github/dependabot.yml', 'examples/github-actions/policy.yml']]; print('yaml ok')"
       - name: Unit tests
         run: npm test   # includes test/*.test.mjs, which runs the built page against a DOM stub
       - name: M1 acceptance (the service answers what it claims to)
@@ -35,6 +37,12 @@ jobs:
         run: node scripts/bench.mjs 20000 100
       - name: Corpus regression (benign silent, positives fire)
         run: node packages/guard/scripts/regression.mjs
+      - name: No third-party dependencies, asserted rather than assumed
+        run: node scripts/check-zero-deps.mjs
+      - name: Our own SBOM generates and parses
+        run: |
+          node scripts/sbom.mjs --out /tmp/agentgate.cdx.json
+          node -e "JSON.parse(require('node:fs').readFileSync('/tmp/agentgate.cdx.json','utf8')); console.log('sbom ok')"
       - name: Deploy rehearsal (everything except systemd and Caddy)
         run: node scripts/rehearse-deploy.mjs
       - name: Self-scan (minus the intentional bad examples)
