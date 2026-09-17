@@ -82,7 +82,7 @@ aliyun alidns AddDomainRecord --DomainName xn--5kvo87g.com --RR api --Type A --V
 **要把产品挪到主域时**:先停掉或迁走那个站点,再改 `deploy/Caddyfile`。
 这件事不该由部署脚本单方面做——它会覆盖一个正在运行的站点。
 
-**大陆服务器需要 ICP 备案才能用 80/443**，见 `what-i-need.md` 第三节。
+**大陆服务器需要 ICP 备案才能用 80/443**，走 [plan-b-no-icp.md](plan-b-no-icp.md)。
 
 **从大陆服务器克隆 GitHub 经常不通,而这是部署的第一步。** 预演会先测三个地方并告诉你哪个不通:
 

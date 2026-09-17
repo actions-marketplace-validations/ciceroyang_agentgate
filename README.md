@@ -69,7 +69,7 @@ npx @zhiliangtech/agentgate check --root .
 npx @zhiliangtech/agentgate serve
 ```
 
-`npx` resolves the `latest` dist-tag; pin a version (`@zhiliangtech/agentgate@0.1.1`) when you need
+`npx` resolves the `latest` dist-tag; pin a version (`@zhiliangtech/agentgate@0.1.2`) when you need
 an exact one.
 
 With no policy file present `check` uses a built-in default that refuses nothing extra, and
@@ -322,13 +322,9 @@ incomplete provenance; it does not perform the review or certify third-party cod
 
 ## Operating this
 
-- [docs/operations/what-i-need.md](docs/operations/what-i-need.md) — what has to be provided before it can be deployed, and what to hand over safely.
 - [docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md) — aliyun plus the 智量.com domain, with the ICP filing caveat called out.
-- [docs/operations/trademark-filing.md](docs/operations/trademark-filing.md) — the filing sheet, ready except for the applicant details.
-- [docs/operations/outreach-templates.md](docs/operations/outreach-templates.md) — how the first three design partners are approached.
 - [docs/operations/plan-b-no-icp.md](docs/operations/plan-b-no-icp.md) — what to do when a mainland server has no ICP filing, which is the one thing that can stop a deployment halfway.
 - [deploy/](deploy/) — the Caddyfile and a systemd unit, ready to copy to a server.
-- [docs/product/decisions-2026-09.md](docs/product/decisions-2026-09.md) — the four decisions, with numbers: npm, trademark, design partners, pricing.
 - [docs/operations/pilot-package.md](docs/operations/pilot-package.md) — the one-pager to send a prospective design partner: deliverables, timeline, what we ask for, and what we refuse to ask for.
 - [site/index.html](site/index.html) and [site/pricing.html](site/pricing.html) — the landing and pricing pages, self-contained, no external assets.
 - [scripts/onboard-server.sh](scripts/onboard-server.sh) — the deployment steps as a script that prints what it would do and only acts with `--apply`.
@@ -346,8 +342,8 @@ remains unverified there.
 The enterprise capabilities described in the pricing proposal — SSO/SAML, RBAC,
 multi-tenancy and signed audit export — are not implemented. Team and Enterprise prices
 are hypotheses that have not been validated with customers; the free pilot is intended
-to test that demand. See [the product decisions](docs/product/decisions-2026-09.md) and
-[the pilot scope](docs/operations/pilot-package.md).
+to test that demand. See [the pilot scope](docs/operations/pilot-package.md) and
+[the licence](docs/product/licensing.md).
 
 The scanner's suite includes the invariant that a crashed check can never produce
 `clean`. Run `npm test` for the current results; this page does not repeat a test count.

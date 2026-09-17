@@ -247,12 +247,9 @@ node scripts/verify-real-server.mjs
 ## 运维这件事
 
 - [docs/operations/README.md](docs/operations/README.md) — 运维手册索引：出事了按症状找。
-- [docs/operations/what-i-need.md](docs/operations/what-i-need.md) — 部署前必须提供什么，以及什么可以安全交接。
 - [docs/operations/deployment-runbook.md](docs/operations/deployment-runbook.md) — 阿里云加 智量.com 域名，并把 ICP 备案的坑单独点出来。
 - [docs/operations/productionization.md](docs/operations/productionization.md) — 生产化 P0–P6：每一步为什么、验收标准、有没有在真实部署上验过。
 - [docs/operations/pilot-package.md](docs/operations/pilot-package.md) — 发给潜在设计伙伴的一页纸：交付物、时间线、我们要什么、我们拒绝要什么。
-- [docs/operations/trademark-filing.md](docs/operations/trademark-filing.md) — 商标申请材料，除了申请人信息都已就绪。
-- [docs/operations/outreach-templates.md](docs/operations/outreach-templates.md) — 最初三个设计伙伴怎么联系。
 - [docs/operations/plan-b-no-icp.md](docs/operations/plan-b-no-icp.md) — 大陆机器没有备案时怎么办，这是唯一能让部署半路停下的东西。
 - [deploy/](deploy/) — Caddyfile 和 systemd 单元，复制到服务器就能用。
 - [scripts/onboard-server.sh](scripts/onboard-server.sh) — 把部署步骤写成脚本：先打印它要做什么，只有加 `--apply` 才动手。
@@ -262,7 +259,7 @@ node scripts/verify-real-server.mjs
 
 这是一个早期的开源内核。它包含采集、证据索引、扫描、CI 里的策略检查、针对 stdio MCP server 的运行时网关、历史对比与一个只读服务。部署脚本和 runbook 都有；第一次服务器部署和当时的核对记录在 [docs/verification.md](docs/verification.md)。**那份记录不能说明线上服务当前是否健康**，Docker 镜像构建在那里也仍然没有验过。
 
-价格方案里描述的企业能力——SSO/SAML、RBAC、多租户、签名审计导出——**尚未实现**。Team 与 Enterprise 的价格是**尚未经过客户验证的假设**；免费试点就是为了验证这个需求。见[产品决策](docs/product/decisions-2026-09.md)与[试点范围](docs/operations/pilot-package.md)。
+价格方案里描述的企业能力——SSO/SAML、RBAC、多租户、签名审计导出——**尚未实现**。Team 与 Enterprise 的价格是**尚未经过客户验证的假设**；免费试点就是为了验证这个需求。见[试点范围](docs/operations/pilot-package.md)与[许可说明](docs/product/licensing.md)。
 
 扫描器的测试套件里有一条不变量：**一个崩掉的检查永远不可能产出 `clean`。** 当前结果跑 `npm test` 看；这一页不重复测试数量。
 

@@ -13,7 +13,6 @@
 | 部署、升级、看指标与日志 | [deployment-runbook.md](deployment-runbook.md) |
 | 备份与恢复演练怎么跑 | [deployment-runbook.md](deployment-runbook.md) 的「备份与恢复（P3）」 |
 | 这件事整体做到哪一步了 | [productionization.md](productionization.md) |
-| 首次部署（历史记录） | [START-HERE.md](START-HERE.md) |
 | 对外怎么描述数据处理 | [legal/data-handling.md](legal/data-handling.md) + 线上 `/privacy.html` |
 
 ## 运行节奏（当前实际在跑的）
@@ -33,9 +32,6 @@
 | 文档 | 是什么 |
 | --- | --- |
 | [pilot-package.md](pilot-package.md) | 免费试点的范围与信任阶梯（L0–L3），对客户讲清"代码不用给我" |
-| [outreach-templates.md](outreach-templates.md) | 外联模板与三条纪律 |
-| [what-i-need.md](what-i-need.md) | 需要你（人）提供的信息与决策 |
-| [trademark-filing.md](trademark-filing.md) | 商标申请的口径与时间线 |
 | [plan-b-no-icp.md](plan-b-no-icp.md) | 没有备案时的部署路线 |
 
 ## 这份文档自己的维护规则
