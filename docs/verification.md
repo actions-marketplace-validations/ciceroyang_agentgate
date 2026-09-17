@@ -389,12 +389,17 @@ v1→v2 的迁移**尚未发生**：`data/reviewed-criticals.json` 里的 11 条
   `/`、`/evidence.html`(503 KB)、`/inventory.html`(1.5 MB)、`/pricing.html`、`/try.html` 全 200；
   evidence 页上的计数与 summary 一致；`/badge/ai.dinglebear%2Fcortex.svg` 200 且显示 findings；
   `/s/ac.inference.sh__mcp.html` 200。
-- 已知遗留（本轮没有改）：`build-site.mjs` 不清理输出目录，`/var/www/zhiliang/s` 有 2,107 个页而索引是
-  2,072 条，**35 张是被移除或改名的旧记录留下的孤儿页**（`/o` 也有同类积压，754 个文件）。它们仍可被
-  直接访问，只是没有任何页面链接过去。
-- 另一个观察（本轮没有改）：测试套件不清空自己建的临时目录。服务器 `/tmp` 里积了 **557 个** `ag-*` /
-  `agent-guard-*` 目录（macOS 在 `$TMPDIR`、CI 在容器里，都不显眼）。本轮已手动清空，但每次
-  `verify.sh` 都会重新留下几十个。
+- 上一轮遗留的两件事在这一轮修掉了（提交 `5020173`、`977f113`，服务器已到 `977f113`）：
+  - **孤儿页**：`build-site.mjs` 原来只写不删。`/var/www/zhiliang/s` 有 2,107 个页而索引是 2,072 条，
+    35 张是被移除或改名的旧记录留下的页；`/o` 754 个文件里也有 16 个同类。现在两个目录都被收敛到
+    本次构建产生的集合，且只删这两个目录里的 `*.html`——输出目录里还有个人主站的 `releases/` 和手写的
+    根页面，测试专门断言旁边的非页面文件不会被删。重新构建后：`s` 2,107 → 2,072、`o` 754 → 738，
+    索引里每条记录恰好一张页、stale 0；公网核对被删的旧页现在 404，仍在索引里的页 200，sitemap 2,816 条。
+  - **临时目录**：测试与验收脚本原来都用 `mkdtempSync` 建目录且从不删除。服务器 `/tmp` 曾积到 **557 个**
+    `ag-*` 目录（macOS 在 `$TMPDIR`、CI 在容器里，都不显眼）。现在 `test/tmpdir.mjs` 与
+    `scripts/scratch-dir.mjs` 把删除登记在进程退出上（断言失败或提前 `process.exit` 也会清理），19 个
+    测试文件与 5 个脚本全部改用它。用私有 `TMPDIR` 跑完整 `verify.sh`：**剩下 0 个**（只有 node 自己的
+    `node-compile-cache`，服务器上是 0）。
 
 复核基线 v1→v2（本轮完成）：
 
