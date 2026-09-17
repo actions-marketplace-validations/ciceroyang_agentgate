@@ -292,7 +292,7 @@ node packages/guard/scripts/regression.mjs   # benign must stay silent, positive
 ## Layout
 
 ```
-packages/guard     the scanner: engine, eight checks, CLI, corpus, GitHub Action
+packages/guard     the scanner: engine, nine checks, CLI, corpus, GitHub Action
 packages/collect   census, package and repository scanning, the evidence index
 packages/policy    policy evaluation and human-readable reports
 packages/gateway   runtime policy enforcement for MCP servers over stdio
