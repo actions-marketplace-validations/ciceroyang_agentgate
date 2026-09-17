@@ -101,3 +101,4 @@ npm dist-tag add @zhiliangtech/agentgate@0.1.1 latest
 | 从 tarball 解出来的包能不能跑 | **能**：解包后 `check` 和 `serve` 都通 | `node --test test/package.test.mjs` |
 | 账号的 2FA | `auth-and-writes`（不开这个发布会被拒） | `npm profile get` |
 | 一个坑：packument 的缓存 | 两处都会滞后：registry CDN 缓存发布前的"不存在"（`npm view` 报 404），以及**本机 `~/.npm` 里那份旧 packument**（`npm i @zhiliangtech/agentgate@0.1.1` 报 `ETARGET No matching version found`，npx 报 `command not found`，而 tarball 本身没问题）。`/-/package/<name>/dist-tags` 与搜索接口是即时准确的；换个 `npm_config_cache` 或等几分钟即自愈 | 实测（2026-09-17 两处都踩到，之后同一命令通过） |
+| 一个坑：在 agentgate 源码目录里跑 npx | **会报 `command not found`**：cwd 的 `package.json` 名字本身就是 `@zhiliangtech/agentgate`，npx 于是当成本地包用，不去 registry 装，而本地没有 `node_modules/.bin/agentgate`。换个目录跑即可（别人的项目里不会遇到），或在源码目录里直接用 `node bin/agentgate.mjs` | 2026-09-17 实测（同一条命令换到 `/tmp` 立刻正常） |
