@@ -59,13 +59,13 @@ curl -s localhost:8080/v1/servers/<name>
 curl -s localhost:8080/badge/<name>.svg
 ```
 
-It is packaged for npm as `@zhiliang/agentgate`. If `npx` answers 404 the first publish has not
+It is packaged for npm as `@zhiliangtech/agentgate`. If `npx` answers 404 the first publish has not
 happened yet — [docs/operations/publish-checklist.md](docs/operations/publish-checklist.md) is that
 one-time setup, and until then the clone above is the way to run it.
 
 ```sh
-npx @zhiliang/agentgate check --root .
-npx @zhiliang/agentgate serve
+npx @zhiliangtech/agentgate check --root .
+npx @zhiliangtech/agentgate serve
 ```
 
 With no policy file present `check` uses a built-in default that refuses nothing extra, and
