@@ -62,24 +62,24 @@ jobs:
         run: |
           test -s data/history/ledger.jsonl || { echo "no ledger to record"; exit 0; }
           WORK=$(mktemp -d)
-          cp data/history/ledger.jsonl "$WORK/ledger.jsonl"
-          if [ -f data/diff.md ]; then cp data/diff.md "$WORK/diff-$(date -u +%F).md"; fi
           cd "$WORK"
           git init -q -b history
           git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
-          git fetch -q --depth 1 origin history || true
-          if git rev-parse -q --verify FETCH_HEAD > /dev/null; then
+          git fetch -q --depth 1 origin history 2>/dev/null || true
+          if git rev-parse -q --verify FETCH_HEAD > /dev/null 2>&1; then
             git checkout -q FETCH_HEAD -- . 2>/dev/null || true
-            # our copy is the source: the branch copy is only kept so the history accumulates
-            cp "$WORK/ledger.jsonl" ledger.jsonl
           fi
+          # Source paths are absolute: this directory is a fresh empty repo, and copying a file
+          # onto itself is not a merge. The first version of this step did exactly that.
+          cp "$GITHUB_WORKSPACE/data/history/ledger.jsonl" ledger.jsonl
+          if [ -f "$GITHUB_WORKSPACE/data/diff.md" ]; then cp "$GITHUB_WORKSPACE/data/diff.md" "diff-$(date -u +%F).md"; fi
           git -c user.name="github-actions" -c user.email="actions@github.com" add -A
           if git -c user.name="github-actions" -c user.email="actions@github.com" diff --cached --quiet; then
             echo "the mirrored record is unchanged"
-          else
-            git -c user.name="github-actions" -c user.email="actions@github.com" commit -q -m "ledger $(date -u +%F)"
-            git push -q origin history || echo "history push failed; the page is still correct"
+            exit 0
           fi
+          git -c user.name="github-actions" -c user.email="actions@github.com" commit -q -m "ledger $(date -u +%F)"
+          git push -q origin history || echo "history push failed; the page is still correct"
       - name: A sample report, from the project that breaks its own policy
         run: |
           node bin/agentgate.mjs check --root examples/action-verify --policy examples/action-verify/agentgate.policy.json --format html --out dist/report-sample.html || echo "expected: the sample is meant to fail the check"
