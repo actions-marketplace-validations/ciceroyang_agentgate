@@ -61,3 +61,18 @@
 - 不做 Windows 注册表、不做 EDR 集成、不做云端上报；TOML 只报不解析；
 - 不做「自动修复」；
 - 不改现有的 check / inventory 行为（四个都是新增命令）。
+## 实现状态（2026-09-17）
+
+| 能力 | 命令 | 模块 | 测试 |
+| --- | --- | --- | --- |
+| 1 | `discover` | `packages/guard/src/discover.mjs`、`known-configs.mjs` | `packages/guard/test/discover.test.mjs`（13）、`test/discover-cli.test.mjs`（5） |
+| 2 | `audit` | `packages/policy/src/audit.mjs`（聚合），扫描复用从 `check()` 抽出的 `runCheck()` | `packages/policy/test/audit.test.mjs`（6）、`test/audit-cli.test.mjs`（6） |
+| 3 | `watch`、`watch --verify` | `packages/watch/src/watch.mjs`（链复用 history 的 `hashOfLine`） | `packages/watch/test/watch.test.mjs`（13）、`test/watch-cli.test.mjs`（6） |
+| 4 | `framework`、`inventory --framework aicaiq` | `packages/policy/src/framework.mjs` | `packages/policy/test/framework.test.mjs`（8）、`test/framework-cli.test.mjs`（5） |
+
+两处是被测试抓出来才改对的（记在这里，因为它们是这套不变量最容易破的地方）：
+
+- `discover` 一开始只打印「这份清单不完整」，忘了把退出码置成 2——**说了不完整却仍然返回成功**；
+- `audit` 的聚合最初只统计已知 verdict，一个不认识的 verdict 会被算成 clean——**未知又变成了干净**。
+
+明确没做的（免得以后以为做了）：TOML（`.codex/config.toml`）只报不解析；`watch` 的归档没有自动清理与留存策略；`framework` 目前只有 AI-CAIQ v1.1.0 一张表，且是**能力级**映射，不是逐项自动对应（不做逐项是因为那需要推理，推理就会变成编）。

@@ -73,8 +73,24 @@ function renderItem(item, index) {
     (evidence.length ? "<h4>目录中的证据与检查范围</h4>" + evidence.map(renderEvidence).join("") : "<p class=\"gap\">没有可用于本条清单的证据块。未覆盖不等于未发现问题。</p>") + "</article>";
 }
 
+/**
+ * The questionnaire mapping, when one was asked for. It is a separate section for a reason: the
+ * per-item rows above are evidence, and this table is who answers what. Merging them would let
+ * the reader take one for the other.
+ */
+function renderFramework(framework) {
+  const owners = { we: "我们出证据", customer: "你们自证", "third-party": "第三方" };
+  const entries = Array.isArray(framework.entries) ? framework.entries : [];
+  return "<h2>问卷对照（" + esc(framework.name) + "）</h2>" +
+    "<p class=\"muted\">" + esc(framework.note) + " 来源：" + esc(framework.source) + "</p>" +
+    "<table><thead><tr><th>条目</th><th>它问什么</th><th>最终由谁交账</th><th>我们能给什么</th><th>边界</th></tr></thead><tbody>" +
+    entries.map(function (entry) {
+      return "<tr><td>" + esc(entry.id) + "</td><td>" + esc(entry.topic) + "</td><td>" + esc(owners[entry.owner] || entry.owner) + "</td><td>" + esc(entry.weProvide) + "</td><td>" + esc(entry.boundary) + "</td></tr>";
+    }).join("") + "</tbody></table>";
+}
+
 /** The HTML contains no scripts, forms, external resources or untrusted markup. */
-export function renderInventoryReport(report) {
+export function renderInventoryReport(report, options) {
   const data = report || {};
   const items = Array.isArray(data.items) ? data.items : [];
   const source = data.index || {};
@@ -106,6 +122,7 @@ ${gaps.length ? gaps.map(item => '<section class="gap"><h3>' + esc(inputName(ite
 <p class="muted">以下发现属于所选目录记录。版本未对应时，不能把它们直接归于你的实际安装版本。</p>
 ${findingItems.length ? findingItems.map(({ item, finding }) => '<section class="finding"><h3>' + esc(inputName(item)) + '</h3><p class="muted">目录对象：' + esc(item.selected ? [item.selected.server, item.selected.package, item.selected.version].filter(Boolean).join(' / ') : '尚未确认') + ' · 证据块：' + esc(finding.block || '未提供') + '</p><p><strong>' + esc(finding.rule || '未提供规则') + '</strong> · ' + esc(finding.severity || '级别未提供') + '</p><p>' + esc(finding.message || finding.evidence || '未记录发现说明') + '</p>' + (finding.reason ? '<p>' + esc(finding.reason) + '</p>' : '') + (finding.file ? '<p class="muted">位置：' + esc(finding.file) + '</p>' : '') + '</section>').join('\n') : '<p>本次已呈现的目录证据中没有附带发现；未覆盖项仍以上一节为准，不能据此判断所有工具无风险。</p>'}
 <h2>逐项对应与证据范围</h2>${items.map(renderItem).join('\n')}
+${options && options.framework ? renderFramework(options.framework) : ""}
 <footer>本报告是静态、无脚本的 HTML 文件，不会联网更新。目录证据、实际安装与组织批准是三件不同的事；本报告只记录清单与目录证据的对应情况。未覆盖的部分没有被算作通过。</footer>
 </main></body></html>\n`;
 }

@@ -26,6 +26,8 @@ import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
 import { readLedger, verifyLedger, backfill } from "../packages/history/src/ledger.mjs"
 import { createProxy } from "../packages/gateway/src/proxy.mjs"
 import { parseInventory, createInventoryReport } from "../packages/inventory/src/inventory.mjs"
+import { appendWatch, verifyWatch, webhookPayload } from "../packages/watch/src/watch.mjs"
+import { frameworkById, renderFrameworkText } from "../packages/policy/src/framework.mjs"
 import { renderInventoryReport } from "../packages/inventory/src/report.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
@@ -198,6 +200,70 @@ function check(flags) {
 }
 
 /**
+ * Record a customer's tool list, say what changed since the last time, and - only when a
+ * webhook was named - push that summary. The archive is written before the push: a chat
+ * service being down must not lose the capture.
+ */
+async function watchCommand(flags) {
+  const archive = resolve(String(flags.archive || "agentgate-watch"))
+  if (flags.verify) {
+    if (!existsSync(join(archive, "watch.jsonl"))) {
+      console.error("watch: 没有归档可验证：" + join(archive, "watch.jsonl"))
+      process.exit(3)
+    }
+    const result = verifyWatch(archive)
+    for (const problem of result.problems) console.error("  " + problem.problem + "  " + problem.detail)
+    console.log("captures verified: " + result.captures + (result.ok ? "，链与快照一致" : "，有不一致"))
+    process.exit(result.ok ? 0 : 1)
+  }
+  if (typeof flags.input !== "string") {
+    console.error("usage: agentgate watch --input tools.txt [--archive dir] [--index data/index.json] [--webhook URL] [--webhook-format raw|wecom|feishu|slack]\n       agentgate watch --verify [--archive dir]")
+    process.exit(3)
+  }
+  if (flags.webhook === true) { console.error("watch: --webhook 需要一个 URL"); process.exit(3) }
+  const chosen = resolveIndex(flags)
+  const indexPath = flags.index || process.env.AGENTGATE_INDEX || chosen.path
+  let entries
+  let index
+  try {
+    entries = parseInventory(readFileSync(flags.input, "utf8"))
+  } catch (error) { console.error("watch: " + error.message); process.exit(3) }
+  try {
+    index = JSON.parse(readFileSync(indexPath, "utf8"))
+  } catch (error) { console.error("watch: 读不了索引 " + indexPath + "：" + error.message); process.exit(3) }
+  const report = createInventoryReport(entries, index, { generatedAt: new Date().toISOString() })
+  const result = appendWatch(archive, { entries: entries, report: report })
+  if (flags.format === "json") {
+    process.stdout.write(JSON.stringify({ schemaVersion: 1, firstRun: result.firstRun, comparable: result.comparable, summary: result.summary, diff: result.diff, entry: result.entry }, null, 2) + "\n")
+  } else process.stdout.write(result.summary + "\n")
+  console.error("归档：" + join(archive, "watch.jsonl") + "（第 " + readWatchLines(archive) + " 条）")
+  if (flags.webhook) {
+    let payload
+    try {
+      payload = webhookPayload(String(flags["webhook-format"] || "raw"), result.summary, result.diff, result.entry.capturedAt)
+    } catch (error) { console.error("watch: " + error.message); process.exit(3) }
+    try {
+      const controller = new AbortController()
+      const timer = setTimeout(function () { controller.abort() }, 10000)
+      const response = await fetch(String(flags.webhook), {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload), signal: controller.signal,
+      })
+      clearTimeout(timer)
+      if (!response.ok) throw new Error("HTTP " + response.status)
+      console.error("已推送到 " + String(flags.webhook))
+    } catch (error) {
+      console.error("watch: 推送失败：" + ((error && error.message) || error) + "（归档已经写入，没有丢数据）")
+      process.exit(3)
+    }
+  }
+  process.exit(0)
+}
+
+function readWatchLines(archive) {
+  try { return readFileSync(join(archive, "watch.jsonl"), "utf8").trim().split("\n").filter(Boolean).length } catch (error) { return 0 }
+}
+
+/**
  * The same scan, once per repository, with one verdict for the set.
  *
  * A directory that does not exist is not skipped: it is an unmeasured repository, which makes
@@ -293,8 +359,13 @@ function inventory(flags) {
     const entries = parseInventory(readFileSync(flags.input, "utf8"))
     const index = JSON.parse(readFileSync(indexPath, "utf8"))
     if (!index || !Array.isArray(index.records)) throw new Error("证据索引缺少 records 列表，无法生成报告。")
+    let framework = null
+    if (flags.framework !== undefined) {
+      if (flags.framework === true) { console.error("inventory: --framework 需要一个框架 id，例如 aicaiq"); process.exit(3) }
+      try { framework = frameworkById(String(flags.framework)) } catch (error) { console.error("inventory: " + error.message); process.exit(3) }
+    }
     const report = createInventoryReport(entries, index, { generatedAt: new Date().toISOString() })
-    const rendered = format === "json" ? JSON.stringify(report, null, 2) : renderInventoryReport(report)
+    const rendered = format === "json" ? JSON.stringify(framework ? Object.assign({}, report, { framework: framework }) : report, null, 2) : renderInventoryReport(report, { framework: framework })
     if (flags.out) {
       if ([flags.input, indexPath].some(function (p) { return resolve(p) === resolve(flags.out) })) throw new Error("报告不能覆盖输入清单或证据索引。")
       // Reports can contain a private inventory. Do not overwrite a previous report implicitly.
@@ -344,6 +415,18 @@ function discoverCommand(flags) {
   // Same rule as everywhere else: a list that is missing something does not exit 0.
   process.exitCode = report.incomplete ? 2 : 0
 }
+/** Print the questionnaire mapping on its own, without a tool list. */
+function framework(flags) {
+  const id = flags.id === undefined || flags.id === true ? "aicaiq" : String(flags.id)
+  let chosen
+  try { chosen = frameworkById(id) } catch (error) { console.error("framework: " + error.message); process.exit(3) }
+  const rendered = flags.format === "json" ? JSON.stringify(chosen, null, 2) : renderFrameworkText(chosen)
+  if (flags.out) {
+    try { writeFileSync(String(flags.out), rendered + "\n", { flag: "wx", mode: 0o600 }) } catch (error) { console.error("framework: 写不了： " + error.message); process.exit(3) }
+    console.error("已保存：" + resolve(String(flags.out)))
+  } else process.stdout.write(rendered + "\n")
+  process.exit(0)
+}
 function proxy(flags, rest) {
   if (rest.length === 0) { console.error("usage: agentgate proxy --policy policy.json [--log calls.jsonl] -- <server command> [args...]"); process.exit(3) }
   let policy
@@ -368,6 +451,8 @@ function proxy(flags, rest) {
 if (args.command === "inventory") inventory(args.flags)
 else if (args.command === "discover") discoverCommand(args.flags)
 else if (args.command === "audit") audit(args.flags)
+else if (args.command === "watch") watchCommand(args.flags).catch(function (error) { console.error("watch: " + error.message); process.exit(3) })
+else if (args.command === "framework") framework(args.flags).catch(function (error) { console.error("watch: " + error.message); process.exit(3) })
 else if (args.command === "check") check(args.flags)
 else if (args.command === "proxy") proxy(args.flags, args.rest)
 else if (args.command === "diff") diff(args.flags)
@@ -379,9 +464,12 @@ else {
   console.log("agentgate <command>")
   console.log("")
   console.log("  discover  [--home <dir>] [--roots a,b] [--format text|json] [--out report.txt]   read the MCP configs already on this machine")
-  console.log("  inventory --input tools.txt [--index data/index.json] [--format html|json] [--out report.html]")
+  console.log("  inventory --input tools.txt [--index data/index.json] [--framework aicaiq] [--format html|json] [--out report.html]")
+  console.log("  framework [--id aicaiq] [--format text|json] [--out file]   who answers which questionnaire item")
   console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")
   console.log("  audit     --roots a,b,c [--policy p.json] [--index data/index.json] [--fail-on medium] [--format text|json]")
+  console.log("  watch     --input tools.txt [--archive dir] [--index data/index.json] [--webhook URL] [--webhook-format raw|wecom|feishu|slack]")
+  console.log("            --verify [--archive dir]")
   console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")

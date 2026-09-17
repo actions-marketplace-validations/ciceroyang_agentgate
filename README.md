@@ -113,6 +113,58 @@ The command exits zero when it produces a report, **not** when all tools pass; m
 input or unreadable data exits 2. `--out` refuses to overwrite an existing file.
 Use `check`, not `inventory`, for policy enforcement in CI.
 
+### Finding the list in the first place
+
+Nobody has the list by hand. `discover` reads the MCP configuration files that are already
+on the machine and prints one line per server, in the format `inventory --input` accepts:
+
+```sh
+node bin/agentgate.mjs discover --out tools.txt          # home directory + current directory
+node bin/agentgate.mjs discover --roots ~/code/a,~/code/b --format json
+```
+
+It never prints an `env` value, a header or an argument, and a remote address is reduced to
+its host: paths and query strings carry tokens. A file that exists but cannot be read or
+parsed (including `.codex/config.toml`, which this version does not parse) is listed with a
+reason and makes the command exit 2, because a list that is missing something is not
+printed as a complete one.
+
+### Several repositories at once
+
+```sh
+node bin/agentgate.mjs audit --roots ~/code/a,~/code/b,~/code/c --index data/index.json
+```
+
+The same scan per directory, one verdict for the set: if any directory is incomplete the
+whole audit is incomplete, and a directory that does not exist is an unmeasured repository
+rather than a skipped one.
+
+### What changed since last time
+
+```sh
+node bin/agentgate.mjs watch --input tools.txt --index data/index.json --archive ./archive
+node bin/agentgate.mjs watch --verify --archive ./archive
+node bin/agentgate.mjs watch --input tools.txt --index data/index.json --archive ./archive \
+  --webhook https://example.invalid/hook --webhook-format wecom
+```
+
+Each run appends one line to a chained archive (`prev` is the previous line's hash) and
+stores what it saw under `snapshots/<sha256>.json`. `--verify` recomputes the chain and
+every retained snapshot and exits 1 on a mismatch. Nothing is sent anywhere unless
+`--webhook` names an address; the archive is written before the push, so a chat service
+being down cannot lose a capture.
+
+### Handing the answer to a questionnaire
+
+```sh
+node bin/agentgate.mjs framework                       # who answers which AI-CAIQ item
+node bin/agentgate.mjs inventory --input tools.json --framework aicaiq --out report.html
+```
+
+The mapping says, per item, what we provide, where our coverage stops, and whether the
+answer is ours, the customer's, or only an independent assessor's. It is a description of
+evidence, not a compliance conclusion, and it does not reproduce the official text.
+
 ## Policy
 
 A policy says what the company refuses. It is data, not code, and it is specified: see
