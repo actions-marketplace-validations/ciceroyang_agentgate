@@ -59,14 +59,17 @@ curl -s localhost:8080/v1/servers/<name>
 curl -s localhost:8080/badge/<name>.svg
 ```
 
-It is packaged for npm as `@zhiliangtech/agentgate`. If `npx` answers 404 the first publish has not
-happened yet — [docs/operations/publish-checklist.md](docs/operations/publish-checklist.md) is that
-one-time setup, and until then the clone above is the way to run it.
+It is published on npm as `@zhiliangtech/agentgate`. Releases go out from CI when a `v*` tag is
+pushed, with provenance — [docs/operations/publish-checklist.md](docs/operations/publish-checklist.md)
+is that setup and the record of what was verified.
 
 ```sh
 npx @zhiliangtech/agentgate check --root .
 npx @zhiliangtech/agentgate serve
 ```
+
+`npx` resolves the `latest` dist-tag; pin a version (`@zhiliangtech/agentgate@0.1.1`) when you need
+an exact one.
 
 With no policy file present `check` uses a built-in default that refuses nothing extra, and
 `serve` answers from the snapshot the package was published with. `refresh` always writes to
