@@ -44,12 +44,12 @@
   - **cron 环境模拟**（`env -i SHELL=/bin/sh PATH=/usr/bin:/bin`）退出码 0：没有依赖交互式环境，也没有因为没有 HOME 而失败。
 - **留给 P3 的一件小事**：`/var/log/agentgate*.log` 需要 logrotate（现在只增不减）。
 
-## P1 供应链自保
+## P1 供应链自保 —— **完成（56dd677）**
 
 - **为什么**：我们卖的是"能核的供应链证据"，自己就更不能被别人塞东西进来。
 - **做什么**：CI 里断言 `dependencies`/`devDependencies` 仍然为空（现在就是，写下来防止将来悄悄加）；发布时生成并附上我们自己的 CycloneDX SBOM；Dependabot 只盯 GitHub Actions 的版本。
 - **做到什么算完**：CI 有一次"依赖必须为空"的失败演示；release 页面能看到 SBOM 文件；有依赖时 CI 会红。
-- **怎么验**：故意加一个依赖跑 CI（本地用同一脚本），确认报错。
+- **怎么验**：`node scripts/check-zero-deps.mjs`（127 个源文件、0 个裸导入）；`node scripts/sbom.mjs --stdout | python3 -m json.tool`；`node --test packages/verify/test/deps.test.mjs packages/verify/test/sbom.test.mjs`（20 项，含"字符串里的 require 不算导入""本仓库真的没有依赖"两条）。两条都已进 `scripts/verify.sh` 与 CI。**注**：本地没有 pyyaml，所以 YAML 校验在本地会走 `--` 跳过分支，我用 `ruby -ryaml` 单独验过全部 workflow + dependabot.yml 通过；CI 那一步现在覆盖全部 workflow（原来只查 test.yml，publish.yml 坏了要到发版才发现）。
 
 ## P2 服务硬化
 
