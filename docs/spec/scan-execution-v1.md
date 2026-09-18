@@ -9,6 +9,15 @@ finding, and still leave a report that reads as clean — a score of 100, an emp
 code 0. The summary is then indistinguishable from "ran and found nothing". This record makes those
 two states different values.
 
+## Stability
+
+**`agentgate.scan-execution/v1` · frozen.** Field names here are the contract, including the ones
+borrowed from the shape discussed in `modelcontextprotocol/registry#1404`, because the point of the
+record is that two of them can be compared field by field. A consumer that meets an unknown
+`status`, `state` or `semantic_consistency` must treat it as unmeasured, never as complete — that
+rule is what lets a value be added without silently upgrading a record to a pass. Rules:
+[compatibility.md](compatibility.md).
+
 ## The shape
 
 ```json

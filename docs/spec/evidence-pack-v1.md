@@ -2,6 +2,13 @@
 
 *2026-09-18。这份文件先定字段与不变量，再写实现。**每一条都必须是机器可判的**：pack 里出现的任何"我们能给"，都要能追到本次生成的数据；追不到就不许写。*
 
+## 稳定性
+
+**`agentgate.evidence-pack/v1` · provisional（暂定）。** 字段与不变量已经写下来并可用，但还没有人
+把它交给过外部的评审人；第一次外部试点之后会复审一次。在此之前，破坏性变更只需要 CHANGELOG 里的
+`Breaking` 一节加一条升级说明，不需要新版本号。规则见 [compatibility.md](compatibility.md)，升级路径见
+[upgrade.md](../operations/upgrade.md)。
+
 ## 0. 这是什么
 
 一次 `agentgate pack` 产出一个目录，交付给**客户的客户**（买方的安全评审人）：

@@ -8,6 +8,7 @@
 | --- | --- |
 | 收到巡检告警、采集停了、站点打不开、账本异常 | [incidents.md](incidents.md) |
 | 要回滚 npm 包 / 服务 / 数据 | [rollback.md](rollback.md) |
+| 手上有旧版本，想知道升级要不要动手 | [upgrade.md](upgrade.md) |
 | 怀疑凭据泄露，或者到了该轮换的时候 | [key-rotation.md](key-rotation.md) |
 | 要发一个新版本 | [publish-checklist.md](publish-checklist.md) + [deployment-runbook.md](deployment-runbook.md) 的「发布与回滚」 |
 | 部署、升级、看指标与日志 | [deployment-runbook.md](deployment-runbook.md) |

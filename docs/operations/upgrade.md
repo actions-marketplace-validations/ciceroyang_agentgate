@@ -1,0 +1,111 @@
+# Upgrading
+
+*Every released version has a section here, whether or not it asks you to do something. A test
+holds this file and the CHANGELOG to the same set of versions, because a release whose effect on
+an existing installation nobody wrote down is a release that breaks someone quietly.*
+
+How to read a section: **Affected** is who has to act, **Do** is what to run, **Check** is how to
+see that it worked. “Nothing to do” is an answer, and it is written out rather than left blank.
+
+The rules behind all of this — what a version identifier promises, what may change inside one, how
+a breaking change is announced — are in [compatibility.md](../spec/compatibility.md).
+
+## 0.3.0
+
+- **Affected:** anyone parsing `framework --format json`, or embedding the questionnaire mapping.
+- **What changed:** the AI-CAIQ table grew from 16 capability-level entries to all 58 items of the
+  four domains a reviewer asks a vendor about (STA, CCC, LOG, A&A), and every entry gained an
+  `evidence` array naming the evidence classes it draws on. The new `pack` command builds the
+  deliverable from that table; nothing existing changed behaviour.
+- **Do:** nothing. If you parse the JSON, read `id`, `owner` and `evidence` per entry instead of
+  assuming how many there are.
+- **Check:** `node bin/agentgate.mjs framework --format json | jq ".entries | length"` prints `58`.
+
+## 0.2.5
+
+- **Affected:** nobody.
+- **What changed:** links and metadata only. The product moved to the apex domain and the personal
+  site moved to `cicero.`; no runtime behaviour changed.
+- **Do:** nothing.
+
+## 0.2.4
+
+- **Affected:** anyone who called `scripts/coverage-stats.mjs` directly.
+- **What changed:** the coverage counting moved into `packages/collect/src/coverage.mjs`, and the new
+  read-only `mcp` command serves four tools over stdio from the same index.
+- **Do:** nothing. The script still runs and now shares its code with the MCP server, so the two
+  cannot report different numbers.
+
+## 0.2.3
+
+- **Affected:** nobody using the tool; it is a publish-pipeline fix.
+- **What changed:** the publish workflow uses `actions/setup-node@v7` and removes the generated
+  `.npmrc`, which is why `0.2.0` published and `0.2.1`/`0.2.2` did not reach npm at all.
+- **Do:** nothing. This release carries the changes of 0.2.1 and 0.2.2.
+
+## 0.2.2
+
+- **Affected:** anyone who pinned this version from npm. It never arrived.
+- **What changed:** the publish attempt failed with `404 Not Found - PUT` because npm preferred a
+  placeholder token written by the workflow over the OIDC exchange.
+- **Do:** use `0.2.3` or later; `npm i @zhiliangtech/agentgate@0.2.2` answers `E404`.
+
+## 0.2.1
+
+- **Affected:** anyone whose pipeline read index records, and anyone who pinned this version from
+  npm.
+- **What changed:** two things. Every index record now carries a `scanExecution` block — which
+  scanners were required, which completed, whether their output was present, readable and
+  self-consistent — and a record whose own coverage block says a required scanner did not finish can
+  no longer be `clean`, whatever its findings say. Separately, this version was a GitHub release
+  only; npm never received it.
+- **Do:** rebuild the index (`node bin/agentgate.mjs refresh`) so records carry the block. If you
+  diff an old index against a new one, expect verdicts to move from `clean` to `incomplete`: that
+  movement is the change, not a regression. Records written before the block existed are unaffected
+  and are handled the way they were before.
+- **Check:** `curl -s localhost:8080/v1/index/summary | jq .coverage` reports the coverage counts and
+  the reasons behind them.
+
+## 0.2.0
+
+- **Affected:** everyone on 0.1.x.
+- **What changed:** this is the first release whose provenance can be checked. The attestations of
+  `0.1.0`–`0.1.2` name commits that are no longer on any branch or tag in this repository, so those
+  versions cannot be verified the way this one can. This release also adds `/metrics`, the health
+  check with mail alerts, request limits, backup with a restore drill, the release check, and the
+  zero-dependency enforcement with our own SBOM.
+- **Do:** move to `0.2.0` or later and stop pinning `0.1.x`.
+- **Check:** `npm view @zhiliangtech/agentgate@0.2.0 dist.attestations.provenance.predicateType`
+  prints `https://slsa.dev/provenance/v1`.
+
+## 0.1.2
+
+- **Affected:** nobody upgrading; this is where `discover`, `audit`, `watch` and `framework` first
+  appear.
+- **What changed:** four new commands plus the productionization work (observability, supply-chain
+  self-checks, service hardening, backup, release engineering, customer-facing security pages).
+- **Do:** nothing.
+
+## 0.1.1
+
+*This is the worked example of a breaking change, kept here because it is the kind that does not
+look like one.*
+
+- **Affected:** any CI pipeline that ran `check` and read the exit code as pass or fail.
+- **What changed:** the adoption checks became stricter. An artefact with an unmeasured part is
+  `incomplete`, and the exit code is 2 — it used to be 0 in some of those cases. Nothing in the
+  output moved; only the code a pipeline acts on.
+- **Do:** treat the exit codes as three outcomes rather than two: `0` clean, `1` a finding at the
+  threshold, `2` something could not be checked. Fail the pipeline on 2 as well. `--fail-on`
+  deliberately does not affect 2, and there is no flag to turn an unmeasured artefact into a pass;
+  a gate that ignores 2 is a gate that passes what nobody measured.
+- **Check:** give the policy an artefact whose manifest is unmeasured, run
+  `node bin/agentgate.mjs check --policy policy.json --root .`, and confirm `echo $?` prints `2`.
+
+## 0.1.0
+
+- **Affected:** anyone still pinned to it.
+- **What changed:** the bootstrap release, published by hand, with no provenance attestation.
+- **Do:** move to a supported version. The window is defined in
+  [compatibility.md](../spec/compatibility.md); `0.1.x` is deprecated on npm.
+

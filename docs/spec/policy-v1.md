@@ -21,6 +21,14 @@ does not read JSON for a living.
 }
 ```
 
+## Stability
+
+**`agentgate.policy/v1` · frozen.** A policy file written against this version keeps its meaning.
+Inside v1 a change is additive: a new optional condition, a new recognized value. Renaming a field,
+changing its type, or changing what an existing value means needs a `/v2`, a migration note in
+[the upgrade guide](../operations/upgrade.md) and one minor release in which both are read.
+Rules: [compatibility.md](compatibility.md).
+
 ## Fields
 
 | field | meaning |

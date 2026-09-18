@@ -3,6 +3,13 @@
 这条流程回答“这份清单能对应到哪些已采集材料，还缺什么”，不回答“我的机器已经安全”。
 它不扫描本机，不启动 MCP server，不安装包，也不访问清单中的地址。
 
+## 稳定性
+
+**清单输入与报告 `schemaVersion: 1` · frozen。** 输入只接受名称、包名、来源和版本这五个字段；
+新增字段是附加式的，改名、改类型或改一个已有值的含义都需要新版本号、一条迁移说明，以及至少一个
+小版本里两种形式都能读。读到不认识的 `state` 或 `schemaVersion` 时必须当成未测到，不能当成通过。
+规则见 [compatibility.md](compatibility.md)，升级路径见 [upgrade.md](../operations/upgrade.md)。
+
 ## 页面入口
 
 运行 `node bin/agentgate.mjs serve`，打开它打印的本地地址下的 `/inventory.html`。

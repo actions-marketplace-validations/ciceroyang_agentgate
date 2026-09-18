@@ -373,6 +373,11 @@ service. Deployment scripts and a runbook are in the tree, and the first deploym
 checks is written up in [docs/verification.md](docs/verification.md). That write-up says nothing
 about the current health of the hosted service, and the Docker image build is still unverified.
 
+What the version identifiers promise, and which versions are supported, is written down in
+[docs/spec/compatibility.md](docs/spec/compatibility.md); [SECURITY.md](SECURITY.md) says how to report
+a vulnerability and what to expect. Neither is a substitute for gate 3 and gate 4 above — the
+enterprise surface is still missing and nobody outside this repository depends on it yet.
+
 The enterprise features described in the pricing proposal — SSO/SAML, RBAC, multi-tenancy and
 signed audit export — are not implemented. The Team and Enterprise prices are unvalidated
 hypotheses; the free pilot is how we test whether anyone wants this. See the

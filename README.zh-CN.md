@@ -286,6 +286,8 @@ node scripts/verify-real-server.mjs
 
 这是一个早期的开源内核：采集、证据索引、扫描、CI 里的策略检查、针对 stdio MCP server 的运行时网关、历史对比，以及一个只读服务。部署脚本和 runbook 都在树里，第一次部署和当时的核对写在 [docs/verification.md](docs/verification.md)。**那份记录不说明线上服务当前是否健康**，Docker 镜像构建也仍然没验过。
 
+版本标识承诺什么、哪些版本还在支持窗口内，写在 [docs/spec/compatibility.md](docs/spec/compatibility.md)；怎么报漏洞、会得到什么回应，写在 [SECURITY.md](SECURITY.md)。这两份都不是企业能力的替代品——该有的还没有，也还没有第二个团队在依赖它。
+
 价格方案里的企业能力——SSO/SAML、RBAC、多租户、签名审计导出——**尚未实现**。Team 与 Enterprise 的价格是**未经验证的假设**；免费试点就是用来验证有没有人要的。见[试点范围](docs/operations/pilot-package.md)与[许可说明](docs/product/licensing.md)。
 
 测试套件里有一条不变量：**崩掉的检查永远不可能产出 `clean`。** 当前数字跑 `npm test` 看，这一页不重复测试数量。

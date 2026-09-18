@@ -509,6 +509,18 @@ Marketplace 上线后只剩 npm 一条路，0.2.1 → 0.2.2 → 0.2.3 试了三�
 - **LobeHub**：`npx @lobehub/market-cli@0.0.41 plugin update --dir .` → `Updated ciceroyang-agentgate (0.2.5 → 0.3.0)`。
 - **还没做的**：latest 仍停在 0.2.4。提升 dist-tag 需要浏览器 2FA，属于只有本人能做的步骤（`docs/operations/publish-checklist.md` 里有记录）。
 
+## 1.0 的门 1 与门 2：把承诺写下来（2026-09-18）
+
+roadmap 里新写的一节把 1.0 定义成五道可验收的门。这一轮做掉的是前两道——它们都不是功能，而是**把已经做到的事写成可被检验的承诺**。判据来自门表自己写的缺口：门 1 缺「`SECURITY.md` 和写下来的支持窗口」，门 2 缺「五个 spec 都没有兼容承诺、没有升级指南、没有支持版本政策」。
+
+- **门 1**：新增 `SECURITY.md`——报告渠道（邮箱 + GitHub 私密报告）、回应节奏（3 个工作日内确认、10 个工作日内给评估，之后给修复或书面解释）、**明确写了没有赏金**、在范围内/外的边界（第三方 MCP server 的漏洞不是我们的，但**我们对它的描述不准**是我们的）、以及我们自己可被检验的性质（零运行时依赖、读本机的路径不联网、不读凭据、不执行被扫的代码、崩掉的检查不可能变成 `clean`）。写之前先查了 GitHub 的私密漏洞报告开关：`gh api repos/ciceroyang/agentgate/private-vulnerability-reporting` 返回 enabled=false，于是用 `PUT` 打开，再查为 enabled=true——文档里写的渠道必须真的存在。
+- **门 2**：新增 `docs/spec/compatibility.md`，把五种格式逐个写清版本标识与稳定性（policy / scan-execution / inventory / MCP 工具面 = frozen；**evidence-pack = provisional**，因为还没有人拿它给外部评审人看过），并定下：v1 内只许附加式变更；**一个不认识的值必须当成未测到、绝不能当成通过**（这条既是产品不变量，也正好是兼容规则）；破坏性变更要新标识 + 迁移说明 + 至少一个小版本两种都能读；弃用要有 `Deprecated` 节并提前一个小版本；0.x 期间小版本可以含破坏性变更，但必须有 `Breaking` 节；支持窗口是 `latest` 加之前一个小版本线、新小版本顶上来后再保 90 天，`next` 不承诺——并写明只有一个人维护，这是意图不是 SLA。
+- **升级路径**：新增 `docs/operations/upgrade.md`，**每个已发布版本**一节（10 个）。其中 0.1.1 那节留成了范例：那次「采用检查变严格」让退出码从 0 变成 2，输出一个字没变，**看起来不像破坏性变更**——升级建议是把退出码当三种结果而不是两种，并把 2 也当成失败。0.2.0 那节写的是另一类：0.1.x 的 provenance 指向的提交在仓库里已经不存在，所以只能用 0.2.0 及以后。
+- **五个 spec 各自加稳定性段**，写明标识、frozen/provisional、允许什么变更、指向政策与升级路径。
+- **新增 `test/governance.test.mjs`（4 项）**把这些承诺钉住：每个 spec 必须声明稳定性且在政策表里；政策里印的标识必须等于代码导出的常量（`POLICY_VERSION`、`SCAN_EXECUTION_VERSION`、`PACK_SCHEMA`）；**升级指南与 CHANGELOG 的版本集合必须完全一致**（少写一节就红）；`SECURITY.md` 必须存在、有邮箱、指向支持窗口，且不许把「没有赏金」留成暗示。
+- **两处顺带**：`docs/operations/README.md` 加了「手上有旧版本，想知道升级要不要动手」一行（该目录每一页都必须被索引链到，有测试）；roadmap 的门表把前两道标成 2026-09-18 关闭，并写清关掉的是文档与政策，不是功能。
+- **全套**：598 项测试、596 通过、0 失败、2 跳过（新增 4 项治理测试）。
+
 
 
 

@@ -56,8 +56,10 @@
     "examples/inventory/",
     "docs/spec/",
     "docs/roadmap.md",
+    "docs/operations/upgrade.md",
     "README.md",
     "README.zh-CN.md",
+    "SECURITY.md",
     "server.json",
     "LICENSE"
   ]

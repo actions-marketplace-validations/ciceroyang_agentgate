@@ -5,6 +5,19 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- The formats are frozen and the promise is written down:
+  [docs/spec/compatibility.md](docs/spec/compatibility.md) says what each version identifier means,
+  what may change inside one, how a breaking change is announced, and which versions are supported.
+  Every spec now declares `frozen` or `provisional`, and
+  [docs/operations/upgrade.md](docs/operations/upgrade.md) carries a section for every released
+  version, including the 0.1.1 change that made a stricter exit code look like nothing at all.
+- [SECURITY.md](SECURITY.md) says how to report a vulnerability, what to expect, what is in scope,
+  and which of our own properties a reporter can check. Private vulnerability reporting on GitHub
+  is switched on.
+- `test/governance.test.mjs` holds both promises to the code and to each other: the identifiers in
+  the policy are the ones the modules export, and the upgrade guide and the CHANGELOG must name the
+  same versions.
+
 ## [0.3.0] - 2026-09-18
 
 - `agentgate pack` produces a deliverable a vendor can hand to the person reviewing them:
