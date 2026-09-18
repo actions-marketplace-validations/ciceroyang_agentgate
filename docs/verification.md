@@ -465,6 +465,18 @@ Caddy 配置（本轮没有改 Caddy，也没有跑 `--apply`）。
 - 用这份真索引跑一次静态构建：`inventory.html` 内嵌的索引带着 `scanner_execution`，`s/ai.adeu__adeu.html` 的“哪些扫描器跑完了”段落显示“必需 2 个,跑完 2 个,没跑成 0 个”。浏览器端用的 `inventory.mjs` / `inventory-report.mjs` 与仓库里是同一份复制。
 - 本机 `npm test`：554 项测试、552 通过、0 失败、2 跳过（新增 4 条匹配器测试、2 条报告测试，并让转义夹具覆盖新的组件字段）。
 
+## npm 可信发布：两次误报，两个真原因（2026-09-18）
+
+Marketplace 上线后只剩 npm 一条路，0.2.1 → 0.2.2 → 0.2.3 试了三次。两个错误都指向别处，记下来。
+
+- **v0.2.1：`404 Not Found - PUT`**。provenance 已签发并进了 Sigstore，PUT 被拒，看起来像权限问题。看源码确认：`actions/setup-node@v4` 只要设了 `registry-url` 就往 `.npmrc` 写 `_authToken=${NODE_AUTH_TOKEN}`，并在变量不存在时导出占位符 `XXXXX-XXXXX-XXXXX-XXXXX`；npm 11 优先用这个假 token，而不是 OIDC。v7 的同一段代码改成了"只有用户显式提供才导出"。
+- **v0.2.2：清掉占位符后变成 `ENEEDAUTH`**。npm 的 `publish` 先调 `oidc()`，失败就静默返回，然后 `getCredentialsByURI` 拿不到凭证 → ENEEDAUTH。所以 **ENEEDAUTH 不代表"没走 OIDC"，而代表"OIDC 交换失败但没说出来"**。
+- **不再猜**。临时加 `.github/workflows/oidc-debug.yml`（`workflow_dispatch`，不发布、不打印 token）：打印 `node`/`npm` 版本与 `ACTIONS_ID_TOKEN_REQUEST_*` 是否存在；用 `audience=npm:registry.npmjs.org` 换一个 OIDC token 并解出 claims；直接 POST 交换端点 `/-/npm/v1/oidc/token/exchange/package/@zhiliangtech%2fagentgate`，只打印状态码与错误 body。
+- **结果**：`404 {"message":"OIDC token exchange error - package not found"}`——包明明在。claims 里 `repository_id=1374551755`（仓库 2026-09-17 删后重建，ID 变了），对照 npm 文档"仓库改名/转移后必须更新可信发布者"，判断绑定里留的是旧仓库身份。**删掉再重新添加**（GitHub / `ciceroyang` / `agentgate` / `publish.yml` / 无 environment / 允许 `npm publish`）后，同一条 `publish.yml`（tag `v0.2.3`）重跑，交换通过。
+- **收尾**：`next`=0.2.3、`latest`=0.2.0；registry 回 `Your package is being processed and may take a few minutes`，约 30 秒后可见；SBOM 挂到 release；provenance 为 SLSA v1（`dist.attestations.provenance.predicateType = https://slsa.dev/provenance/v1`）。诊断 workflow 已删除，v0.2.1/v0.2.2 的 release notes 改成如实说明（它们没有上 npm）。
+- 附带确认：`.npmrc` 里那行即使把 `NODE_AUTH_TOKEN` 设成空串也仍然存在一个空的 `_authToken` 键，npm 会当成"有凭证"而不走 OIDC；发布步骤里直接删掉 `$NPM_CONFIG_USERCONFIG` 文件才干净。
+- **仍然只有本人能做的**：npm 设置页的每次修改都要 security key 或 password。
+
 
 
 
