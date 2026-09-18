@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ciceroyang/agentgate",
   "title": "agentgate",
-  "description": "Evidence, coverage and policy for the tools agents run: look up an MCP server's record, match the tools you actually use, and scan a project. Read-only, and an incomplete record is never reported as clean.",
+  "description": "Read-only evidence for the tools agents run: MCP server records, coverage and policy.",
   "version": "0.2.4",
   "repository": {
     "url": "https://github.com/ciceroyang/agentgate",
