@@ -2,8 +2,9 @@
 /**
  * 从外网验收公开 demo。
  *
- * 覆盖不到的:systemd、Caddy 配置文件本身。覆盖得到的:证书能不能用、五个页面在不在、
- * 服务有没有真的在跑(records 不是样本的 300 条)、索引是不是当天的、主域有没有被动过。
+ * 覆盖不到的:systemd、Caddy 配置文件本身。覆盖得到的:证书能不能用、页面在不在、
+ * 服务有没有真的在跑(records 不是样本的 300 条)、索引是不是当天的,以及 2026-09-18 那次
+ * 主域对调有没有对调干净:产品在主域、个人站在 cicero.、旧地址 app. 的页面 301 而 API 仍直连。
  *
  *   node scripts/verify-public.mjs --base https://xn--5kvo87g.com --expect-min 1000
  */
@@ -13,7 +14,8 @@ const argOf = function (name, fallback) {
   return i === -1 ? fallback : argv[i + 1]
 }
 const base = (argOf("base", "https://xn--5kvo87g.com")).replace(/\/$/, "")
-const apex = argOf("apex", "https://xn--5kvo87g.com")
+const personal = (argOf("personal", "https://cicero.xn--5kvo87g.com")).replace(/\/$/, "")
+const legacy = (argOf("legacy", "https://app.xn--5kvo87g.com")).replace(/\/$/, "")
 const expectMin = Number(argOf("expect-min", 1000))
 let failures = 0
 const check = function (name, ok, detail) {
@@ -66,8 +68,15 @@ try {
   const badge = await get(base + "/badge/anything.svg")
   check("badge 渲染成 SVG", badge.status === 200 && badge.type.indexOf("image/svg+xml") !== -1 && badge.text.indexOf("<svg") === 0, badge.status + " " + badge.type)
 
-  const still = await get(apex + "/")
-  check("主域上的原有站点没有被改动", still.status === 200 && still.type.indexOf("text/html") !== -1, still.status)
+  // 2026-09-18: the product took the apex and the personal site moved to its own name. Both are
+  // checked here because a switch that half-happened looks fine from either side alone.
+  const personalHome = await get(personal + "/")
+  check("个人站在自己的域名上可达", personalHome.status === 200 && personalHome.type.indexOf("text/html") !== -1, personalHome.status + " " + personalHome.type)
+  check("那个域名上是个人站,不是产品页", personalHome.text.indexOf("Cicero Yang") !== -1 || personalHome.text.indexOf("杨雨衡") !== -1, personalHome.text.slice(0, 80))
+  const legacyPage = await get(legacy + "/pricing.html")
+  check("旧地址 app. 的页面 301 到主域", legacyPage.status === 301, legacyPage.status)
+  const legacyApi = await get(legacy + "/v1/index/summary")
+  check("旧地址的 /v1 仍然直连可用(已经在用它的地方不用当天改)", legacyApi.status === 200, legacyApi.status)
 } catch (error) {
   check("请求本身成功", false, error && error.message)
 }
