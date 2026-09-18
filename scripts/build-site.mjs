@@ -25,6 +25,7 @@ const maxRecords = Number(argOf("--max-records", 20000))
 const pagesDir = argOf("--pages", join(ROOT, "site"))
 const historyDir = argOf("--history", join(ROOT, "data", "history"))
 const indexName = argOf("--name", "evidence.html")
+const packDir = argOf("--pack", join(ROOT, "docs", "samples", "evidence-pack-example"))
 if (!existsSync(indexPath)) { console.error("no index at " + indexPath); process.exit(2) }
 if (!existsSync(templatePath)) { console.error("no template at " + templatePath); process.exit(2) }
 
@@ -274,6 +275,18 @@ if (pagesDir && existsSync(pagesDir)) {
     }
   }
 }
+// The evidence pack is published exactly as it was generated, under the same file names: the
+// manifest lists a sha256 per file, and renaming one would break the only property the pack
+// exists to have. So it is copied byte for byte rather than regenerated for the site.
+let packFiles = 0
+if (packDir && existsSync(packDir)) {
+  mkdirSync(join(outDir, "pack"), { recursive: true })
+  for (const name of readdirSync(packDir)) {
+    if (!/\.(html|json|md|txt|sha256)$/.test(name)) continue
+    copyFileSync(join(packDir, name), join(outDir, "pack", name))
+    packFiles += 1
+  }
+}
 // The personal inventory never leaves the browser. Ship the public snapshot and the same
 // matching/report modules used by the offline CLI, not a name-querying upload endpoint.
 /** Remove the pages this build no longer produces.
@@ -409,4 +422,4 @@ if (existsSync(SERVER_TEMPLATE)) {
   console.log("sitemap: " + (top.length + serverUrls.length) + " url(s)")
 }
 writeFileSync(join(outDir, ".nojekyll"), "")
-console.log("site written to " + join(outDir, indexName) + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records" + (diffText ? ", with a diff" : "") + ") and " + copied + " page(s) copied")
+console.log("site written to " + join(outDir, indexName) + " (" + Math.round(page.length / 1024) + " KB, " + records.length + " records" + (diffText ? ", with a diff" : "") + ") and " + copied + " page(s) copied" + (packFiles > 0 ? " and " + packFiles + " pack file(s)" : ""))

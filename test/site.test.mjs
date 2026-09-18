@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, existsSync, rmSync } from "node:fs"
 import { join, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
+import { createHash } from "node:crypto"
 import { scratchDir } from "./tmpdir.mjs"
 import { appendCapture } from "../packages/history/src/ledger.mjs"
 
@@ -393,4 +394,27 @@ test("the capture ledger is published with its own text, and a missing day is no
   assert.doesNotMatch(page, /__[A-Z]+__/, "a placeholder survived into the published page")
   const sitemap = readFileSync(join(out, "sitemap.xml"), "utf8")
   assert.ok(sitemap.indexOf("/history.html") !== -1, "the record page is not in the sitemap")
+})
+
+test("the sample evidence pack is published byte for byte, so its manifest still verifies", function () {
+  const out = scratchDir("ag-site-pack-")
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+  const manifest = readFileSync(join(out, "pack", "manifest.txt"), "utf8")
+  const listed = Array.from(manifest.matchAll(/^([0-9a-f]{64})  (.+)$/gm)).map(function (m) { return { digest: m[1], name: m[2] } })
+  assert.ok(listed.length >= 3, "the published manifest lists no files")
+  for (const entry of listed) {
+    const published = join(out, "pack", entry.name)
+    assert.ok(existsSync(published), entry.name + " is in the manifest but was not published")
+    const actual = createHash("sha256").update(readFileSync(published)).digest("hex")
+    assert.equal(actual, entry.digest, entry.name + " changed between generation and publication")
+  }
+  // The seal has to travel too, or a visitor cannot check the manifest itself, and the page that
+  // explains the pack must not link to a file that is not there.
+  assert.ok(existsSync(join(out, "pack", "manifest.sha256")), "the seal is missing")
+  const evidence = readFileSync(join(out, "evidence.html"), "utf8")
+  const links = Array.from(evidence.matchAll(/href="\/pack\/([a-z0-9.-]+)"/g)).map(function (m) { return m[1] })
+  assert.ok(links.length >= 2, "the index does not link to the pack")
+  for (const name of links) assert.ok(existsSync(join(out, "pack", name)), "the index links to a pack file that is not published: " + name)
+  assert.ok(readFileSync(join(out, "sitemap.xml"), "utf8").indexOf("/pack/pack.html") !== -1, "the pack page is not in the sitemap")
 })
