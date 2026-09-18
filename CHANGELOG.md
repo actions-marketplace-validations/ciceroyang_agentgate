@@ -5,6 +5,28 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-18
+
+- `agentgate pack` produces a deliverable a vendor can hand to the person reviewing them:
+  `pack.json`, `pack.html`, `answers.aicaiq.md`, a per-file `manifest.txt` and a `manifest.sha256`
+  seal. Every answer we claim points at evidence in the same directory, every item we could not
+  measure is counted at the top of the page, and the command exits 2 rather than 0 when one of our
+  answers is only partly measured. `agentgate pack --verify <dir>` recomputes every hash and the
+  seal. Spec: [docs/spec/evidence-pack-v1.md](docs/spec/evidence-pack-v1.md), example generated
+  from the live index: [docs/samples/evidence-pack-example](docs/samples/evidence-pack-example).
+- The AI-CAIQ mapping now covers all 58 items of the four domains a reviewer asks a vendor about
+  (STA 19, CCC 11, LOG 21, A&A 7) instead of 16 capability-level entries. 13 are ours, 41 are the
+  customer's and 4 belong to an independent assessor; each one names the evidence classes it draws
+  on, and a `we` entry with no evidence class fails the test suite. `framework` prints the same
+  table, now with the evidence classes.
+- Nine evidence classes decide what "measured" means for an answer: tool identity, exact version,
+  content digest and scope, package metadata, scan execution, change history, archive integrity,
+  coverage accounting and gateway decisions. The implemented classes and the ones the mapping may
+  name are compared by a test, so a claim with nothing behind it cannot be added quietly.
+- The pack reuses the existing scanner, inventory parser and archive; it adds no new measurement
+  and never opens a socket. An explicitly named `--index` is a decision, not a preference: a missing
+  file is an error rather than a silent fallback to the packaged sample.
+
 ## [0.2.5] - 2026-09-18
 
 - The product moved to <https://xn--5kvo87g.com/> and the personal site that used to live there

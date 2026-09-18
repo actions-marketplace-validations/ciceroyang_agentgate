@@ -1,0 +1,1894 @@
+{
+  "schemaVersion": "agentgate.evidence-pack/v1",
+  "generatedAt": "2026-09-18T07:42:01.125Z",
+  "tool": {
+    "name": "agentgate",
+    "version": "0.2.5"
+  },
+  "index": {
+    "generatedAt": "2026-09-18T04:17:45.595Z",
+    "scanner": "192046f",
+    "records": 2055,
+    "snapshot": false,
+    "truncated": false
+  },
+  "input": {
+    "items": 8,
+    "framework": "aicaiq"
+  },
+  "items": [
+    {
+      "id": "tool-1",
+      "input": {
+        "name": "客服知识库",
+        "server": "agency.kesey/pretrip",
+        "package": "pretrip-mcp",
+        "registry": "npm",
+        "version": "1.0.1"
+      },
+      "state": "matched",
+      "label": "版本与证据对应，有发现待查看",
+      "reason": "工具身份、你的精确版本与列出的检查证据对应；这不是安全认证。",
+      "selected": {
+        "server": "agency.kesey/pretrip",
+        "package": "pretrip-mcp",
+        "registry": "npm",
+        "version": "1.0.1"
+      },
+      "evidence": [
+        {
+          "block": "registryDocument",
+          "status": "findings",
+          "source": "mcp-census",
+          "reason": null,
+          "digest": "f96baf18939d388a57ef8a2ba2fc6e29535d3e5bd4a59fcc6478a69823ef6520",
+          "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents",
+          "findings": [
+            {
+              "block": "registryDocument",
+              "rule": "stdio-transport",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+            },
+            {
+              "block": "registryDocument",
+              "rule": "package-repository-missing",
+              "severity": "medium",
+              "file": null,
+              "message": null,
+              "evidence": "neither the registry entry nor the published package names a repository, so the source could not be located"
+            }
+          ]
+        },
+        {
+          "block": "packageManifest",
+          "status": "clean",
+          "source": "guard-scan",
+          "reason": null,
+          "digest": "d809303949fc091ec04a49cc73299feacb020f887c361bee352b5e786dd399db",
+          "scope": "packageManifest/v1: exact npm version manifest JSON fields scripts, dependencies, devDependencies, optionalDependencies; excludes referenced script bodies and package artifact contents",
+          "findings": []
+        }
+      ],
+      "execution": {
+        "state": "complete",
+        "required": 2,
+        "completed": 2,
+        "failed": 0,
+        "generatedAt": "2026-09-18T04:17:45.567Z",
+        "components": [
+          {
+            "id": "registryDocument",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 1,
+              "low": 0,
+              "info": 1
+            }
+          },
+          {
+            "id": "packageManifest",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 0
+            }
+          }
+        ]
+      },
+      "findings": [
+        {
+          "block": "registryDocument",
+          "rule": "stdio-transport",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+        },
+        {
+          "block": "registryDocument",
+          "rule": "package-repository-missing",
+          "severity": "medium",
+          "file": null,
+          "message": null,
+          "evidence": "neither the registry entry nor the published package names a repository, so the source could not be located"
+        }
+      ],
+      "claim": "ev:tool-1"
+    },
+    {
+      "id": "tool-2",
+      "input": {
+        "name": "增长分析",
+        "server": "ai.adeu/adeu",
+        "package": "@adeu/mcp-server",
+        "registry": "npm",
+        "version": "1.7.1"
+      },
+      "state": "matched",
+      "label": "版本与证据对应，有发现待查看",
+      "reason": "工具身份、你的精确版本与列出的检查证据对应；这不是安全认证。",
+      "selected": {
+        "server": "ai.adeu/adeu",
+        "package": "@adeu/mcp-server",
+        "registry": "npm",
+        "version": "1.7.1"
+      },
+      "evidence": [
+        {
+          "block": "registryDocument",
+          "status": "findings",
+          "source": "mcp-census",
+          "reason": null,
+          "digest": "e0ad191a713367d8fbb747e14d909565dee54affc0d8683bed0ea6e887c38aa0",
+          "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents",
+          "findings": [
+            {
+              "block": "registryDocument",
+              "rule": "stdio-transport",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+            },
+            {
+              "block": "registryDocument",
+              "rule": "declared-version-not-latest",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "registry declares 1.7.1, npm latest is 3.0.6"
+            }
+          ]
+        },
+        {
+          "block": "packageManifest",
+          "status": "clean",
+          "source": "guard-scan",
+          "reason": null,
+          "digest": "308e9b2757a982397f57323ee28b004565ce23791d9dfa2242acd974d92871d2",
+          "scope": "packageManifest/v1: exact npm version manifest JSON fields scripts, dependencies, devDependencies, optionalDependencies; excludes referenced script bodies and package artifact contents",
+          "findings": []
+        }
+      ],
+      "execution": {
+        "state": "complete",
+        "required": 2,
+        "completed": 2,
+        "failed": 0,
+        "generatedAt": "2026-09-18T04:17:45.567Z",
+        "components": [
+          {
+            "id": "registryDocument",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 2
+            }
+          },
+          {
+            "id": "packageManifest",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 0
+            }
+          }
+        ]
+      },
+      "findings": [
+        {
+          "block": "registryDocument",
+          "rule": "stdio-transport",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+        },
+        {
+          "block": "registryDocument",
+          "rule": "declared-version-not-latest",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "registry declares 1.7.1, npm latest is 3.0.6"
+        }
+      ],
+      "claim": "ev:tool-2"
+    },
+    {
+      "id": "tool-3",
+      "input": {
+        "name": "广告投放",
+        "server": "ai.adtest/adtest-mcp",
+        "package": "adtest-mcp",
+        "registry": "npm",
+        "version": "1.1.0"
+      },
+      "state": "matched",
+      "label": "版本与证据对应，有发现待查看",
+      "reason": "工具身份、你的精确版本与列出的检查证据对应；这不是安全认证。",
+      "selected": {
+        "server": "ai.adtest/adtest-mcp",
+        "package": "adtest-mcp",
+        "registry": "npm",
+        "version": "1.1.0"
+      },
+      "evidence": [
+        {
+          "block": "registryDocument",
+          "status": "findings",
+          "source": "mcp-census",
+          "reason": null,
+          "digest": "7beed2a2d1b28f7a9041ba0a7c6d14982af35033430ef7b28acb0277c5b8b51e",
+          "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents",
+          "findings": [
+            {
+              "block": "registryDocument",
+              "rule": "stdio-transport",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+            }
+          ]
+        },
+        {
+          "block": "packageManifest",
+          "status": "clean",
+          "source": "guard-scan",
+          "reason": null,
+          "digest": "0aa0b7a7c3be2cce8931865f74bdc1114c698a62323066b0a76a30f1c3bd8c93",
+          "scope": "packageManifest/v1: exact npm version manifest JSON fields scripts, dependencies, devDependencies, optionalDependencies; excludes referenced script bodies and package artifact contents",
+          "findings": []
+        }
+      ],
+      "execution": {
+        "state": "complete",
+        "required": 2,
+        "completed": 2,
+        "failed": 0,
+        "generatedAt": "2026-09-18T04:17:45.567Z",
+        "components": [
+          {
+            "id": "registryDocument",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 1
+            }
+          },
+          {
+            "id": "packageManifest",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 0
+            }
+          }
+        ]
+      },
+      "findings": [
+        {
+          "block": "registryDocument",
+          "rule": "stdio-transport",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+        }
+      ],
+      "claim": "ev:tool-3"
+    },
+    {
+      "id": "tool-4",
+      "input": {
+        "name": "财富顾问",
+        "server": "ai.aetherwealth/mcp",
+        "package": "@aetherwealth/mcp",
+        "registry": "npm",
+        "version": "0.2.15"
+      },
+      "state": "matched",
+      "label": "版本与证据对应，有发现待查看",
+      "reason": "工具身份、你的精确版本与列出的检查证据对应；这不是安全认证。",
+      "selected": {
+        "server": "ai.aetherwealth/mcp",
+        "package": "@aetherwealth/mcp",
+        "registry": "npm",
+        "version": "0.2.15"
+      },
+      "evidence": [
+        {
+          "block": "registryDocument",
+          "status": "findings",
+          "source": "mcp-census",
+          "reason": null,
+          "digest": "bbbcba0837cbcdbcea5c48f01256c81a789e98dd76ae5a01a296e5346fff4622",
+          "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents",
+          "findings": [
+            {
+              "block": "registryDocument",
+              "rule": "stdio-transport",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+            },
+            {
+              "block": "registryDocument",
+              "rule": "package-repository-missing",
+              "severity": "medium",
+              "file": null,
+              "message": null,
+              "evidence": "neither the registry entry nor the published package names a repository, so the source could not be located"
+            }
+          ]
+        },
+        {
+          "block": "packageManifest",
+          "status": "clean",
+          "source": "guard-scan",
+          "reason": null,
+          "digest": "b6b66b83fb3b265dea692a9ec74966000a9a50931fe7845c11cd05624a841099",
+          "scope": "packageManifest/v1: exact npm version manifest JSON fields scripts, dependencies, devDependencies, optionalDependencies; excludes referenced script bodies and package artifact contents",
+          "findings": []
+        }
+      ],
+      "execution": {
+        "state": "complete",
+        "required": 2,
+        "completed": 2,
+        "failed": 0,
+        "generatedAt": "2026-09-18T04:17:45.567Z",
+        "components": [
+          {
+            "id": "registryDocument",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 1,
+              "low": 0,
+              "info": 1
+            }
+          },
+          {
+            "id": "packageManifest",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 0
+            }
+          }
+        ]
+      },
+      "findings": [
+        {
+          "block": "registryDocument",
+          "rule": "stdio-transport",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+        },
+        {
+          "block": "registryDocument",
+          "rule": "package-repository-missing",
+          "severity": "medium",
+          "file": null,
+          "message": null,
+          "evidence": "neither the registry entry nor the published package names a repository, so the source could not be located"
+        }
+      ],
+      "claim": "ev:tool-4"
+    },
+    {
+      "id": "tool-5",
+      "input": {
+        "name": "联盟营销",
+        "server": "ai.agenticaffiliate/affiliate-networks-mcp",
+        "package": "affiliate-networks-mcp",
+        "registry": "npm",
+        "version": "0.19.0"
+      },
+      "state": "matched",
+      "label": "版本与证据对应，有发现待查看",
+      "reason": "工具身份、你的精确版本与列出的检查证据对应；这不是安全认证。",
+      "selected": {
+        "server": "ai.agenticaffiliate/affiliate-networks-mcp",
+        "package": "affiliate-networks-mcp",
+        "registry": "npm",
+        "version": "0.19.0"
+      },
+      "evidence": [
+        {
+          "block": "registryDocument",
+          "status": "findings",
+          "source": "mcp-census",
+          "reason": null,
+          "digest": "297899e8628ef1afc596c7c376884b1757892c476ec5337a541c740dd69a6a86",
+          "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents",
+          "findings": [
+            {
+              "block": "registryDocument",
+              "rule": "stdio-transport",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+            },
+            {
+              "block": "registryDocument",
+              "rule": "declared-version-not-latest",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "registry declares 0.19.0, npm latest is 0.20.0"
+            }
+          ]
+        },
+        {
+          "block": "packageManifest",
+          "status": "clean",
+          "source": "guard-scan",
+          "reason": null,
+          "digest": "35df0c462d83525857990f1cd6fde3104c6a8354690875e51556375130c268fa",
+          "scope": "packageManifest/v1: exact npm version manifest JSON fields scripts, dependencies, devDependencies, optionalDependencies; excludes referenced script bodies and package artifact contents",
+          "findings": []
+        }
+      ],
+      "execution": {
+        "state": "complete",
+        "required": 2,
+        "completed": 2,
+        "failed": 0,
+        "generatedAt": "2026-09-18T04:17:45.567Z",
+        "components": [
+          {
+            "id": "registryDocument",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 2
+            }
+          },
+          {
+            "id": "packageManifest",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 0
+            }
+          }
+        ]
+      },
+      "findings": [
+        {
+          "block": "registryDocument",
+          "rule": "stdio-transport",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+        },
+        {
+          "block": "registryDocument",
+          "rule": "declared-version-not-latest",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "registry declares 0.19.0, npm latest is 0.20.0"
+        }
+      ],
+      "claim": "ev:tool-5"
+    },
+    {
+      "id": "tool-6",
+      "input": {
+        "name": "浏览器工作流",
+        "server": "ai.agentutility/mcp-browser-workflow",
+        "package": "@agentutility/mcp-browser-workflow",
+        "registry": "npm",
+        "version": "0.1.1"
+      },
+      "state": "matched",
+      "label": "版本与证据对应，有发现待查看",
+      "reason": "工具身份、你的精确版本与列出的检查证据对应；这不是安全认证。",
+      "selected": {
+        "server": "ai.agentutility/mcp-browser-workflow",
+        "package": "@agentutility/mcp-browser-workflow",
+        "registry": "npm",
+        "version": "0.1.1"
+      },
+      "evidence": [
+        {
+          "block": "registryDocument",
+          "status": "findings",
+          "source": "mcp-census",
+          "reason": null,
+          "digest": "96332ef2e4c6896a3ef949d068de760bfb421e5a2f8b9e06dd1f04f98663e8eb",
+          "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents",
+          "findings": [
+            {
+              "block": "registryDocument",
+              "rule": "stdio-transport",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+            },
+            {
+              "block": "registryDocument",
+              "rule": "declared-version-not-latest",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "registry declares 0.1.1, npm latest is 0.1.3"
+            }
+          ]
+        },
+        {
+          "block": "packageManifest",
+          "status": "clean",
+          "source": "guard-scan",
+          "reason": null,
+          "digest": "b90685a2b501bbb8a2c506775ece56fbd0d628a6a01cc57501bc3e8059918442",
+          "scope": "packageManifest/v1: exact npm version manifest JSON fields scripts, dependencies, devDependencies, optionalDependencies; excludes referenced script bodies and package artifact contents",
+          "findings": []
+        }
+      ],
+      "execution": {
+        "state": "complete",
+        "required": 2,
+        "completed": 2,
+        "failed": 0,
+        "generatedAt": "2026-09-18T04:17:45.568Z",
+        "components": [
+          {
+            "id": "registryDocument",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 2
+            }
+          },
+          {
+            "id": "packageManifest",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 0
+            }
+          }
+        ]
+      },
+      "findings": [
+        {
+          "block": "registryDocument",
+          "rule": "stdio-transport",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+        },
+        {
+          "block": "registryDocument",
+          "rule": "declared-version-not-latest",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "registry declares 0.1.1, npm latest is 0.1.3"
+        }
+      ],
+      "claim": "ev:tool-6"
+    },
+    {
+      "id": "tool-7",
+      "input": {
+        "name": "内部运维台",
+        "server": "internal.example.corp/ops-mcp",
+        "package": null,
+        "registry": null,
+        "version": null
+      },
+      "state": "unmatched",
+      "label": "当前索引未找到",
+      "reason": "当前索引中没有找到对应工具；这不表示工具安全或不存在。",
+      "selected": null,
+      "evidence": [],
+      "execution": null,
+      "findings": [],
+      "claim": "ev:tool-7"
+    },
+    {
+      "id": "tool-8",
+      "input": {
+        "name": "还在用 latest 的那个",
+        "server": "ai.agentutility/mcp-bestiary",
+        "package": "@agentutility/mcp-bestiary",
+        "registry": null,
+        "version": "latest"
+      },
+      "state": "version_missing",
+      "label": "需要你的精确版本",
+      "reason": "需要你实际使用的精确版本；空值、latest 或版本范围都不能用于证据匹配。",
+      "selected": {
+        "server": "ai.agentutility/mcp-bestiary",
+        "package": "@agentutility/mcp-bestiary",
+        "registry": "npm",
+        "version": "0.1.3"
+      },
+      "evidence": [
+        {
+          "block": "registryDocument",
+          "status": "findings",
+          "source": "mcp-census",
+          "reason": null,
+          "digest": "ea74581311d36c0e630106ccde5b75c223fac1033d4ebe1f3cf94a4f3f126f03",
+          "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents",
+          "findings": [
+            {
+              "block": "registryDocument",
+              "rule": "stdio-transport",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+            },
+            {
+              "block": "registryDocument",
+              "rule": "declared-version-not-latest",
+              "severity": "info",
+              "file": null,
+              "message": null,
+              "evidence": "registry declares 0.1.3, npm latest is 0.1.5"
+            }
+          ]
+        },
+        {
+          "block": "packageManifest",
+          "status": "clean",
+          "source": "guard-scan",
+          "reason": null,
+          "digest": "999f9ee485fae8c53106c419703657048d2728df8eaba5c150caa5e5d4d8ebd6",
+          "scope": "packageManifest/v1: exact npm version manifest JSON fields scripts, dependencies, devDependencies, optionalDependencies; excludes referenced script bodies and package artifact contents",
+          "findings": []
+        }
+      ],
+      "execution": {
+        "state": "complete",
+        "required": 2,
+        "completed": 2,
+        "failed": 0,
+        "generatedAt": "2026-09-18T04:17:45.568Z",
+        "components": [
+          {
+            "id": "registryDocument",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 2
+            }
+          },
+          {
+            "id": "packageManifest",
+            "required": true,
+            "status": "completed",
+            "output_present": true,
+            "output_parseable": true,
+            "semantic_consistency": "ok",
+            "reason": null,
+            "findings": {
+              "critical": 0,
+              "high": 0,
+              "medium": 0,
+              "low": 0,
+              "info": 0
+            }
+          }
+        ]
+      },
+      "findings": [
+        {
+          "block": "registryDocument",
+          "rule": "stdio-transport",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "packages[].transport.type=stdio (runs locally as a child process)"
+        },
+        {
+          "block": "registryDocument",
+          "rule": "declared-version-not-latest",
+          "severity": "info",
+          "file": null,
+          "message": null,
+          "evidence": "registry declares 0.1.3, npm latest is 0.1.5"
+        }
+      ],
+      "claim": "ev:tool-8"
+    }
+  ],
+  "evidenceClasses": [
+    {
+      "id": "tool-identity",
+      "title": "工具身份",
+      "state": "partial",
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "missing": [
+        {
+          "item": "tool-7",
+          "reason": "当前索引中没有找到对应工具；这不表示工具安全或不存在。"
+        }
+      ],
+      "counts": {
+        "backing": 7,
+        "missing": 1
+      }
+    },
+    {
+      "id": "exact-version",
+      "title": "精确版本对应",
+      "state": "partial",
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6"
+      ],
+      "missing": [
+        {
+          "item": "tool-7",
+          "reason": "当前索引中没有找到对应工具；这不表示工具安全或不存在。"
+        },
+        {
+          "item": "tool-8",
+          "reason": "需要你实际使用的精确版本；空值、latest 或版本范围都不能用于证据匹配。"
+        }
+      ],
+      "counts": {
+        "backing": 6,
+        "missing": 2
+      }
+    },
+    {
+      "id": "content-digest",
+      "title": "内容哈希与覆盖范围",
+      "state": "partial",
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "missing": [
+        {
+          "item": "tool-7",
+          "reason": "这一条的证据块里没有内容哈希或没有写明覆盖范围"
+        }
+      ],
+      "counts": {
+        "backing": 7,
+        "missing": 1
+      }
+    },
+    {
+      "id": "package-metadata",
+      "title": "包元数据检查",
+      "state": "partial",
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "missing": [
+        {
+          "item": "tool-7",
+          "reason": "没有包元数据检查记录（这项不是包形态，或索引里这一块未测到）"
+        }
+      ],
+      "counts": {
+        "backing": 7,
+        "missing": 1
+      }
+    },
+    {
+      "id": "scan-execution",
+      "title": "扫描执行记录",
+      "state": "partial",
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "missing": [
+        {
+          "item": "tool-7",
+          "reason": "这一条没有扫描执行记录，哪些扫描器跑完、哪些没跑成无从判断"
+        }
+      ],
+      "counts": {
+        "backing": 7,
+        "missing": 1
+      }
+    },
+    {
+      "id": "change-history",
+      "title": "变更历史",
+      "state": "partial",
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "missing": [
+        {
+          "item": "tool-7",
+          "reason": "这一条没有对上索引记录，这一类的证据覆盖不到它"
+        }
+      ],
+      "counts": {
+        "backing": 7,
+        "missing": 1
+      }
+    },
+    {
+      "id": "archive-integrity",
+      "title": "归档可校验",
+      "state": "partial",
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "missing": [
+        {
+          "item": "tool-7",
+          "reason": "这一条没有对上索引记录，这一类的证据覆盖不到它"
+        }
+      ],
+      "counts": {
+        "backing": 7,
+        "missing": 1
+      }
+    },
+    {
+      "id": "coverage-accounting",
+      "title": "覆盖范围记账",
+      "state": "partial",
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "missing": [
+        {
+          "item": "tool-7",
+          "reason": "这一条没有对上索引记录，这一类的证据覆盖不到它"
+        }
+      ],
+      "counts": {
+        "backing": 7,
+        "missing": 1
+      }
+    },
+    {
+      "id": "gateway-decisions",
+      "title": "网关事前决策",
+      "state": "unmeasured",
+      "backing": [],
+      "missing": [
+        {
+          "item": "tool-1",
+          "reason": "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
+        },
+        {
+          "item": "tool-2",
+          "reason": "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
+        },
+        {
+          "item": "tool-3",
+          "reason": "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
+        },
+        {
+          "item": "tool-4",
+          "reason": "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
+        },
+        {
+          "item": "tool-5",
+          "reason": "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
+        },
+        {
+          "item": "tool-6",
+          "reason": "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
+        },
+        {
+          "item": "tool-7",
+          "reason": "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
+        },
+        {
+          "item": "tool-8",
+          "reason": "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
+        }
+      ],
+      "counts": {
+        "backing": 0,
+        "missing": 8
+      }
+    }
+  ],
+  "answers": [
+    {
+      "id": "STA-01.1",
+      "topic": "供应链风险管理的策略与流程",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "策略文件本身不是我们写的；我们能提供工具层的可执行判定（策略文件加 CI 退出码）作为流程执行的证据之一。",
+      "boundary": "流程的建立、批准与沟通在你们内部系统里。"
+    },
+    {
+      "id": "STA-01.2",
+      "topic": "供应链策略的定期复审",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "工具层的变化摘要可以当作复审的输入材料。",
+      "boundary": "复审的会议、结论与签署是你们的。"
+    },
+    {
+      "id": "STA-02.1",
+      "topic": "共享安全责任模型（SSRM）的策略与流程",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们能给出工具层的责任归属列（我们出证据 / 你们自证 / 第三方），作为 SSRM 里工具这一层的输入。",
+      "boundary": "SSRM 的划分原则与签署是你们的。"
+    },
+    {
+      "id": "STA-02.2",
+      "topic": "SSRM 策略的定期复审",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "归属列随每次采集重算，可以对照出这一层有没有变化。",
+      "boundary": "SSRM 文档的复审记录不在我们这里。"
+    },
+    {
+      "id": "STA-03.1",
+      "topic": "SSRM 在整条供应链上的应用与文档化",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "只覆盖公开可查的工具与包这一层。",
+      "boundary": "整条供应链（人、合同、子处理方）的 SSRM 应用是你们的。"
+    },
+    {
+      "id": "STA-04.1",
+      "topic": "向客户提供 SSRM 指引",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [
+        "tool-identity",
+        "exact-version"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "证据包可以直接作为指引的工具层附件转给你们的客户。",
+      "boundary": "指引正文与适用范围由你们写。"
+    },
+    {
+      "id": "STA-05.1",
+      "topic": "AICM 控制的共享归属划分",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [
+        "coverage-accounting"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "我们对四个域逐条标了归属与边界，工具层这部分可以直接引用。",
+      "boundary": "全部控制的归属划分是你们的责任矩阵。"
+    },
+    {
+      "id": "STA-06.1",
+      "topic": "SSRM 文档的复审与验证",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们能提供材料清单与逐条来源，供你们的验证方使用。",
+      "boundary": "验证这件事由你们或第三方做。"
+    },
+    {
+      "id": "STA-07.1",
+      "topic": "自己负责范围内的供应链风险管理",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "tool-identity",
+        "coverage-accounting"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "每条结论标注来源与覆盖范围；没覆盖的证据块标为未测到并说明原因。",
+      "boundary": "不替你评价内部流程本身。"
+    },
+    {
+      "id": "STA-08.1",
+      "topic": "整条供应链关系的清单",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "tool-identity",
+        "exact-version"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "清单逐条匹配公开记录；匹配不上、版本冲突、证据不足的原样列出，不当作通过。",
+      "boundary": "只覆盖公开可查的那部分供应链。"
+    },
+    {
+      "id": "STA-09.1",
+      "topic": "供应链物料清单（工具 / agent 层）",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "tool-identity",
+        "exact-version",
+        "content-digest"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "在用工具的清单加逐条公开证据：包名、精确版本、来源、内容 SHA-256。",
+      "boundary": "不含模型层。模型层的材料要你们自己补，报告里会写明这一块未覆盖。"
+    },
+    {
+      "id": "STA-09.2",
+      "topic": "物料清单的定期复审与更新",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "change-history",
+        "archive-integrity"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "每天采集；版本没变但证据变了的部分单独列出；每次归档都留下可比较的记录。",
+      "boundary": "你们内部那次复审的会议记录不在我们这里。"
+    },
+    {
+      "id": "STA-10.1",
+      "topic": "供应链风险的定期复审",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "change-history",
+        "archive-integrity"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "每日快照与变更；高危发现的人工复核基线（谁读过、对哪个版本）。",
+      "boundary": "风险接受与否是你们的决定，不是我们的输出。"
+    },
+    {
+      "id": "STA-11.1",
+      "topic": "服务协议应包含的条款",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "这份清单里「日志与监控能力」「变更管理」「审计权」几项，我们可以提供工具层的证据供你们作为协议附件。",
+      "boundary": "条款文本、谈判与签署是你们的法务。"
+    },
+    {
+      "id": "STA-12.1",
+      "topic": "供应链协议的定期复审",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "工具层的变化可以提示哪些协议需要重看，但不替代复审。",
+      "boundary": "协议复审是你们的流程。"
+    },
+    {
+      "id": "STA-13.1",
+      "topic": "内部评估确认标准与流程的一致性",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们能提供检查输出与退出码，作为评估时的一个可重复的输入。",
+      "boundary": "内部评估本身由你们做。"
+    },
+    {
+      "id": "STA-14.1",
+      "topic": "要求供应链各方遵守信息安全与保密要求",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们能说明我们这一侧做了什么、没做什么，供你们转述。",
+      "boundary": "对上游的要求与举证是你们的合同工作。"
+    },
+    {
+      "id": "STA-15.1",
+      "topic": "服务提供方治理策略的复审",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们的公开来源与免责边界随时可查。",
+      "boundary": "你们对服务提供方的治理复审不是我们的输出。"
+    },
+    {
+      "id": "STA-16.1",
+      "topic": "基于风险的供应链安全评估",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "package-metadata",
+        "content-digest"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "变更记录与复核基线，供你们的评估引用。",
+      "boundary": "评估方法与风险等级由你们定。"
+    },
+    {
+      "id": "CCC-01.1",
+      "topic": "变更风险管理的策略与流程",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "策略文件（required / forbidden / pinned）是一种可执行的变更规则，可被你们引用。",
+      "boundary": "策略的批准与适用范围是你们的。"
+    },
+    {
+      "id": "CCC-01.2",
+      "topic": "变更策略的定期复审",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "规则命中与证据变化可以作为复审的输入。",
+      "boundary": "复审记录在你们那里。"
+    },
+    {
+      "id": "CCC-02.1",
+      "topic": "变更控制、批准与测试流程",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [
+        "exact-version"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6"
+      ],
+      "weProvide": "工具层的版本固定与基线比较可以作为发布门禁的一部分。",
+      "boundary": "测试标准与批准流在你们内部。"
+    },
+    {
+      "id": "CCC-03.1",
+      "topic": "变更管理程序的实施",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们能给出工具层变更的可核记录，供程序引用。",
+      "boundary": "程序本身的实施证据在你们的系统里。"
+    },
+    {
+      "id": "CCC-04.1",
+      "topic": "资产新增 / 移除 / 更新的授权程序",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "策略文件（required / forbidden / pinned）加 CI 退出码：不合规的合不进去。",
+      "boundary": "审批流本身在你们的内部系统里，我们只提供可执行的判定与记录。"
+    },
+    {
+      "id": "CCC-05.1",
+      "topic": "限制影响客户租户的变更",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们的检查只读公开材料，不进入你们的租户环境。",
+      "boundary": "租户环境里的变更控制是你们的。"
+    },
+    {
+      "id": "CCC-06.1",
+      "topic": "变更基线的维护",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "change-history",
+        "content-digest"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "每次归档加差异比较；版本没变但内容变了的情况单独标注。",
+      "boundary": "你们部署环境的基线不在我们这里。"
+    },
+    {
+      "id": "CCC-06.2",
+      "topic": "偏离基线时的发现",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "change-history",
+        "archive-integrity"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "变更检测；未测到的部分照样列出，不会被算成没有偏离。",
+      "boundary": "发现之后的处置是你们的流程。"
+    },
+    {
+      "id": "CCC-07.1",
+      "topic": "变更通知",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "change-history"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "变更摘要，可在显式指定后推送到企业微信 / 飞书 / Slack。",
+      "boundary": "通知渠道与接收人由你们决定；不指定 webhook 就不会发出任何请求。"
+    },
+    {
+      "id": "CCC-08.1",
+      "topic": "例外与紧急变更的管理",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "例外本身不该被自动放行：我们的检查不提供静默豁免。",
+      "boundary": "例外的审批与记录在你们那里。"
+    },
+    {
+      "id": "CCC-09.1",
+      "topic": "回滚到已知良好状态",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们能指出哪个版本对应哪份证据，便于你们确定回滚目标。",
+      "boundary": "回滚操作与演练是你们的。"
+    },
+    {
+      "id": "LOG-01.1",
+      "topic": "日志与监控的策略和流程",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们记录自己做了什么：采集时间、内容摘要、匹配结果、与上次的差异。",
+      "boundary": "你们自己的日志与监控策略不是我们写的。"
+    },
+    {
+      "id": "LOG-01.2",
+      "topic": "日志策略的定期复审",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们的记录格式与范围是公开的，可直接引用。",
+      "boundary": "复审与批准在你们那里。"
+    },
+    {
+      "id": "LOG-02.1",
+      "topic": "审计日志的安全与留存",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "archive-integrity"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "只追加的归档（每行带上一行哈希）加公开的历史页与异地镜像。",
+      "boundary": "不覆盖模型输入输出的日志。"
+    },
+    {
+      "id": "LOG-03.1",
+      "topic": "安全相关事件的识别与监控",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "package-metadata",
+        "change-history"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "规则命中加变更检测，作为事件来源之一。",
+      "boundary": "事件响应流程是你们的。"
+    },
+    {
+      "id": "LOG-03.2",
+      "topic": "基于安全事件的告警",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [
+        "change-history"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "变更摘要可以在你们显式配置后作为告警来源之一。",
+      "boundary": "告警阈值、接收人与处置是你们的。"
+    },
+    {
+      "id": "LOG-04.1",
+      "topic": "审计日志的访问限制与访问记录",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们保证改动可被发现，不保证谁能读。",
+      "boundary": "访问控制与访问日志在你们那一侧。"
+    },
+    {
+      "id": "LOG-05.1",
+      "topic": "关联与监控审计日志以发现异常",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [
+        "change-history"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "版本没变而证据变了这类变化，是我们能提供的一类异常信号。",
+      "boundary": "跨系统的关联分析不在我们这里。"
+    },
+    {
+      "id": "LOG-05.2",
+      "topic": "异常处置流程",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们给出可复核的原始材料，供你们的处置流程引用。",
+      "boundary": "处置动作与时限是你们的。"
+    },
+    {
+      "id": "LOG-06.1",
+      "topic": "可靠的时间源",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们只提供记录时间与归档顺序，时间源本身不是我们的。",
+      "boundary": "全系统统一时间源是你们的基础设施工作。"
+    },
+    {
+      "id": "LOG-07.1",
+      "topic": "应记录的系统事件元数据",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [
+        "scan-execution"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "我们记哪些字段、每个字段覆盖什么范围，都在报告里写明，可作为范围定义的参考。",
+      "boundary": "你们系统的日志字段范围由你们定。"
+    },
+    {
+      "id": "LOG-07.2",
+      "topic": "记录范围的定期复审",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "每次采集的范围与排除项都写在记录里，可直接对照。",
+      "boundary": "复审本身是你们的流程。"
+    },
+    {
+      "id": "LOG-08.1",
+      "topic": "客户侧敏感数据的检出与脱敏",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们不接收也不需要你们的日志内容，因此不产生这类暴露面。",
+      "boundary": "你们自己日志里的敏感数据要你们处理。"
+    },
+    {
+      "id": "LOG-09.1",
+      "topic": "含安全信息的审计记录",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "scan-execution",
+        "content-digest"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "每次采集的记录：时间、内容摘要、匹配结果、与上次的差异。",
+      "boundary": "你们内部系统的日志不在我们这里。"
+    },
+    {
+      "id": "LOG-10.1",
+      "topic": "审计记录防未授权访问、修改、删除",
+      "owner": "we",
+      "state": "partial",
+      "evidenceClasses": [
+        "archive-integrity"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "篡改可检测：重算哈希链，被改过的记录会让校验以非零退出。",
+      "boundary": "访问控制本身在你们那边；我们保证的是改动可被发现。"
+    },
+    {
+      "id": "LOG-11.1",
+      "topic": "加密操作与密钥管理的监控报告",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们不读取、不输出任何凭据或密钥。",
+      "boundary": "密钥管理与加密操作的日志是你们的。"
+    },
+    {
+      "id": "LOG-12.1",
+      "topic": "密钥生命周期事件的日志",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们的输出里永远不出现凭据值。",
+      "boundary": "密钥生命周期日志在你们的 KMS 或 HSM 里。"
+    },
+    {
+      "id": "LOG-13.1",
+      "topic": "物理访问的日志与监控",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们不涉及物理设施。",
+      "boundary": "机房与办公区访问记录是你们的。"
+    },
+    {
+      "id": "LOG-14.1",
+      "topic": "监控系统异常与失败的上报",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [
+        "scan-execution"
+      ],
+      "backing": [
+        "tool-1",
+        "tool-2",
+        "tool-3",
+        "tool-4",
+        "tool-5",
+        "tool-6",
+        "tool-8"
+      ],
+      "weProvide": "「哪些扫描器跑完了、哪些没跑成」就在每次的记录里，这是我们能提供的异常来源。",
+      "boundary": "上报流程与责任人由你们定。"
+    },
+    {
+      "id": "LOG-14.2",
+      "topic": "异常与失败的即时通知",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "报告顶部先写未测到的部分，读的人不会先看到结论。",
+      "boundary": "通知的责任人与时限是你们的流程。"
+    },
+    {
+      "id": "LOG-15.1",
+      "topic": "AI 模型输入事件的日志",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "这一块我们不覆盖：我们不读模型输入输出，也不把它写进任何交付物。",
+      "boundary": "输入事件日志要你们在自己的推理链路上做。"
+    },
+    {
+      "id": "LOG-16.1",
+      "topic": "AI 模型输出事件的日志",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "同上：我们的记录不包含模型输出内容。",
+      "boundary": "输出事件日志要你们自己做。"
+    },
+    {
+      "id": "A&A-01.1",
+      "topic": "审计与保证的策略和流程",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们能提供可复核的原始材料，供你们的审计流程使用。",
+      "boundary": "审计策略本身由你们制定。"
+    },
+    {
+      "id": "A&A-01.2",
+      "topic": "审计策略的定期复审",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们的方法说明与覆盖范围随时可查。",
+      "boundary": "复审记录在你们那里。"
+    },
+    {
+      "id": "A&A-02.1",
+      "topic": "独立评估",
+      "owner": "third-party",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "每条结论可追到出处，材料可以直接交给评估方。",
+      "boundary": "独立评估本身必须由独立的一方做，我们不是。"
+    },
+    {
+      "id": "A&A-03.1",
+      "topic": "基于风险的审计计划",
+      "owner": "third-party",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们提供逐条的来源与未测范围，供评估方排优先级。",
+      "boundary": "审计计划的制定与执行不由我们做。"
+    },
+    {
+      "id": "A&A-04.1",
+      "topic": "合规的验证",
+      "owner": "third-party",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "可核对的证据，供验证方使用。",
+      "boundary": "我们不出合规结论，也不替任何人认证。"
+    },
+    {
+      "id": "A&A-05.1",
+      "topic": "审计管理与审计标准的对齐",
+      "owner": "third-party",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "我们的输出是机器可读的，便于评估方按自己的标准复核。",
+      "boundary": "审计管理流程与标准对齐由审计方与你们完成。"
+    },
+    {
+      "id": "A&A-06.1",
+      "topic": "基于风险的纠正措施计划",
+      "owner": "customer",
+      "state": "not-ours",
+      "evidenceClasses": [],
+      "backing": [],
+      "weProvide": "发现逐条带规则、级别与原因，可以直接作为整改清单的输入。",
+      "boundary": "整改计划、责任人与验收是你们的。"
+    }
+  ],
+  "coverage": {
+    "questions": {
+      "total": 58,
+      "ours": 13,
+      "notOurs": 45,
+      "measured": 0,
+      "partial": 13,
+      "unmeasured": 0
+    },
+    "items": {
+      "total": 8,
+      "matched": 6,
+      "needsAttention": 8
+    },
+    "evidence": {
+      "blocks": 14,
+      "withDigest": 14
+    }
+  },
+  "limits": [
+    "只覆盖公开可查的注册表与包记录；自托管、内部发布、未公开的工具不在内。",
+    "工具层之外的部分（模型层、训练数据、人员、合同）不在本次范围内。",
+    "这不是合规结论：我们出证据，你们自证，独立评估由第三方做。",
+    "没有测到的部分不会被算作通过；未测条目数与原因在每份交付物里都写明。"
+  ]
+}

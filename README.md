@@ -159,7 +159,27 @@ node bin/agentgate.mjs inventory --input tools.json --framework aicaiq --out rep
 
 For each AI-CAIQ item the mapping says what we can provide, where our coverage stops, and whether
 the answer is ours, the customer's, or an independent assessor's. It describes evidence. It is
-not a compliance conclusion and it does not reproduce the official text.
+not a compliance conclusion and it does not reproduce the official text. All 58 items of the four
+domains a reviewer asks a vendor about are classified: 13 answers are ours, 41 are the customer's
+and 4 need an independent assessor.
+
+### Evidence pack
+
+The mapping says what we can provide. `pack` produces the thing itself: one directory a vendor
+hands to the person reviewing them, where every answer we claim points at evidence in the same
+directory and everything we could not measure is counted at the top.
+
+```sh
+node bin/agentgate.mjs pack --input tools.json --archive ./agentgate-archive --out agentgate-pack
+node bin/agentgate.mjs pack --verify agentgate-pack     # recompute every hash and the seal
+```
+
+It writes `pack.json` (machine readable), `pack.html` (for the reviewer), `answers.aicaiq.md` (all
+58 items, each classified), `manifest.txt` (one sha256 per file) and `manifest.sha256` (the seal on
+the manifest). An answer whose evidence is missing reads `unmeasured` and the command exits 2, not
+0. Example built from the live index:
+[docs/samples/evidence-pack-example](docs/samples/evidence-pack-example) — verifiable with
+`pack --verify`. Contract: [docs/spec/evidence-pack-v1.md](docs/spec/evidence-pack-v1.md).
 
 ## MCP server
 

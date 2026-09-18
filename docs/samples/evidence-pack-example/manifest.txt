@@ -1,0 +1,12 @@
+agentgate evidence pack
+generated: 2026-09-18T07:42:01.125Z
+tool: agentgate 0.2.5
+index: generatedAt=2026-09-18T04:17:45.595Z scanner=192046f records=2055 snapshot=false
+command: agentgate pack --input tools.json --framework aicaiq --archive <dir>
+scope: 只覆盖公开可查的注册表与包记录;自托管与内部工具不在内
+files:
+1c6d22c6be8c2fbcb2afd4e84764d8749113fdc3e73e2d0cbf5c57641cf2c798  answers.aicaiq.md
+c4f9afbea1847c23bfa538bb75bd809966208066d0cd7f601f5dff35ef23bd45  pack.html
+b2bd94719f66d4b47bf0c04a8dd79210831f37a0c166a34e23bf8362427aa6fc  pack.json
+verify: agentgate pack --verify <dir>
+note: manifest.txt 自身由 manifest.sha256 封存(自指哈希无法校验)

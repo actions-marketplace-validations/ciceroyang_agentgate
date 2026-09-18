@@ -7,7 +7,7 @@
  *   agentgate version
  */
 import { existsSync, readFileSync, writeFileSync, statSync } from "node:fs"
-import { dirname, join, resolve } from "node:path"
+import { basename, dirname, join, resolve } from "node:path"
 import { homedir } from "node:os"
 import { fileURLToPath } from "node:url"
 import { execFileSync, spawnSync } from "node:child_process"
@@ -27,11 +27,12 @@ import { diffIndex, renderDiff } from "../packages/history/src/diff.mjs"
 import { readLedger, verifyLedger, backfill } from "../packages/history/src/ledger.mjs"
 import { createProxy } from "../packages/gateway/src/proxy.mjs"
 import { parseInventory, createInventoryReport } from "../packages/inventory/src/inventory.mjs"
-import { appendWatch, verifyWatch, webhookPayload } from "../packages/watch/src/watch.mjs"
+import { appendWatch, readWatch, verifyWatch, webhookPayload } from "../packages/watch/src/watch.mjs"
 import { frameworkById, renderFrameworkText } from "../packages/policy/src/framework.mjs"
 import { renderInventoryReport } from "../packages/inventory/src/report.mjs"
 import { listTools, createToolHandlers } from "../packages/mcp/src/tools.mjs"
 import { startMcpServer } from "../packages/mcp/src/server.mjs"
+import { buildPack, writePack, verifyPack } from "../packages/pack/src/pack.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 // Read the published version instead of writing it down twice: the two copies drifted
@@ -492,7 +493,88 @@ function proxy(flags, rest) {
   })
 }
 
+/**
+ * One directory a vendor can hand to the person reviewing them.
+ *
+ * The pack adds no new measurement: it is built from the same index, inventory parser and archive
+ * the other commands use. Its exit code keeps the meaning it has everywhere else - 2 when
+ * something we claim is unmeasured, 1 when there is a finding to look at, 0 otherwise.
+ */
+function packCommand(flags) {
+  if (flags.verify !== undefined) {
+    if (flags.verify === true) { console.error("pack: --verify 需要一个目录"); process.exit(3) }
+    const result = verifyPack(String(flags.verify))
+    for (const problem of result.problems) console.error("pack --verify: " + problem.detail)
+    if (result.extra.length > 0) console.error("pack --verify: 目录里多出来的文件（不在清单内，不影响结论）：" + result.extra.join(", "))
+    if (result.code === 0) console.log("校验通过：" + result.files.length + " 个文件的 sha256 与 manifest 一致，封条一致。")
+    process.exit(result.code)
+  }
+  if (!flags.input || flags.input === true) {
+    console.error("usage: agentgate pack --input tools.txt [--index data/index.json] [--framework aicaiq] [--archive dir] [--calls calls.jsonl] [--out agentgate-pack]")
+    process.exit(3)
+  }
+  const frameworkId = flags.framework === undefined || flags.framework === true ? "aicaiq" : String(flags.framework)
+  let framework
+  try { framework = frameworkById(frameworkId) } catch (error) { console.error("pack: " + error.message); process.exit(3) }
+  let entries
+  try { entries = parseInventory(readFileSync(String(flags.input), "utf8")) } catch (error) { console.error("pack: " + error.message); process.exit(2) }
+  // An explicit --index is a decision, not a preference: falling back to the packaged sample
+  // would build a customer-facing pack out of a demonstration index.
+  const explicit = flags.index || process.env.AGENTGATE_INDEX || null
+  const chosen = explicit ? { path: resolve(String(explicit)), why: "chosen" } : resolveIndex(flags)
+  if (!existsSync(chosen.path)) { console.error("pack: 找不到证据索引 " + chosen.path + "；先跑 agentgate refresh，或用 --index 指定。"); process.exit(2) }
+  if (String(chosen.path).indexOf("sample-index.json") !== -1) {
+    console.error("pack: 用的是随包发布的历史样本索引，不是线上采集结果；它的数字只能当演示，别交给客户。")
+  }
+  let index
+  try { index = JSON.parse(readFileSync(chosen.path, "utf8")) } catch (error) { console.error("pack: 索引读不了或解析不了：" + error.message); process.exit(2) }
+  const generatedAt = new Date().toISOString()
+  const report = createInventoryReport(entries, index, { generatedAt: generatedAt })
+  let archive = null
+  if (flags.archive && flags.archive !== true) {
+    const dir = resolve(String(flags.archive))
+    let verification = { problems: [{ detail: "归档不存在" }] }
+    try { verification = verifyWatch(dir) } catch (error) { verification = { problems: [{ detail: error.message }] } }
+    let history = []
+    try { history = readWatch(dir) } catch (error) { history = [] }
+    archive = { present: existsSync(dir), verified: verification.problems.length === 0, entries: history }
+  }
+  let calls = null
+  if (flags.calls && flags.calls !== true) {
+    try {
+      const lines = readFileSync(String(flags.calls), "utf8").split(/\r?\n/).filter(function (line) { return line.trim().length > 0 })
+      for (const line of lines) JSON.parse(line)
+      calls = { provided: true, parsed: true, count: lines.length }
+    } catch (error) { calls = { provided: true, parsed: false, count: 0 } }
+  }
+  let pack
+  try {
+    pack = buildPack({ report: report, framework: framework, archive: archive, calls: calls, generatedAt: generatedAt, toolVersion: VERSION })
+  } catch (error) { console.error("pack: " + error.message); process.exit(2) }
+  const command = "agentgate pack --input " + basename(String(flags.input)) + " --framework " + frameworkId +
+    (archive ? " --archive <dir>" : "") + (calls ? " --calls <file>" : "")
+  let written
+  try { written = writePack(flags.out ? String(flags.out) : "agentgate-pack", pack, { command: command }) }
+  catch (error) { console.error("pack: " + error.message); process.exit(3) }
+  const q = pack.coverage.questions
+  console.log("证据包已生成：" + written.dir)
+  console.log("  清单 " + pack.coverage.items.total + " 项：与证据对应 " + pack.coverage.items.matched + " 项，需要处理 " + pack.coverage.items.needsAttention + " 项。")
+  console.log("  " + framework.name + " " + q.total + " 条：我们出证据 " + q.ours + "（测到 " + q.measured + "、部分测到 " + q.partial + "、没测到 " + q.unmeasured + "），不是我们 " + q.notOurs + "。")
+  console.log("  文件：" + written.files.join("、") + "（manifest.txt 上有逐个 sha256，manifest.sha256 是封条）")
+  console.log("  复核：agentgate pack --verify " + written.dir)
+  const medium = ["medium", "high", "critical"]
+  const risk = report.items.some(function (entry) { return (entry.findings || []).some(function (finding) { return medium.indexOf(String(finding.severity)) !== -1 }) })
+  if (q.partial + q.unmeasured > 0) {
+    console.error("有 " + (q.partial + q.unmeasured) + " 条我们声称能给的答案没有完全测到；未测到不等于没有问题，这份包不会退出 0。")
+    process.exitCode = 2
+  } else if (risk) {
+    console.error("清单里有 medium 及以上的发现，逐条列在 pack.html 里。")
+    process.exitCode = 1
+  } else process.exitCode = 0
+}
+
 if (args.command === "inventory") inventory(args.flags)
+else if (args.command === "pack") packCommand(args.flags)
 else if (args.command === "discover") discoverCommand(args.flags)
 else if (args.command === "audit") audit(args.flags)
 else if (args.command === "watch") watchCommand(args.flags).catch(function (error) { console.error("watch: " + error.message); process.exit(3) })
@@ -513,6 +595,8 @@ else {
   console.log("  framework [--id aicaiq] [--format text|json] [--out file]   who answers which questionnaire item")
   console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")
   console.log("  audit     --roots a,b,c [--policy p.json] [--index data/index.json] [--fail-on medium] [--format text|json]")
+  console.log("  pack      --input tools.txt [--index data/index.json] [--framework aicaiq] [--archive dir] [--calls calls.jsonl] [--out agentgate-pack]")
+  console.log("            --verify <dir>   重算 sha256 与封条，任何一个字节被改就非零退出")
   console.log("  watch     --input tools.txt [--archive dir] [--index data/index.json] [--webhook URL] [--webhook-format raw|wecom|feishu|slack]")
   console.log("            --verify [--archive dir]")
   console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")

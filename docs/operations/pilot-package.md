@@ -11,6 +11,7 @@
 | # | 交付物 | 形态 |
 | --- | --- | --- |
 | 1 | **证据报告** | 一个 HTML 文件,可直接转发给安全或合规同事。写清材料范围、查了什么、**没查到什么**、每条发现自己的来源与原因,以及**哪些扫描器真的跑完、哪些没跑成**。只有工具清单时,不能判断你们内部配置或实际部署是否合规 |
+| 1b | **证据包(0.3.0 起可选)** | 一个目录:`pack.json` / `pack.html` / `answers.aicaiq.md`(AI-CAIQ 四个域 58 条逐条归类)+ 逐文件 sha256 清单与封条。我们声称能给的每条答案都指向这次真正读到的证据,没测到的写在最前面;你们自己跑 `agentgate pack --verify` 就能复核,任何一个字节被改都会失败 |
 | 2 | **策略文件(可选)** | 选择配置检查或本地扫描后,一起编写 `agentgate.policy.json`,由你们在自己的 CI 中接入并验证;仅凭工具名称清单不承诺完成 CI 接入 |
 | 3 | **变更说明** | 对比试点期间保留的公开证据快照,列出版本号未变而证据变化的部分;没有可比快照或材料不足时明确说明,不推断过去几周的变更 |
 | 4 | **一小时复盘** | 我们逐条讲发现,你们决定改哪些、哪些是我们误报 |
@@ -60,13 +61,13 @@
 从 0.1.2 起清单可以完全在你们机器上生成:
 
 ```sh
-npx @zhiliangtech/agentgate@0.1.2 discover --out tools.txt                                  # 只输出名字或包名@版本
-npx @zhiliangtech/agentgate@0.1.2 inventory --input tools.txt --out report.html             # 本地出报告
-npx @zhiliangtech/agentgate@0.1.2 inventory --input tools.txt --framework aicaiq --out report.html   # 问卷对照
-npx @zhiliangtech/agentgate@0.1.2 watch --input tools.txt --archive ./agentgate-archive      # 每周看变化
+npx @zhiliangtech/agentgate@0.2.5 discover --out tools.txt                                  # 只输出名字或包名@版本
+npx @zhiliangtech/agentgate@0.2.5 inventory --input tools.txt --out report.html             # 本地出报告
+npx @zhiliangtech/agentgate@0.2.5 inventory --input tools.txt --framework aicaiq --out report.html   # 问卷对照
+npx @zhiliangtech/agentgate@0.2.5 watch --input tools.txt --archive ./agentgate-archive      # 每周看变化
 ```
 
-（钉住版本是因为 `latest` 还停在 0.1.1;提升之后可以省略 `@0.1.2`。）
+（钉住版本是因为我们还在快速迭代;不钉的话,你拿到的行为可能和这份说明不一致。）
 
 - `discover` 不输出 `env`、请求头或启动参数,远程地址只留主机名;读不到或解析不了的配置会单独列出并把退出码置 2——**缺东西的清单不会被当成完整的**;
 - 不装任何东西也可以:打开 <https://xn--5kvo87g.com/inventory.html> 粘贴名字,匹配在浏览器里跑;

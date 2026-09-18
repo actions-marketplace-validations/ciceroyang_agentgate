@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>证据包 · agentgate</title>
+<style>
+body{margin:0;background:#fff;color:#111;font:15px/1.7 system-ui,-apple-system,'PingFang SC',sans-serif}
+main{max-width:960px;margin:0 auto;padding:40px 22px 80px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:17px;margin:34px 0 10px;padding-top:16px;border-top:1px solid #e6e8eb}
+h3{font-size:15px;margin:20px 0 6px}
+.muted{color:#5b6472;font-size:13px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;color:#fff;font-weight:600;font-size:12px}
+.measured{background:#2ea043}.partial{background:#d29922}.unmeasured{background:#8b949e}.not-ours{background:#5b6472}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #e6e8eb;vertical-align:top;font-size:14px}
+th{color:#5b6472;font-weight:600}
+pre{white-space:pre-wrap;word-break:break-word;background:#f5f6f7;padding:10px;border-radius:6px;font-size:13px}
+.box{border:1px solid #e6e8eb;border-radius:8px;padding:12px 14px;margin:10px 0}
+.warn{border-color:#d29922;background:#fffaf0}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid #e6e8eb}
+@media print{main{max-width:none}h2{page-break-after:avoid}}
+</style></head><body><main><h1>证据包</h1>
+<p class="muted">生成时间:2026-09-18T07:42:01.125Z　工具:agentgate 0.2.5<br>索引快照:2026-09-18T04:17:45.595Z　扫描器:192046f　记录数:2055</p><div class="box warn"><b>本次有 13 条我们声称能给的答案没有完全测到（部分测到 13、没测到 0）。</b>它们不是"没问题",而是"这次没测到";明细在下面。</div><h2>覆盖摘要</h2>
+<table><tr><th>项目</th><th>数量</th></tr>
+<tr><td>问卷条目（AI-CAIQ 的 STA / CCC / LOG / A&amp;A）</td><td>58</td></tr>
+<tr><td>其中我们出证据</td><td>13</td></tr>
+<tr><td>其中不是我们（你们自证 / 第三方）</td><td>45</td></tr>
+<tr><td>清单条目 / 与证据对应 / 需要处理</td><td>8 / 6 / 8</td></tr>
+<tr><td>证据块 / 带内容哈希与覆盖范围</td><td>14 / 14</td></tr>
+</table><h2>逐条答案(58)</h2>
+<p class="muted">我们能给什么、边界在哪，是人写的;本次测到什么，是数据算的。</p>
+<table><tr><th>条目</th><th>主题</th><th>本次状态</th><th>归属</th><th>依据条目数</th></tr><tr><td>A&amp;A-01.1</td><td>审计与保证的策略和流程</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>A&amp;A-01.2</td><td>审计策略的定期复审</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>A&amp;A-02.1</td><td>独立评估</td><td><span class="badge not-ours">不是我们</span></td><td>第三方</td><td>0</td></tr>
+<tr><td>A&amp;A-03.1</td><td>基于风险的审计计划</td><td><span class="badge not-ours">不是我们</span></td><td>第三方</td><td>0</td></tr>
+<tr><td>A&amp;A-04.1</td><td>合规的验证</td><td><span class="badge not-ours">不是我们</span></td><td>第三方</td><td>0</td></tr>
+<tr><td>A&amp;A-05.1</td><td>审计管理与审计标准的对齐</td><td><span class="badge not-ours">不是我们</span></td><td>第三方</td><td>0</td></tr>
+<tr><td>A&amp;A-06.1</td><td>基于风险的纠正措施计划</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>CCC-01.1</td><td>变更风险管理的策略与流程</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>CCC-01.2</td><td>变更策略的定期复审</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>CCC-02.1</td><td>变更控制、批准与测试流程</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>6</td></tr>
+<tr><td>CCC-03.1</td><td>变更管理程序的实施</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>CCC-04.1</td><td>资产新增 / 移除 / 更新的授权程序</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>CCC-05.1</td><td>限制影响客户租户的变更</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>CCC-06.1</td><td>变更基线的维护</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>CCC-06.2</td><td>偏离基线时的发现</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>CCC-07.1</td><td>变更通知</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>CCC-08.1</td><td>例外与紧急变更的管理</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>CCC-09.1</td><td>回滚到已知良好状态</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-01.1</td><td>日志与监控的策略和流程</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-01.2</td><td>日志策略的定期复审</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-02.1</td><td>审计日志的安全与留存</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>LOG-03.1</td><td>安全相关事件的识别与监控</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>LOG-03.2</td><td>基于安全事件的告警</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>7</td></tr>
+<tr><td>LOG-04.1</td><td>审计日志的访问限制与访问记录</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-05.1</td><td>关联与监控审计日志以发现异常</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>7</td></tr>
+<tr><td>LOG-05.2</td><td>异常处置流程</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-06.1</td><td>可靠的时间源</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-07.1</td><td>应记录的系统事件元数据</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>7</td></tr>
+<tr><td>LOG-07.2</td><td>记录范围的定期复审</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-08.1</td><td>客户侧敏感数据的检出与脱敏</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-09.1</td><td>含安全信息的审计记录</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>LOG-10.1</td><td>审计记录防未授权访问、修改、删除</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>LOG-11.1</td><td>加密操作与密钥管理的监控报告</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-12.1</td><td>密钥生命周期事件的日志</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-13.1</td><td>物理访问的日志与监控</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-14.1</td><td>监控系统异常与失败的上报</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>7</td></tr>
+<tr><td>LOG-14.2</td><td>异常与失败的即时通知</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-15.1</td><td>AI 模型输入事件的日志</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>LOG-16.1</td><td>AI 模型输出事件的日志</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-01.1</td><td>供应链风险管理的策略与流程</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-01.2</td><td>供应链策略的定期复审</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-02.1</td><td>共享安全责任模型（SSRM）的策略与流程</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-02.2</td><td>SSRM 策略的定期复审</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-03.1</td><td>SSRM 在整条供应链上的应用与文档化</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-04.1</td><td>向客户提供 SSRM 指引</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>7</td></tr>
+<tr><td>STA-05.1</td><td>AICM 控制的共享归属划分</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>7</td></tr>
+<tr><td>STA-06.1</td><td>SSRM 文档的复审与验证</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-07.1</td><td>自己负责范围内的供应链风险管理</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>STA-08.1</td><td>整条供应链关系的清单</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>STA-09.1</td><td>供应链物料清单（工具 / agent 层）</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>STA-09.2</td><td>物料清单的定期复审与更新</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>STA-10.1</td><td>供应链风险的定期复审</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr>
+<tr><td>STA-11.1</td><td>服务协议应包含的条款</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-12.1</td><td>供应链协议的定期复审</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-13.1</td><td>内部评估确认标准与流程的一致性</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-14.1</td><td>要求供应链各方遵守信息安全与保密要求</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-15.1</td><td>服务提供方治理策略的复审</td><td><span class="badge not-ours">不是我们</span></td><td>你们自证</td><td>0</td></tr>
+<tr><td>STA-16.1</td><td>基于风险的供应链安全评估</td><td><span class="badge partial">部分测到</span></td><td>我们出证据</td><td>7</td></tr></table><h2>证据类(9)</h2>
+<table><tr><th>证据类</th><th>说明</th><th>本次状态</th><th>有 / 缺</th></tr><tr><td>tool-identity</td><td>工具身份</td><td><span class="badge partial">部分测到</span></td><td>7 / 1</td></tr>
+<tr><td>exact-version</td><td>精确版本对应</td><td><span class="badge partial">部分测到</span></td><td>6 / 2</td></tr>
+<tr><td>content-digest</td><td>内容哈希与覆盖范围</td><td><span class="badge partial">部分测到</span></td><td>7 / 1</td></tr>
+<tr><td>package-metadata</td><td>包元数据检查</td><td><span class="badge partial">部分测到</span></td><td>7 / 1</td></tr>
+<tr><td>scan-execution</td><td>扫描执行记录</td><td><span class="badge partial">部分测到</span></td><td>7 / 1</td></tr>
+<tr><td>change-history</td><td>变更历史</td><td><span class="badge partial">部分测到</span></td><td>7 / 1</td></tr>
+<tr><td>archive-integrity</td><td>归档可校验</td><td><span class="badge partial">部分测到</span></td><td>7 / 1</td></tr>
+<tr><td>coverage-accounting</td><td>覆盖范围记账</td><td><span class="badge partial">部分测到</span></td><td>7 / 1</td></tr>
+<tr><td>gateway-decisions</td><td>网关事前决策</td><td><span class="badge unmeasured">本次没测到</span></td><td>0 / 8</td></tr></table><h2>清单与证据(8)</h2>
+<table><tr><th>条目</th><th>输入</th><th>状态</th><th>对应</th><th>证据块</th><th>发现</th></tr><tr><td>tool-1</td><td>客服知识库</td><td>版本与证据对应，有发现待查看</td><td>pretrip-mcp@1.0.1</td><td>2</td><td>2</td></tr>
+<tr><td>tool-2</td><td>增长分析</td><td>版本与证据对应，有发现待查看</td><td>@adeu/mcp-server@1.7.1</td><td>2</td><td>2</td></tr>
+<tr><td>tool-3</td><td>广告投放</td><td>版本与证据对应，有发现待查看</td><td>adtest-mcp@1.1.0</td><td>2</td><td>1</td></tr>
+<tr><td>tool-4</td><td>财富顾问</td><td>版本与证据对应，有发现待查看</td><td>@aetherwealth/mcp@0.2.15</td><td>2</td><td>2</td></tr>
+<tr><td>tool-5</td><td>联盟营销</td><td>版本与证据对应，有发现待查看</td><td>affiliate-networks-mcp@0.19.0</td><td>2</td><td>2</td></tr>
+<tr><td>tool-6</td><td>浏览器工作流</td><td>版本与证据对应，有发现待查看</td><td>@agentutility/mcp-browser-workflow@0.1.1</td><td>2</td><td>2</td></tr>
+<tr><td>tool-7</td><td>内部运维台</td><td>当前索引未找到</td><td></td><td>0</td><td>0</td></tr>
+<tr><td>tool-8</td><td>还在用 latest 的那个</td><td>需要你的精确版本</td><td>@agentutility/mcp-bestiary@0.1.3</td><td>2</td><td>2</td></tr></table><h2>没测到的部分(17)</h2>
+<p class="muted">这些不是"没问题",而是"这次没测到"。</p>
+<table><tr><th>证据类</th><th>条目</th><th>原因</th></tr><tr><td>tool-identity</td><td>tool-7</td><td>当前索引中没有找到对应工具；这不表示工具安全或不存在。</td></tr>
+<tr><td>exact-version</td><td>tool-7</td><td>当前索引中没有找到对应工具；这不表示工具安全或不存在。</td></tr>
+<tr><td>exact-version</td><td>tool-8</td><td>需要你实际使用的精确版本；空值、latest 或版本范围都不能用于证据匹配。</td></tr>
+<tr><td>content-digest</td><td>tool-7</td><td>这一条的证据块里没有内容哈希或没有写明覆盖范围</td></tr>
+<tr><td>package-metadata</td><td>tool-7</td><td>没有包元数据检查记录（这项不是包形态，或索引里这一块未测到）</td></tr>
+<tr><td>scan-execution</td><td>tool-7</td><td>这一条没有扫描执行记录，哪些扫描器跑完、哪些没跑成无从判断</td></tr>
+<tr><td>change-history</td><td>tool-7</td><td>这一条没有对上索引记录，这一类的证据覆盖不到它</td></tr>
+<tr><td>archive-integrity</td><td>tool-7</td><td>这一条没有对上索引记录，这一类的证据覆盖不到它</td></tr>
+<tr><td>coverage-accounting</td><td>tool-7</td><td>这一条没有对上索引记录，这一类的证据覆盖不到它</td></tr>
+<tr><td>gateway-decisions</td><td>tool-1</td><td>没有提供网关调用日志（--calls），事前决策记录不在本次范围内</td></tr>
+<tr><td>gateway-decisions</td><td>tool-2</td><td>没有提供网关调用日志（--calls），事前决策记录不在本次范围内</td></tr>
+<tr><td>gateway-decisions</td><td>tool-3</td><td>没有提供网关调用日志（--calls），事前决策记录不在本次范围内</td></tr>
+<tr><td>gateway-decisions</td><td>tool-4</td><td>没有提供网关调用日志（--calls），事前决策记录不在本次范围内</td></tr>
+<tr><td>gateway-decisions</td><td>tool-5</td><td>没有提供网关调用日志（--calls），事前决策记录不在本次范围内</td></tr>
+<tr><td>gateway-decisions</td><td>tool-6</td><td>没有提供网关调用日志（--calls），事前决策记录不在本次范围内</td></tr>
+<tr><td>gateway-decisions</td><td>tool-7</td><td>没有提供网关调用日志（--calls），事前决策记录不在本次范围内</td></tr>
+<tr><td>gateway-decisions</td><td>tool-8</td><td>没有提供网关调用日志（--calls），事前决策记录不在本次范围内</td></tr></table><footer>
+<h2>范围与边界</h2>
+<ul><li>只覆盖公开可查的注册表与包记录；自托管、内部发布、未公开的工具不在内。</li><li>工具层之外的部分（模型层、训练数据、人员、合同）不在本次范围内。</li><li>这不是合规结论：我们出证据，你们自证，独立评估由第三方做。</li><li>没有测到的部分不会被算作通过；未测条目数与原因在每份交付物里都写明。</li></ul>
+<p class="muted">复核这份包:<code>agentgate pack --verify &lt;目录&gt;</code>。重算 manifest.txt 里每个文件的 sha256,并核对 manifest.sha256 封条;任何一个字节被改都会以非零退出。</p>
+</footer></main></body></html>

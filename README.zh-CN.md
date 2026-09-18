@@ -115,7 +115,18 @@ node bin/agentgate.mjs framework                       # 哪些 AI-CAIQ 条目�
 node bin/agentgate.mjs inventory --input tools.json --framework aicaiq --out report.html
 ```
 
-每条 AI-CAIQ 条目下面写着：我们能提供什么、覆盖到哪里为止、这条最终由**我们**、**你们**还是**独立评估方**交账。它描述的是证据，不是合规结论，也不转载官方原文。
+每条 AI-CAIQ 条目下面写着：我们能提供什么、覆盖到哪里为止、这条最终由**我们**、**你们**还是**独立评估方**交账。它描述的是证据，不是合规结论，也不转载官方原文。评审人真正会问供应商的四个域共 **58 条全部有归类**：13 条我们出证据、41 条你们自证、4 条要独立评估方。
+
+### 证据包
+
+对照表说的是「我们能给什么」，`pack` 把它变成能交出去的东西：一个目录，交给客户的评审人；我们声称的每条答案都指向同一目录里的证据，没测到的部分写在最上面。
+
+```sh
+node bin/agentgate.mjs pack --input tools.json --archive ./agentgate-archive --out agentgate-pack
+node bin/agentgate.mjs pack --verify agentgate-pack     # 重算每个文件的 sha256 与封条
+```
+
+产出 `pack.json`（机器可读）、`pack.html`（给评审人看）、`answers.aicaiq.md`（58 条逐条归类）、`manifest.txt`（逐文件一个 sha256）和 `manifest.sha256`（manifest 的封条）。证据没测到的答案写 `unmeasured`，命令以 2 退出而不是 0。样例（用线上索引生成）：[docs/samples/evidence-pack-example](docs/samples/evidence-pack-example)，可直接用 `pack --verify` 复核。契约：[docs/spec/evidence-pack-v1.md](docs/spec/evidence-pack-v1.md)。
 
 ## MCP server
 

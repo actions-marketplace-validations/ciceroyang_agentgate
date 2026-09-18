@@ -24,8 +24,9 @@ test("--format json exposes the entries", function () {
   const out = run(["framework", "--format", "json"])
   const body = JSON.parse(out.stdout)
   assert.equal(body.id, "aicaiq")
-  assert.equal(body.entries.length, 16)
-  assert.equal(body.entries.filter(function (e) { return e.owner === "third-party" }).length, 2)
+  assert.equal(body.entries.length, 58)
+  assert.equal(body.entries.filter(function (e) { return e.owner === "we" }).length, 13)
+  assert.equal(body.entries.filter(function (e) { return e.owner === "third-party" }).length, 4)
 })
 
 test("an unknown framework id is refused", function () {
