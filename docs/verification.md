@@ -477,6 +477,16 @@ Marketplace 上线后只剩 npm 一条路，0.2.1 → 0.2.2 → 0.2.3 试了三�
 - 附带确认：`.npmrc` 里那行即使把 `NODE_AUTH_TOKEN` 设成空串也仍然存在一个空的 `_authToken` 键，npm 会当成"有凭证"而不走 OIDC；发布步骤里直接删掉 `$NPM_CONFIG_USERCONFIG` 文件才干净。
 - **仍然只有本人能做的**：npm 设置页的每次修改都要 security key 或 password。
 
+## 产品上主域，个人站下到 cicero.（2026-09-18）
+
+起因是品牌问题：根域 `智量.com` 一直是个人作品集，产品挂在 `app.` 下面。对 B2B 的安全产品来说，"把 app. 去掉"就看到一个人的简历，正是客户做尽调时最容易起疑的画面；而 npm scope（`@zhiliangtech`）、邮箱（`contact@智量.com`）、将来的主体都已经是公司身份。于是两边对调。
+
+- **DNS**：新增 `cicero` A 记录 → 8.218.22.11（阿里云云解析）。新版控制台的"添加记录"抽屉对程序化提交不友好（试过点确定、真实键盘输入、回车、批量"添加条目"都不生成记录），最后是人在控制台点的；"导入 zone 文件"那条路故意没走——那个 zone 里有邮箱的 SPF/DKIM，不值得为一个 A 记录冒险。
+- **Caddy**（`/etc/caddy/Caddyfile`，备份 `Caddyfile.bak-20260918`）：根域改为产品（静态页 `/var/www/zhiliang` + `/health`、`/v1/*`、`/badge/*` 反代 127.0.0.1:8080 + 同样的安全头与 HTML no-cache + 404 页面）；新增 `cicero.xn--5kvo87g.com` → 原个人站（含 `/api/guestbook` 反代 8788）；`app.` 改成"页面 301 到主域，API/badge 仍直连一段时间"。`caddy validate` 通过，`systemctl reload caddy` 后 Let's Encrypt 用 tls-alpn-01 给 `cicero.` 签发了证书（14:43:33）。
+- **验收**（服务器上实测）：根域 `/`、`/pricing.html`、`/inventory.html`、`/security.html`、`/.well-known/security.txt` 全 200，标题为 `智量 · agentgate`；根域 `/v1/index/summary` 200；`cicero.` 的 `/`、`/field/` 200，标题为个人站；`app.` 页面 301 到主域、而 `app.` 的 `/v1/index/summary` 仍 200；`www.` 301。sitemap、robots.txt、security.txt 的 canonical 都指向主域。
+- **仓库**：55 处 `app.xn--5kvo87g.com` 里，产品链接改成主域（README×2、`site/*`、`scripts/build-site.mjs`、`server.json`、两篇文章、pilot-package、data-handling、security.txt）；`docs/verification.md` 的历史条目保持原样（它是日志）；`deploy/Caddyfile` 同步成线上那份并改了说明（"为什么现在声明主域"）；`test/deploy.test.mjs` 的断言从"不许声明主域"改成"必须声明主域"，`test/security-assets.test.mjs` 的第三方域名白名单加上主域。全套 577 项测试、575 通过、0 失败、2 跳过；站点在服务器上重建（sitemap 2,800 条）。
+- **还没跟上的**：npm 上 0.2.4 的 tarball 里 README 仍是旧链接（会 301，不影响访问），官方 MCP Registry 的 `websiteUrl` 也还是 `app.`——registry 拒绝重复版本（`cannot publish duplicate version`），要等下一个版本才能更新。两者都属于"下一个 patch 带上"的清单。
+
 
 
 
