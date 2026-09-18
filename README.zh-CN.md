@@ -25,7 +25,7 @@ agent 工具层的控制面。它清点在用的工具，记录每条结论背�
 
 ## 不装也能看
 
-服务在 <https://app.xn--5kvo87g.com/>：落地页、价格、证据索引（每天重建）和 API 都在同一个域名下。
+服务在 <https://xn--5kvo87g.com/>：落地页、价格、证据索引（每天重建）和 API 都在同一个域名下。
 
 <https://ciceroyang.github.io/agentgate/> 是 GitHub Pages 上的落地页。索引是一页可以浏览的 <https://ciceroyang.github.io/agentgate/evidence.html>，每天从实时注册表重建——记录内嵌在页面里，筛选在本地跑，不需要注册。价格页在 [pricing.html](https://ciceroyang.github.io/agentgate/pricing.html)，[try.html](https://ciceroyang.github.io/agentgate/try.html) 是十分钟走一遍。
 

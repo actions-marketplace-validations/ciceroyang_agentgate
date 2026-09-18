@@ -28,31 +28,37 @@
 - 服务器：Linux x86_64 或 arm64，2 vCPU / 4 GB 起（索引与历史都很小，瓶颈在网络）。
 - 安全组放行：22（或自定义 SSH 端口）、80、443。
 - DNS：`A` 记录指向服务器公网 IP。中文域名在配置里一律用 punycode。
-- **这台机器的主域上已经跑着另一个站点(Next.js + Caddy)。产品放子域,不动主域。**
+- **2026-09-18 起,产品就是主域**：`xn--5kvo87g.com` 提供落地页、证据索引和 `/v1`；个人网站搬到了
+  `cicero.xn--5kvo87g.com`；`app.` 只作旧地址保留(页面 301 到主域，API 仍直连一段时间)。
 
 ```
-# 已经存在,不要动——它们指向正在运行的那个站点:
+# 产品需要这两条 —— deploy/Caddyfile 声明了它们,所以主域必须有证书:
 xn--5kvo87g.com          主机记录 @      类型 A   值 <公网IP>
-www.xn--5kvo87g.com      主机记录 www    类型 A   值 <公网IP>
+app.xn--5kvo87g.com      主机记录 app    类型 A   值 <公网IP>   # 旧地址:页面 301,API 直连
 
-# 需要新增的一条(agentgate 服务在这个名字上;接口也在它下面):
-app.xn--5kvo87g.com      主机记录 app    类型 A   值 <公网IP>
+# 个人网站(Next.js)现在在这里,不属于 agentgate 的部署块:
+cicero.xn--5kvo87g.com   主机记录 cicero 类型 A   值 <公网IP>
+
+# 操作者的重定向,同样不在部署块里:
+www.xn--5kvo87g.com      主机记录 www    类型 A   值 <公网IP>
 ```
 
-**没有 `api.`、`docs.` 和 `try.`**:文档先留在仓库里;在线试用页面在主站的 `/try.html`(即 `app.xn--5kvo87g.com/try.html`)。
+**为什么部署块现在声明主域**:2026-09-18 之前主域是个人网站，所以旧版 `deploy/Caddyfile` 刻意避开它；
+那天两边对调(产品上主域、个人站下到 `cicero.`)，不声明主域就会装上去没证书。
+**没有 `api.`、`docs.` 和 `try.`**:文档留在仓库里；在线试用页面在主域的 `/try.html`(即 `xn--5kvo87g.com/try.html`)。
 等有了内容再加子域,不要为了占位建一条指向空目录的记录。
 
 
 ### 怎么加这两条记录（阿里云云解析，逐步）
 
-**最少只要加 `app` 一条**——`app.` 这个站点本身就带 API(`/v1/*`、`/health`、`/badge/*` 都转发到服务),
-公开 demo 够用。`api.` 是可选,给脚本和 CI 一个干净的接口域名。
+**最少要加 `@` 和 `app` 两条**——主域是产品主页,旧地址 `app.` 保留 301 与直连 API
+(`/v1/*`、`/health`、`/badge/*`)。个人站要一起上线的话再加 `cicero` 一条。
 
 **方式一:控制台点**
 
 1. 浏览器打开 <https://dns.console.aliyun.com>(或:阿里云控制台 → 搜"云解析 DNS")。
 2. 在域名列表里找到 `xn--5kvo87g.com`(可能显示成 `智量.com`),点右边 **解析设置**。
-3. 你会看到已有的记录:`@` 和 `www`,值都是 `8.218.22.11`——**这两条不要动**。
+3. 你会看到已有的记录:`@`、`www`(值都是 `8.218.22.11`)——**这两条不要动**。
 4. 点 **添加记录**,只填这几个框:
 
    | 框 | 填什么 |
@@ -63,7 +69,8 @@ app.xn--5kvo87g.com      主机记录 app    类型 A   值 <公网IP>
    | 记录值 | `8.218.22.11` |
    | TTL | 默认(10 分钟) |
 
-5. 点 **确认**。想连 `api.` 也加的话,重复第 4 步,主机记录换成 `api`,其余一样。
+5. 点 **确认**。个人站要一起上线的话,重复第 4 步,主机记录换成 `cicero`,其余一样。
+   (2026-09-18 实测:新版控制台的"添加记录"抽屉对程序化提交不友好——用键盘正常填、点确认就行。)
 
 **方式二:一条命令(阿里云 Cloud Shell,已登录状态)**
 
@@ -71,16 +78,17 @@ app.xn--5kvo87g.com      主机记录 app    类型 A   值 <公网IP>
 
 ```sh
 aliyun alidns AddDomainRecord --DomainName xn--5kvo87g.com --RR app --Type A --Value 8.218.22.11
-# 可选:
-aliyun alidns AddDomainRecord --DomainName xn--5kvo87g.com --RR api --Type A --Value 8.218.22.11
+# 个人站(可选):
+aliyun alidns AddDomainRecord --DomainName xn--5kvo87g.com --RR cicero --Type A --Value 8.218.22.11
 ```
 
 输出里有 `RecordId` 就是成功;如果报 `DomainRecordDuplicate` 说明已经有了。报权限错就用方式一。
 
 **怎么知道加对了**:等 1–10 分钟,在这台机器上执行 `nc -vz -w 5 app.xn--5kvo87g.com 443`,
 看到 `succeeded` 就说明解析生效了。也可以直接告诉我,我从外网查。
-**要把产品挪到主域时**:先停掉或迁走那个站点,再改 `deploy/Caddyfile`。
-这件事不该由部署脚本单方面做——它会覆盖一个正在运行的站点。
+**主域已经换过了(2026-09-18)**:那天把个人站搬到 `cicero.`、产品搬到主域,同时给 `app.` 加 301。
+改动是手改 `/etc/caddy/Caddyfile` + `systemctl reload caddy`(备份留在 `/etc/caddy/Caddyfile.bak-20260918`),
+仓库里的 `deploy/Caddyfile` 同步成同一份内容;回滚就是把备份装回去再 reload。
 
 **大陆服务器需要 ICP 备案才能用 80/443**，走 [plan-b-no-icp.md](plan-b-no-icp.md)。
 

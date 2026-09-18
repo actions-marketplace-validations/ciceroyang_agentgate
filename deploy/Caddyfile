@@ -1,13 +1,14 @@
 # agentgate 的站点。复制到 /etc/caddy/Caddyfile —— 但如果那个文件里已经有别的东西,
 # **不要覆盖**,只把这个文件的内容追加进去(onboard-server.sh --with-caddy 就是这么做的)。
 #
-# 这里刻意不声明主域 xn--5kvo87g.com:那台机器的主域上已经在提供另一个站点(Next.js,由 Caddy
-# 提供 HTTPS)。声明主域会把那个站点抢过来,而那不该由部署脚本单方面决定。
+# 2026-09-18 起**产品就是主域**:https://xn--5kvo87g.com/ 提供落地页、证据索引和 /v1。
+# 这台部署机上的个人网站搬到了 cicero.xn--5kvo87g.com(它属于个人资产,不在本文件里)。
+# 更早的版本刻意不声明主域,因为那时主域是个人网站;现在反过来了,所以这里声明它。
 #
 # 智量.com 是中文域名,证书与路由都用 punycode 写,Caddy 不接受中文字面量。
 
 # 站 + API:同一个服务,静态页走文件,接口转发到本地 8080。
-app.xn--5kvo87g.com {
+xn--5kvo87g.com {
 	encode gzip
 
 	# 浏览器侧的默认防线。这些不是"安全功能",是没有理由不带的几行。
@@ -46,6 +47,23 @@ app.xn--5kvo87g.com {
 		rewrite @notfound /404.html
 		root * /var/www/zhiliang
 		file_server
+	}
+}
+
+# 旧地址。页面 301 到主域;API 与 badge 短期内仍在这里直连,免得已经在用 /v1、
+# /health、/badge 的地方(文档、README、监控)同一天被迫跟着换。收尾时把它们也 301。
+app.xn--5kvo87g.com {
+	handle /health {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /v1/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /badge/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle {
+		redir https://xn--5kvo87g.com{uri} permanent
 	}
 }
 

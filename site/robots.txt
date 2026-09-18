@@ -6,4 +6,4 @@ Disallow: /v1/
 Disallow: /badge/
 Disallow: /health
 
-Sitemap: https://app.xn--5kvo87g.com/sitemap.xml
+Sitemap: https://xn--5kvo87g.com/sitemap.xml

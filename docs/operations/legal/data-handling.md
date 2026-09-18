@@ -31,7 +31,7 @@
 
 **仍未核验**：托管服务商（阿里云）的网络层日志与保留期；邮件通道（阿里云 DirectMail → 163）的保留；journald 的具体保留时长。这几项不在我们的控制里，所以公开页写的是"核不到的"，而不是"没有"。
 
-**公开版本已上线**：<https://app.xn--5kvo87g.com/privacy.html>（本文件的对外版）与 <https://app.xn--5kvo87g.com/security.html>。两者必须与本文件及实现一致；改了实现就要改它们。
+**公开版本已上线**：<https://xn--5kvo87g.com/privacy.html>（本文件的对外版）与 <https://xn--5kvo87g.com/security.html>。两者必须与本文件及实现一致；改了实现就要改它们。
 
 ## 四、会联网或启动第三方进程的组件
 

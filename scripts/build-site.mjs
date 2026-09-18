@@ -204,8 +204,8 @@ function renderServer(record, slug, template, index) {
   page = putAll(page, "__VERDICT__", esc(record.verdict || "unknown"))
   page = putAll(page, "__THRESHOLD__", esc(index.threshold || "-"))
   page = putAll(page, "__GENERATED__", esc(record.generatedAt || index.generatedAt || "-"))
-  page = putAll(page, "__API__", esc("https://app.xn--5kvo87g.com/v1/servers/" + encodeURIComponent(name)))
-  page = putAll(page, "__BADGE__", esc("https://app.xn--5kvo87g.com/badge/" + encodeURIComponent(name) + ".svg"))
+  page = putAll(page, "__API__", esc("https://xn--5kvo87g.com/v1/servers/" + encodeURIComponent(name)))
+  page = putAll(page, "__BADGE__", esc("https://xn--5kvo87g.com/badge/" + encodeURIComponent(name) + ".svg"))
   page = putAll(page, "__OWNERLINK__", ownerLink)
   page = putAll(page, "__META__", meta)
   page = putAll(page, "__UNMEASURED__", unmeasured.length
@@ -377,7 +377,7 @@ if (existsSync(HISTORY_TEMPLATE)) {
 // and the main pages are carried over from the plain sitemap so there is still one source
 // for them rather than two lists that drift.
 if (existsSync(SERVER_TEMPLATE)) {
-  const base = "https://app.xn--5kvo87g.com"
+  const base = "https://xn--5kvo87g.com"
   const main = (readFileSync(join(ROOT, "site", "sitemap.xml"), "utf8").match(/<url>[\s\S]*?<\/url>/g) || [])
   const serverUrls = all.map(function (r) {
     return "<url><loc>" + esc(base + "/s/" + slugOf(r.server) + ".html") + "</loc><priority>0.4</priority></url>"

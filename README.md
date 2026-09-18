@@ -31,7 +31,7 @@ The first deployment, on 2026-09-16, is written up in
 
 ## Try it without installing
 
-The service runs at <https://app.xn--5kvo87g.com/>: landing page, pricing, the evidence index
+The service runs at <https://xn--5kvo87g.com/>: landing page, pricing, the evidence index
 (rebuilt daily) and the API on the same host.
 
 <https://ciceroyang.github.io/agentgate/> is the landing page on GitHub Pages. The index is a

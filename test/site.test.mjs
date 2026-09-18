@@ -172,7 +172,7 @@ test("every server gets a page of its own, and the page says what it did not mea
   // A page nobody can find is not published. The sitemap carries every record, and it still
   // carries the plain pages it was built from.
   const sitemap = readFileSync(join(out, "sitemap.xml"), "utf8")
-  assert.ok(sitemap.indexOf("<loc>https://app.xn--5kvo87g.com/</loc>") !== -1, "the sitemap lost the plain pages")
+  assert.ok(sitemap.indexOf("<loc>https://xn--5kvo87g.com/</loc>") !== -1, "the sitemap lost the plain pages")
   assert.match(sitemap.trim(), /<\/urlset>$/, "the sitemap is malformed")
   for (const record of index.records) {
     assert.ok(sitemap.indexOf("/s/" + slugOf(record.server) + ".html") !== -1, "the sitemap is missing " + record.server)

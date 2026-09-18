@@ -5,14 +5,14 @@
  * 覆盖不到的:systemd、Caddy 配置文件本身。覆盖得到的:证书能不能用、五个页面在不在、
  * 服务有没有真的在跑(records 不是样本的 300 条)、索引是不是当天的、主域有没有被动过。
  *
- *   node scripts/verify-public.mjs --base https://app.xn--5kvo87g.com --expect-min 1000
+ *   node scripts/verify-public.mjs --base https://xn--5kvo87g.com --expect-min 1000
  */
 const argv = process.argv.slice(2)
 const argOf = function (name, fallback) {
   const i = argv.indexOf("--" + name)
   return i === -1 ? fallback : argv[i + 1]
 }
-const base = (argOf("base", "https://app.xn--5kvo87g.com")).replace(/\/$/, "")
+const base = (argOf("base", "https://xn--5kvo87g.com")).replace(/\/$/, "")
 const apex = argOf("apex", "https://xn--5kvo87g.com")
 const expectMin = Number(argOf("expect-min", 1000))
 let failures = 0

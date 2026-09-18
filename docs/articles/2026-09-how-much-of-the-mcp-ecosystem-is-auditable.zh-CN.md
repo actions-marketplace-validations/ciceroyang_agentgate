@@ -56,9 +56,9 @@
 node scripts/coverage-stats.mjs --index data/index.json
 ```
 
-它打印的就是上面这些数字;如果任何一条记录声称的结论是它自己的覆盖块撑不起的,它会以非零退出。记录格式见 [docs/spec/scan-execution-v1.md](../spec/scan-execution-v1.md),旁边有 JSON Schema。同样的数据公开在 [/v1/index/summary](https://app.xn--5kvo87g.com/v1/index/summary) 和 [/evidence.html](https://app.xn--5kvo87g.com/evidence.html)。
+它打印的就是上面这些数字;如果任何一条记录声称的结论是它自己的覆盖块撑不起的,它会以非零退出。记录格式见 [docs/spec/scan-execution-v1.md](../spec/scan-execution-v1.md),旁边有 JSON Schema。同样的数据公开在 [/v1/index/summary](https://xn--5kvo87g.com/v1/index/summary) 和 [/evidence.html](https://xn--5kvo87g.com/evidence.html)。
 
-如果你在维护一个 MCP server,这类审计的起点是你发布的一份文档——注册表条目、包清单。发布它,是让这种检查成为可能的第一步。如果你在用这些 server,可以把你的清单放进 [/inventory.html](https://app.xn--5kvo87g.com/inventory.html),逐条看哪些扫描器跑过、哪些没跑过。
+如果你在维护一个 MCP server,这类审计的起点是你发布的一份文档——注册表条目、包清单。发布它,是让这种检查成为可能的第一步。如果你在用这些 server,可以把你的清单放进 [/inventory.html](https://xn--5kvo87g.com/inventory.html),逐条看哪些扫描器跑过、哪些没跑过。
 
 ---
 

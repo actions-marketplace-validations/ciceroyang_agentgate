@@ -69,7 +69,7 @@ npx @zhiliangtech/agentgate@0.1.2 watch --input tools.txt --archive ./agentgate-
 （钉住版本是因为 `latest` 还停在 0.1.1;提升之后可以省略 `@0.1.2`。）
 
 - `discover` 不输出 `env`、请求头或启动参数,远程地址只留主机名;读不到或解析不了的配置会单独列出并把退出码置 2——**缺东西的清单不会被当成完整的**;
-- 不装任何东西也可以:打开 <https://app.xn--5kvo87g.com/inventory.html> 粘贴名字,匹配在浏览器里跑;
+- 不装任何东西也可以:打开 <https://xn--5kvo87g.com/inventory.html> 粘贴名字,匹配在浏览器里跑;
 - `watch` 默认不联网,除非显式给 `--webhook`。
 
 这样交付物不变,只是**你们不需要把任何配置发出来**。仍然建议至少发一份纯名称清单给我们,否则报告里的覆盖范围只能由你们自己判断。

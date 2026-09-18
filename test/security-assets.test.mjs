@@ -45,7 +45,8 @@ test("the pages are static: no scripts and no third-party requests", function ()
     assert.equal(html.indexOf("<script"), -1, name + " must not carry a script")
     assert.equal(html.indexOf("http://") , -1, name + " must not reference plain http")
     assert.equal(/src="https?:/.test(html), false, name + " must not load external resources")
-    assert.equal(/href="https:\/\/(?!app\.xn--5kvo87g\.com)/.test(html), false, name + " must not link to a third-party origin")
+    // The two names are ours: the apex (product since 2026-09-18) and app. (legacy, still a 301).
+    assert.equal(/href="https:\/\/(?!xn--5kvo87g\.com|app\.xn--5kvo87g\.com)/.test(html), false, name + " must not link to a third-party origin")
   }
 })
 

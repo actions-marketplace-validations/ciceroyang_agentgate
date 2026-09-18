@@ -87,13 +87,13 @@ node scripts/coverage-stats.mjs --index data/index.json
 It prints exactly the counts above and exits non-zero if any record claims a verdict its own
 coverage block cannot support. The record format is specified in
 [docs/spec/scan-execution-v1.md](../spec/scan-execution-v1.md), with a JSON Schema next to it. The
-same data is public at [/v1/index/summary](https://app.xn--5kvo87g.com/v1/index/summary) and on
-[/evidence.html](https://app.xn--5kvo87g.com/evidence.html).
+same data is public at [/v1/index/summary](https://xn--5kvo87g.com/v1/index/summary) and on
+[/evidence.html](https://xn--5kvo87g.com/evidence.html).
 
 If you maintain an MCP server, the audit starts with a document you publish — a registry entry, a
 package manifest — so publishing one is the first thing that makes this kind of check possible. If
 you run these servers, you can put your own list through
-[/inventory.html](https://app.xn--5kvo87g.com/inventory.html) and see, per tool, which scanners ran
+[/inventory.html](https://xn--5kvo87g.com/inventory.html) and see, per tool, which scanners ran
 and which did not.
 
 ---

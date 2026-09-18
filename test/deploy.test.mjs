@@ -205,11 +205,13 @@ test("every name Caddy serves is a name the runbook tells the user to create", f
       if (/^[a-z0-9.-]+\.[a-z0-9-]+$/.test(host)) served.add(host)
     }
   }
-  assert.ok(served.has("app.xn--5kvo87g.com"), "the product host app. is not served: " + Array.from(served).join(", "))
-  // The apex already serves another site on that machine. A Caddyfile that claims it would
-  // take the site over the moment it is installed, which is not a deploy script\u0027s call to make.
-  assert.equal(served.has("xn--5kvo87g.com"), false, "the Caddyfile claims the apex, which is in use")
-  assert.equal(served.has("www.xn--5kvo87g.com"), false, "the Caddyfile claims www, which is in use")
+  // 2026-09-18: the product moved to the apex and the personal site moved to cicero. The block
+  // has to claim the apex now, or the product comes up without a certificate on its own domain.
+  assert.ok(served.has("xn--5kvo87g.com"), "the product host (apex) is not served: " + Array.from(served).join(", "))
+  assert.ok(served.has("app.xn--5kvo87g.com"), "the legacy host app. is not served: " + Array.from(served).join(", "))
+  // www belongs to whoever owns the operator's DNS: it redirects to the apex on the machine, and
+  // a second name here would need its own certificate without adding anything.
+  assert.equal(served.has("www.xn--5kvo87g.com"), false, "the Caddyfile claims www, which is the operator's redirect")
 
   const runbook = readFileSync(join(ROOT, "docs", "operations", "deployment-runbook.md"), "utf8")
   // Only the DNS section counts. The runbook also quotes the whole Caddyfile further down, so a
