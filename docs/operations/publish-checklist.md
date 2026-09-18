@@ -89,13 +89,24 @@ registry 可能先回一句 `Your package is being processed and may take a few 
 
 已跑通：`v0.1.1`（2026-09-17，dist-tags `next: 0.1.1`）、`v0.2.3`（2026-09-18，dist-tags `next: 0.2.3`，SLSA provenance v1，SBOM 挂在 release 上）。`v0.2.1`、`v0.2.2` 只有 GitHub release，没有上 npm。
 
-## 六、提升到 latest（已完成 2026-09-17）
+## 六、提升到 latest（最近一次：2026-09-18，0.2.4）
 
 ```sh
-npm dist-tag add @zhiliangtech/agentgate@0.2.3 latest
+npm dist-tag add @zhiliangtech/agentgate@0.2.4 latest
 ```
 
-现状（2026-09-18）：`{"latest":"0.2.0","next":"0.2.3"}`。`0.2.0` 是 2026-09-17 提升上去的；`0.2.3` 还没提升。验证：`npx --yes @zhiliangtech/agentgate version` 打印的是 `latest`。
+现状：`{"latest":"0.2.4","next":"0.2.4"}`。验证：`npx --yes --prefer-online @zhiliangtech/agentgate@latest version` 打印 `agentgate 0.2.4`，`@latest mcp` 能返回 initialize。
+
+**这一步有两个坑，2026-09-18 都踩到了：**
+
+- **它也要一次浏览器 2FA**，不是登录一次就够。账号是 `auth-and-writes`：`npm login --auth-type=web` 只解决"已登录"，而 `dist-tag add` 是写操作，会再打印一个 `https://www.npmjs.com/auth/cli/<uuid>` 让你去验证。非交互环境下 npm 会立刻退出（URL 在日志里是 `***`），所以在 pty 里跑才能等到你验证完：
+
+  ```sh
+  expect -c 'set timeout 600; spawn npm dist-tag add @zhiliangtech/agentgate@0.2.4 latest; expect { -re {https://www\.npmjs\.com/auth/cli/[^ ]+} { puts $expect_out(0,string) } }; interact'
+  ```
+
+  然后把打印出来的 URL 在**已登录 npm 的浏览器**里打开、过 security key（或 password）。注意 URL 有有效期，隔太久再点会过期，要重新发起一次。
+- **本机 `npm view` 会滞后**：改完之后 `npm view ... dist-tags` 可能还显示旧的 `latest`（本机 packument 缓存），而 `curl https://registry.npmjs.org/-/package/@zhiliangtech%2fagentgate/dist-tags` 是即时的。以 registry 直连为准，或者换 `npm_config_cache`。
 
 **这一步只有人能做**：写操作需要动态码，而 npm 的网页授权流程在非交互环境会立刻退出、auth URL 在日志里也是 `***`。发下一版时同样要有人执行一次 `npm dist-tag add`。
 
