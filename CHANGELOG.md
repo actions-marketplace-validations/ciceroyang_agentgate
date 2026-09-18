@@ -5,6 +5,13 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-09-18
+
+- The product moved to <https://xn--5kvo87g.com/> and the personal site that used to live there
+  moved to <https://cicero.xn--5kvo87g.com/>. The old host `app.xn--5kvo87g.com` redirects pages to
+  the apex and keeps serving `/v1`, `/health` and `/badge` directly. Every link in the README, the
+  site pages, `server.json` and `security.txt` follows; no runtime behaviour changed.
+
 ## [0.2.4] - 2026-09-18
 
 - `agentgate mcp` serves the index to any MCP client over stdio: four read-only tools
