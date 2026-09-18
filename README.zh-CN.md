@@ -117,6 +117,20 @@ node bin/agentgate.mjs inventory --input tools.json --framework aicaiq --out rep
 
 每条 AI-CAIQ 条目下面写着：我们能提供什么、覆盖到哪里为止、这条最终由**我们**、**你们**还是**独立评估方**交账。它描述的是证据，不是合规结论，也不转载官方原文。
 
+## MCP server
+
+任何会说 MCP 的客户端都能直接问这份索引。把下面这段加到 `claude_desktop_config.json`、仓库里的 `.mcp.json`，或你的客户端读的那个文件：
+
+```json
+{
+  "mcpServers": {
+    "agentgate": { "command": "npx", "args": ["--yes", "@zhiliangtech/agentgate@next", "mcp"] }
+  }
+}
+```
+
+四个只读工具：`lookup_server`（一条记录，连同它的覆盖块）、`inventory_tools`（比对你实际在用的工具）、`coverage_report`（这份索引被测过多少）、`check_project`（扫一个本地目录）。它只读本地索引，不写、不上传、不执行被扫的工具；没测完的记录就报没测完，索引里没有的就报没有——不报"安全"。细节见 [docs/spec/mcp-server-v1.md](docs/spec/mcp-server-v1.md)。
+
 ## 策略
 
 策略说的是这家公司拒绝什么。它是数据不是代码，而且有规范：[docs/spec/policy-v1.md](docs/spec/policy-v1.md)。

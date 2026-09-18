@@ -1,14 +1,15 @@
 {
   "name": "@zhiliangtech/agentgate",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": false,
   "type": "module",
+  "mcpName": "io.github.ciceroyang/agentgate",
   "description": "Control plane for the tools agents run. Inventory, evidence, policy, enforcement. Clean is only emitted when every check ran.",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs packages/guard/test/*.test.mjs packages/guard/test/invariant.mjs packages/collect/test/*.test.mjs packages/policy/test/*.test.mjs packages/history/test/*.test.mjs packages/gateway/test/*.test.mjs packages/service/test/*.test.mjs packages/verify/test/*.test.mjs packages/watch/test/*.test.mjs packages/backup/test/*.test.mjs",
+    "test": "node --test test/*.test.mjs packages/guard/test/*.test.mjs packages/guard/test/invariant.mjs packages/collect/test/*.test.mjs packages/policy/test/*.test.mjs packages/history/test/*.test.mjs packages/gateway/test/*.test.mjs packages/service/test/*.test.mjs packages/verify/test/*.test.mjs packages/watch/test/*.test.mjs packages/backup/test/*.test.mjs packages/mcp/test/*.test.mjs",
     "test:guard": "node --test packages/guard/test/*.test.mjs packages/guard/test/invariant.mjs",
     "test:collect": "node --test packages/collect/test/*.test.mjs",
     "test:verify": "node --test packages/verify/test/*.test.mjs",
@@ -57,6 +58,7 @@
     "docs/roadmap.md",
     "README.md",
     "README.zh-CN.md",
+    "server.json",
     "LICENSE"
   ]
 }

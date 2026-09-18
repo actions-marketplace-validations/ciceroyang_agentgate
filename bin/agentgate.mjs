@@ -30,6 +30,8 @@ import { parseInventory, createInventoryReport } from "../packages/inventory/src
 import { appendWatch, verifyWatch, webhookPayload } from "../packages/watch/src/watch.mjs"
 import { frameworkById, renderFrameworkText } from "../packages/policy/src/framework.mjs"
 import { renderInventoryReport } from "../packages/inventory/src/report.mjs"
+import { listTools, createToolHandlers } from "../packages/mcp/src/tools.mjs"
+import { startMcpServer } from "../packages/mcp/src/server.mjs"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 // Read the published version instead of writing it down twice: the two copies drifted
@@ -434,6 +436,41 @@ function framework(flags) {
   } else process.stdout.write(rendered + "\n")
   process.exit(0)
 }
+/**
+ * The MCP server, over stdio.
+ *
+ * It reads the same index the rest of the CLI reads, and it serves three read-only answers about
+ * it plus a scan of a local directory. It never writes to the index and never opens a socket: the
+ * point of the tool is that an agent can ask what is known, and the answer is the record.
+ */
+function mcp(flags) {
+  // An explicit --index is a decision, not a preference: falling back to the packaged sample
+  // because the named file is missing would answer questions about a demonstration as if it were
+  // the collection. When nothing is named, resolveIndex may still land on the sample, and then the
+  // answers say so.
+  const explicit = flags.index || process.env.AGENTGATE_INDEX || null
+  const chosen = explicit ? { path: resolve(String(explicit)), why: "chosen" } : resolveIndex(flags)
+  let index = null
+  let indexNote = null
+  let indexWarning = null
+  if (!existsSync(chosen.path)) {
+    indexNote = "no index at " + chosen.path
+  } else {
+    try {
+      index = JSON.parse(readFileSync(chosen.path, "utf8"))
+      if (String(chosen.path).indexOf("sample-index.json") !== -1) {
+        indexWarning = "index warning: this is the historical sample index that ships with the package, not the live collection. The numbers are a demonstration."
+      }
+    } catch (error) {
+      indexNote = "the index at " + chosen.path + " could not be parsed: " + error.message
+    }
+  }
+  const handlers = createToolHandlers({ index: index, indexNote: indexNote, indexWarning: indexWarning })
+  process.stderr.write("agentgate mcp: index " + (index ? chosen.path + " (" + (index.records || []).length + " records)" : "none - the tools will say how to build one") + "\n")
+  if (indexWarning) process.stderr.write("agentgate mcp: " + indexWarning + "\n")
+  startMcpServer({ tools: listTools(), callTool: handlers.callTool, version: VERSION })
+}
+
 function proxy(flags, rest) {
   if (rest.length === 0) { console.error("usage: agentgate proxy --policy policy.json [--log calls.jsonl] -- <server command> [args...]"); process.exit(3) }
   let policy
@@ -461,6 +498,7 @@ else if (args.command === "audit") audit(args.flags)
 else if (args.command === "watch") watchCommand(args.flags).catch(function (error) { console.error("watch: " + error.message); process.exit(3) })
 else if (args.command === "framework") framework(args.flags).catch(function (error) { console.error("watch: " + error.message); process.exit(3) })
 else if (args.command === "check") check(args.flags)
+else if (args.command === "mcp") mcp(args.flags)
 else if (args.command === "proxy") proxy(args.flags, args.rest)
 else if (args.command === "diff") diff(args.flags)
 else if (args.command === "serve") serve(args.flags)
@@ -478,6 +516,7 @@ else {
   console.log("  watch     --input tools.txt [--archive dir] [--index data/index.json] [--webhook URL] [--webhook-format raw|wecom|feishu|slack]")
   console.log("            --verify [--archive dir]")
   console.log("  diff      --from old-index.json --to new-index.json [--format json|md] [--out file]")
+  console.log("  mcp       [--index data/index.json]   serve the evidence as MCP tools over stdio (read-only)")
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
   console.log("  refresh   [--max 300]   fetch public sources and rebuild data/index.json")

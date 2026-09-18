@@ -161,6 +161,26 @@ For each AI-CAIQ item the mapping says what we can provide, where our coverage s
 the answer is ours, the customer's, or an independent assessor's. It describes evidence. It is
 not a compliance conclusion and it does not reproduce the official text.
 
+## MCP server
+
+Anything that speaks MCP can ask the index directly. Add this to `claude_desktop_config.json`, a
+repo's `.mcp.json`, or whatever your client reads:
+
+```json
+{
+  "mcpServers": {
+    "agentgate": { "command": "npx", "args": ["--yes", "@zhiliangtech/agentgate@next", "mcp"] }
+  }
+}
+```
+
+Four read-only tools: `lookup_server` (one record, with its coverage block), `inventory_tools`
+(match the tools you actually use), `coverage_report` (how much of the index was measured) and
+`check_project` (scan a local directory). It reads the local index, never writes, never uploads,
+and never runs a scanned tool. An incomplete record is reported as incomplete, and a record that
+the index does not have is reported as missing rather than safe. Details:
+[docs/spec/mcp-server-v1.md](docs/spec/mcp-server-v1.md).
+
 ## Policy
 
 A policy states what a company refuses. It is data rather than code, and it has a spec:

@@ -5,6 +5,20 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-18
+
+- `agentgate mcp` serves the index to any MCP client over stdio: four read-only tools
+  (`lookup_server`, `inventory_tools`, `coverage_report`, `check_project`) that read the local
+  index and never write, upload or run a scanned tool. An incomplete record is reported as
+  incomplete, a missing record as missing rather than safe, and an explicitly named index that does
+  not exist is not silently replaced by the packaged sample. Spec:
+  [docs/spec/mcp-server-v1.md](docs/spec/mcp-server-v1.md).
+- The coverage counting moved from `scripts/coverage-stats.mjs` into
+  `packages/collect/src/coverage.mjs` so the script and the MCP server report the same numbers.
+- `package.json` declares `mcpName: io.github.ciceroyang/agentgate` and `server.json` describes the
+  same server for the official MCP Registry, which checks that the npm package and its metadata
+  agree.
+
 ## [0.2.3] - 2026-09-18
 
 - The publish workflow uses `actions/setup-node@v7` and removes the generated `.npmrc` before

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ciceroyang/agentgate",
+  "title": "agentgate",
+  "description": "Evidence, coverage and policy for the tools agents run: look up an MCP server's record, match the tools you actually use, and scan a project. Read-only, and an incomplete record is never reported as clean.",
+  "version": "0.2.4",
+  "repository": {
+    "url": "https://github.com/ciceroyang/agentgate",
+    "source": "github"
+  },
+  "websiteUrl": "https://app.xn--5kvo87g.com/",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@zhiliangtech/agentgate",
+      "version": "0.2.4",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp",
+          "description": "Run the read-only MCP server instead of the CLI."
+        }
+      ]
+    }
+  ]
+}
