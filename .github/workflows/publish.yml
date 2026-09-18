@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           # Trusted Publishing exchanges the OIDC token for a short-lived publish token;
@@ -39,15 +39,17 @@ jobs:
         with:
           name: sbom
           path: sbom/
-      # actions/setup-node writes //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} into .npmrc
-      # whenever registry-url is set, and exports a placeholder NODE_AUTH_TOKEN. npm 11 preferred
-      # that placeholder over the OIDC trusted-publishing flow, and the registry answered
-      # "404 Not Found - PUT" — which reads like a permissions problem and is not one. Clearing it
-      # for this step makes npm fall through to the trusted-publishing exchange.
+      # Trusted publishing only happens when npm has no token at all. setup-node writes an
+      # _authToken line into .npmrc for the registry it is given, so the file is removed for this
+      # step and npm falls through to the OIDC exchange. Older setup-node versions also exported
+      # a placeholder NODE_AUTH_TOKEN, which npm 11 preferred over OIDC; the registry answered
+      # "404 Not Found - PUT", which reads like a permissions problem and is not one. This covers
+      # both behaviours, and the version line makes the toolchain visible in the log.
       - name: Publish to the next tag first
-        env:
-          NODE_AUTH_TOKEN: ""
-        run: npm publish --provenance --access public --tag next
+        run: |
+          rm -f "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          node -v && npm -v
+          npm publish --provenance --access public --tag next
       - name: Attach the SBOM to the release when there is one
         env:
           GH_TOKEN: ${{ github.token }}

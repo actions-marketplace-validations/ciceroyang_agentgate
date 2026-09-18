@@ -5,6 +5,14 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-09-18
+
+- The publish workflow uses `actions/setup-node@v7` and removes the generated `.npmrc` before
+  publishing. v4 exported a placeholder `NODE_AUTH_TOKEN`; npm 11 preferred that placeholder over the
+  OIDC trusted-publishing exchange, and the registry answered `404 Not Found - PUT`. No runtime
+  change. 0.2.1 and 0.2.2 were GitHub releases only — npm never received either — so this release
+  also carries their changes.
+
 ## [0.2.2] - 2026-09-18
 
 - The publish workflow clears `NODE_AUTH_TOKEN` for the publish step. `actions/setup-node` writes an
