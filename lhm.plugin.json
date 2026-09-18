@@ -1,0 +1,126 @@
+{
+  "author": "ciceroyang",
+  "description": "Control plane for the tools agents run. Inventory, evidence, policy, enforcement. Clean is only emitted when every check ran.",
+  "homepage": "https://github.com/ciceroyang/agentgate",
+  "identifier": "ciceroyang-agentgate",
+  "name": "agentgate",
+  "prompts": [],
+  "resources": [],
+  "tags": [
+    "mcp",
+    "agent-security",
+    "supply-chain",
+    "policy",
+    "sbom",
+    "sarif"
+  ],
+  "tools": [
+    {
+      "name": "lookup_server",
+      "title": "Look up an MCP server's evidence",
+      "description": "Look up one MCP server, or one package, in the local agentgate evidence index. Returns the verdict, the coverage block (which scanners ran, which did not, and why), and the findings. A record that is incomplete is reported as incomplete, never as clean.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "server": {
+            "type": "string",
+            "description": "Registry server name, for example org.example/tools"
+          },
+          "package": {
+            "type": "string",
+            "description": "Package name, for example @scope/pkg"
+          },
+          "version": {
+            "type": "string",
+            "description": "Exact version, to narrow a package match"
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "inventory_tools",
+      "title": "Match a list of tools against the index",
+      "description": "Given the MCP servers and agent tools you actually use, report which ones the index has evidence for, which need your exact version, and which it has never measured. Nothing is uploaded and nothing is executed.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "One entry per tool: a name, or an object with name/server/package/registry/version.",
+            "items": {
+              "type": [
+                "string",
+                "object"
+              ]
+            }
+          }
+        },
+        "required": [
+          "tools"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "coverage_report",
+      "title": "How much of the index was actually measured",
+      "description": "Report the coverage distribution of the whole index: how many records are fully measured, what stopped the rest, and how many findings came out of the work that ran. It is the same number the project quotes in public.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "check_project",
+      "title": "Scan a local project for refused configuration",
+      "description": "Run agentgate's own checks over a local directory: MCP client configuration, hooks, manifests and source patterns a policy would refuse. It only reads files; it does not install, execute or upload anything, and it does not scan the network.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "description": "Directory to check. Defaults to the working directory."
+          },
+          "policy": {
+            "type": "string",
+            "description": "Path to an agentgate.policy.json. Defaults to the one in root, or the built-in default."
+          },
+          "exclude": {
+            "type": "string",
+            "description": "Comma-separated directories to skip. Defaults to node_modules,.git"
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "version": "0.2.4"
+}
