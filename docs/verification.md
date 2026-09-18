@@ -500,6 +500,15 @@ Marketplace 上线后只剩 npm 一条路，0.2.1 → 0.2.2 → 0.2.3 试了三�
 - **测试抓出来的两个错**（都是"看起来完成了其实没有"的那一类）：① `--index` 显式指定却指向不存在的文件时，`resolveIndex` 会静默回落到随包发布的样本索引，于是给客户的包建立在演示数据上——改成"显式指定就是决定"，并把"这份是历史样本"的警告打出来；② 归档/链路这类**上下文级**证据类原本把清单里每一条都算作"有依据"，包括根本没对上的那条——改成只覆盖对上的条目，对不上的写进未测原因（"这一条没有对上索引记录，这一类的证据覆盖不到它"）。
 - **全套**：594 项测试、592 通过、0 失败、2 跳过（新增 17 项）。零依赖、不联网、不执行被检查的东西这些不变量没有变。
 
+### 发布 0.3.0（同日）
+
+- `git push origin main` → `427a9e8`；打 `v0.3.0` 推 tag，触发 `publish.yml`（39 秒，全绿）：测试 → 校验 tag 与版本一致 → 自产 SBOM → `npm publish --tag next`，provenance 写进 sigstore 透明日志（logIndex 2883683091）。
+- **npm 传播有延迟**：发布后立刻查 `registry.npmjs.org` 还是 404、`npm view` 仍是 next=0.2.5；约一分钟后 registry 直连可见 0.3.0（tarball、SLSA v1 provenance 齐全），dist-tags 变成 latest=0.2.4 / next=0.3.0。判断发布成功要用 workflow 日志里的 `+ @zhiliangtech/agentgate@0.3.0`，不能只看 registry 立刻返回什么。
+- **MCP Registry**：`/tmp/mcp-publisher publish` 先报 401（`token is expired`——registry 的 JWT 活得很短）。用 `mcp-publisher login github -token $(gh auth token)`（CLI 支持 `-token` 传 PAT，不必走设备码）后重发成功：`io.github.ciceroyang/agentgate` 0.3.0。
+- **GitHub Release**：`publish.yml` 只在 release 已存在时挂 SBOM，所以这次它打印的是 `no GitHub release for v0.3.0`。手动 `gh release create v0.3.0` 后把 workflow 产物（artifact sbom）里的 `agentgate.cdx.json` 上传上去。
+- **LobeHub**：`npx @lobehub/market-cli@0.0.41 plugin update --dir .` → `Updated ciceroyang-agentgate (0.2.5 → 0.3.0)`。
+- **还没做的**：latest 仍停在 0.2.4。提升 dist-tag 需要浏览器 2FA，属于只有本人能做的步骤（`docs/operations/publish-checklist.md` 里有记录）。
+
 
 
 
