@@ -1,0 +1,39 @@
+# Temporary diagnostic: what the OIDC token actually claims, and what npm sees.
+# workflow_dispatch only; it publishes nothing.
+name: oidc-debug
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - name: Probe
+        run: |
+          echo "node: $(node -v)  npm: $(npm -v)"
+          echo "id_token_url: ${ACTIONS_ID_TOKEN_REQUEST_URL:+present}"
+          echo "id_token_token: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+present}"
+          echo "NODE_AUTH_TOKEN set: ${NODE_AUTH_TOKEN:+yes}"
+          echo "userconfig: $NPM_CONFIG_USERCONFIG"
+          ls -la "$NPM_CONFIG_USERCONFIG" 2>&1 || true
+          echo "--- npmrc ---"; cat "$NPM_CONFIG_USERCONFIG" 2>&1 || true
+          echo "--- npm config (registry/auth lines) ---"
+          npm config list | grep -Ei "registry|auth|provenance" || true
+          echo "--- mint an OIDC token for the npm audience and print its claims ---"
+          curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org" > /tmp/oidc.json
+          node -e "
+            const fs = require('fs');
+            const body = JSON.parse(fs.readFileSync('/tmp/oidc.json', 'utf8'));
+            const payload = JSON.parse(Buffer.from(body.value.split('.')[1], 'base64url').toString('utf8'));
+            for (const k of ['iss','aud','sub','repository','repository_id','repository_owner','repository_owner_id','ref','job_workflow_ref','workflow_ref','event_name','environment']) {
+              if (k in payload) console.log(k + ' = ' + JSON.stringify(payload[k]));
+            }
+          "
