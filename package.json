@@ -1,6 +1,6 @@
 {
   "name": "@zhiliangtech/agentgate",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": false,
   "type": "module",
   "description": "Control plane for the tools agents run. Inventory, evidence, policy, enforcement. Clean is only emitted when every check ran.",

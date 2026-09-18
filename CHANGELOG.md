@@ -5,6 +5,11 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-18
+
+- The Action declares `name: Zhiliang agentgate`. GitHub Marketplace reserves the plain `agentgate`
+  name — it collides with an existing account — so the Action could not be published under it.
+  `uses: ciceroyang/agentgate@v0.2.1` is unchanged, and no behaviour changed.
 - Every index record now carries a `scanExecution` block: which scanners were required, which
   completed, and whether their output was present, readable and self-consistent. A record with a
   failed or unmeasured required component can no longer be `clean`, whatever its findings say.
