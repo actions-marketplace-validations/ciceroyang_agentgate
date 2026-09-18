@@ -5,6 +5,14 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-18
+
+- The publish workflow clears `NODE_AUTH_TOKEN` for the publish step. `actions/setup-node` writes an
+  `_authToken` line into `.npmrc` and exports a placeholder token when `registry-url` is set; npm 11
+  preferred that placeholder over the OIDC trusted-publishing flow, and the registry answered
+  `404 Not Found - PUT`. No runtime change. 0.2.1 was a GitHub release only — npm never received it,
+  so this release also carries 0.2.1's changes.
+
 ## [0.2.1] - 2026-09-18
 
 - The Action declares `name: Zhiliang agentgate`. GitHub Marketplace reserves the plain `agentgate`
