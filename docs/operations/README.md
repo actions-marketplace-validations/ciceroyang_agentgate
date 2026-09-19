@@ -25,6 +25,7 @@
 | 每晚 03:30 | 备份，保留 14 天，**最新一份永不删** | `scripts/backup.mjs` |
 | 每月 1 日 05:00 | 恢复演练（解开、重算哈希、校验链、起服务） | `scripts/restore-drill.mjs` |
 | 每周 | Actions 依赖更新 | `.github/dependabot.yml` |
+| 每周（待上 cron） | 仓库侧增量：`agentgate refresh --repositories --token <gh>`（census 按 `pushed:` 只查变更，分类只重取 `pushed_at` 变过的仓库；需要 `GH_TOKEN`） | `packages/collect/github-census.mjs` 与 `packages/collect` 下的 `classify-repositories.mjs` |
 | 每季度（人工） | 凭据与 2FA 过一遍 | [key-rotation.md](key-rotation.md) 第 4、5 节 |
 | 每季度（人工） | 核对线上 `/privacy.html` 与实际行为是否仍一致 | [legal/data-handling.md](legal/data-handling.md) |
 

@@ -5,6 +5,19 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github
+  <census> --classification <file>` adds a repository-level record for every repository the
+  classification called a server and the registry does not already cover. Such a record can
+  never be `clean`: its `packageManifest` component is `skipped`
+  (`no-package-declared-in-repository`), so the state is incomplete by construction. A repository
+  already represented by a registry row is not added again, and two records may not share one
+  identity. `/v1/index/summary` and the evidence page report registry entries and repository
+  records separately, because one coverage percentage over both would flatter the second kind.
+- `agentgate refresh --repositories` runs the slower half of the chain: an incremental GitHub
+  census (`--since`, unioned with the previous output) followed by an incremental classification
+  that only fetches repositories whose `pushed_at` moved, with a path kept for every verdict.
+  Without the flag, and without the artifacts on disk, the index is exactly what it was before.
+
 - The formats are frozen and the promise is written down:
   [docs/spec/compatibility.md](docs/spec/compatibility.md) says what each version identifier means,
   what may change inside one, how a breaking change is announced, and which versions are supported.

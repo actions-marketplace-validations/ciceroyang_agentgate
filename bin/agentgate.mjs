@@ -106,11 +106,35 @@ function refresh(flags) {
   }
   run("census", join(ROOT, "packages", "collect", "mcp-audit.mjs"), ["--max", "6000", "--out", join(dataDir, "census.json"), "--markdown", join(dataDir, "census.md")])
   run("guard-scan", join(ROOT, "packages", "collect", "scripts", "guard-scan.mjs"), ["--census", join(dataDir, "census.json"), "--max", max, "--out", join(dataDir, "guard-scan.json")])
+  // The repository side of the chain. It is a separate, slower job (`--repositories`) because a
+  // full enumeration of a GitHub topic is over an hour; the daily run only reads what that job
+  // left behind. When the artifacts are absent the index is exactly what it was before.
+  const repoCensus = join(dataDir, "github-census.json")
+  const repoClassification = join(dataDir, "repository-classification.json")
+  if (flags.repositories) {
+    let since = "2015-01-01"
+    try {
+      const previous = JSON.parse(readFileSync(repoCensus, "utf8"))
+      if (previous.generatedAt) since = new Date(Date.parse(previous.generatedAt) - 86400000).toISOString().slice(0, 10)
+    } catch (error) { /* first run: the whole topic */ }
+    const githubArgs = ["--topic", "mcp-server", "--min-stars", "1", "--out", repoCensus]
+    if (since !== "2015-01-01") githubArgs.push("--since", since)
+    if (flags.token && flags.token !== true) githubArgs.push("--token", String(flags.token))
+    run("github-census", join(ROOT, "packages", "collect", "github-census.mjs"), githubArgs)
+    const classifyArgs = ["--census", repoCensus, "--out", repoClassification, "--rate", String(flags.rate || "1.3")]
+    if (flags.token && flags.token !== true) classifyArgs.push("--token", String(flags.token))
+    run("classify-repositories", join(ROOT, "packages", "collect", "scripts", "classify-repositories.mjs"), classifyArgs)
+  }
   // The deployed commit is the cheapest honest identifier of "which scanner ran". It moves when
   // the rules move, which is what a later diff needs to know.
   let scanner = "unknown"
   try { scanner = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim() } catch (error) { scanner = "unknown" }
-  run("index", join(ROOT, "packages", "collect", "scripts", "build-index.mjs"), ["--census", join(dataDir, "census.json"), "--guard", join(dataDir, "guard-scan.json"), "--scanner", scanner, "--out", join(dataDir, "index.json")])
+  const indexArgs = ["--census", join(dataDir, "census.json"), "--guard", join(dataDir, "guard-scan.json"), "--scanner", scanner, "--out", join(dataDir, "index.json")]
+  if (existsSync(repoCensus) && existsSync(repoClassification)) {
+    indexArgs.push("--github", repoCensus, "--classification", repoClassification)
+    process.stderr.write("[refresh] repository records: on (" + repoCensus + ")\n")
+  }
+  run("index", join(ROOT, "packages", "collect", "scripts", "build-index.mjs"), indexArgs)
   console.log("[refresh] done: " + join(dataDir, "index.json"))
 }
 

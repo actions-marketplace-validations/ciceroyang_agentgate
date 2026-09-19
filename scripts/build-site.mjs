@@ -242,8 +242,17 @@ page = put(page, "__DIFFJSON__", jsonForScript(diffText))
 page = put(page, "__TOTAL__", jsonForScript(all.length))
 page = put(page, "__SHOWN__", jsonForScript(records.length))
 page = put(page, "__TRUNCATED__", jsonForScript(truncated))
+// The index carries two kinds of record and they are not comparable: registry entries are servers
+// somebody registered, repository records are public repositories we only read metadata for. The
+// page says both numbers instead of one percentage over the sum, because the sum would flatter the
+// second kind -- and the second kind can never be clean by construction.
+const repoRecords = all.filter(function (r) { return String(r.server || "").indexOf("github.com/") === 0 })
+const registryRecords = all.filter(function (r) { return String(r.server || "").indexOf("github.com/") !== 0 })
+const registryCounts = {}
+for (const r of registryRecords) registryCounts[r.verdict] = (registryCounts[r.verdict] || 0) + 1
 page = put(page, "window.__COUNTS__", jsonForScript(
-    '<span class="v clean">clean ' + (counts.clean || 0) + '</span> · <span class="v findings">findings ' + (counts.findings || 0) + '</span> · <span class="v incomplete">incomplete ' + (counts.incomplete || 0) + '</span>' +
+    '注册表条目 ' + registryRecords.length + ": <span class=\"v clean\">clean " + (registryCounts.clean || 0) + '</span> · <span class="v findings">findings ' + (registryCounts.findings || 0) + '</span> · <span class="v incomplete">incomplete ' + (registryCounts.incomplete || 0) + '</span>' +
+    (repoRecords.length > 0 ? ' ｜ 仓库记录 ' + repoRecords.length + ' 条(只读公开元数据,按设计不可能是 clean)' : '') +
     ' · 完全测过 ' + measured.complete + "/" + measured.total + " (" + measuredPct + "%)"
   ))
 
