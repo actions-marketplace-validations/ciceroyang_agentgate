@@ -1,5 +1,11 @@
 # The audit finished on 264 of 2,057 MCP servers
 
+> **Update, 2026-09-19.** The index now carries a second kind of record: 9,585 repositories that a
+> full file-tree classification calls MCP servers, merged in beside the 2,033 registry entries and
+> **counted separately**, because a repository whose metadata is all we read can never be `clean`. The
+> registry numbers below are unchanged; the two denominators are shown apart on
+> <https://xn--5kvo87g.com/evidence.html>.
+
 *September 2026. Numbers from the index built 2026-09-17 with scanner `25d846c`. The script that
 computes them is in the repository, and the command is at the end.*
 

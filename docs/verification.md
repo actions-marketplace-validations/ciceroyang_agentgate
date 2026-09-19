@@ -521,6 +521,19 @@ roadmap 里新写的一节把 1.0 定义成五道可验收的门。这一轮做�
 - **两处顺带**：`docs/operations/README.md` 加了「手上有旧版本，想知道升级要不要动手」一行（该目录每一页都必须被索引链到，有测试）；roadmap 的门表把前两道标成 2026-09-18 关闭，并写清关掉的是文档与政策，不是功能。
 - **全套**：598 项测试、596 通过、0 失败、2 跳过（新增 4 项治理测试）。
 
+## 链的推进：仓库级记录并进索引，两个分母分开报（2026-09-19）
+
+起因是一个实测数字：GitHub 上带 `topic:mcp-server` 的仓库有 **16,985** 个（完整枚举、未截断），其中**只有 95 个（0.6%）出现在我们索引里**。也就是说，一家公司在 GitHub 上公开了 MCP server，我们的索引里可能一条记录都没有——我们上周写信的那 5 家国内公司（Zilliz / Kyligence / TextIn）就是这种情况。
+
+- **全量分类**：16,890 个仓库逐个拉递归文件树（每仓库 1 次请求、**不占搜索配额**，77 分钟到 2 小时 49 分两次跑完）。第一版规则（文件名里有 `server` 或 `mcp`）给出 13,304 个「server-like」——**这个数是错的，而且证据在同一份数据里**：`reactive-resume` 命中 `apps/server/src/app-version.ts`（Web 应用）、`pascalorg/editor` 命中 `...server.test.ts`（测试文件）、`0xjacky/nginx-ui` 命中 `e2e/...spec.ts`。原因很朴素：几乎每个 Node 项目都有 `server.ts`。
+- **收紧后的规则**（路径里必须含 `mcp`，或有 `mcp.json`/`smithery.yaml` 描述文件）= **9,585 个（56.7%，上界）**；从中等距抽 40 个、把命中路径全列出来**逐个人工判**：是 MCP server 的 27 个、不是的 6 个（客户端/宿主/示例/控制面）、证据不足 4 个 → **精度约 73%**，即我们看不到的真正 MCP server 约 6,500–7,300 个。
+- **合并规则**（写进 `packages/collect/src/repository-records.mjs`，6 项测试）：身份优先级 注册表名 → 包坐标 → 仓库 URL；注册表已覆盖的仓库不再新增；**重复身份是错误**；**仓库记录永远不可能是 `clean`**（`packageManifest` 组件是 `skipped`，reason `no-package-declared-in-repository`）；每条判定带 sha256 与写明的 scope。
+- **本机三道闸全过**：建站 **3.58 秒**、11,620 个服务器页 + 7,938 个发布者页、sitemap 19,569 条 URL、磁盘 146 MB；服务 `/v1/servers` **1.2–4.7 ms**、RSS 212 MB。
+- **上线（2026-09-19）**：服务器 `git pull` 到 `c89b9d2` → 把本地产出的两个产物（`github-census.json` 9.35 MB、`repository-classification.json` 3.1 MB）放到 `/opt/agentgate/data/` → `refresh --max 300` → 索引 **11,618 条**（注册表 2,033 + 仓库 9,585）→ 重建站点（`/var/www/zhiliang` 155 MB、11,618 个页面、sitemap 19,566）→ **重启 systemd 服务**（这一步不能省：`/v1/index/summary` 一开始没有 `sources` 字段，因为跑的还是旧进程）。
+- **公开实测**：证据页显示「注册表条目 2033: clean 190 · findings 32 · incomplete 1811 ｜ 仓库记录 9585 条（只读公开元数据，按设计不可能是 clean）」；仓库记录页 200（`/s/github.com__0-soft__2captcha-mcp.html`）；`/v1/index/summary` 返回 `sources.registry` / `sources.repositories` 两个块（未测原因 `no-package-declared-in-repository` 9,585）；badge 200；服务器侧 `verify-public.mjs` **全过**。
+- **配套**：`refresh --repositories` 是慢的那一半（census 用 `--since` 做增量、分类只重取 `pushed_at` 变过的仓库），加了测试；不带这个 flag 时索引与以前完全一致。`docs/operations/README.md` 加了每周一行的节奏说明；两篇文章各加了一段注明索引已变、两个分母分开显示。
+- **全套**：614 项测试、612 通过、0 失败、2 跳过（新增 8 项）。
+
 
 
 
