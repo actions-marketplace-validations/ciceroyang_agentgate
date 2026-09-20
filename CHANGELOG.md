@@ -24,6 +24,16 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   `package-not-inspected` (a classification written before the field existed, which proves nothing
   either way). None of the three can make a record `clean`.
 
+- `packages/collect/scripts/fetch-manifests.mjs` reads the manifest a repository declared and
+  extracts the coordinates a package audit needs — registry, name, version — from `package.json`,
+  `pyproject.toml`, `Cargo.toml`, `composer.json`, `pom.xml`, `*.csproj` and `go.mod`. It reads
+  from `raw.githubusercontent.com`, which does not spend GitHub API quota, and it writes down the
+  URL and a sha256 of the bytes it read, so anyone can fetch the same file and check the digest. It
+  does not derive a name from the repository name and does not invent a version: a manifest without
+  one yields `version: null`, which the policy layer already treats as missing evidence. A manifest
+  it cannot read is reported as `unreadable` with the HTTP status, and one it can read but cannot
+  parse is reported with the parse error — neither throws.
+
 ## [0.4.0] - 2026-09-20
 
 - The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github
