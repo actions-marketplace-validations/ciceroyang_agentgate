@@ -88,7 +88,14 @@ export function repositoryRecord(entry, verdict, options) {
         findings: findings.reduce(function (counts, f) { counts[f.severity] = (counts[f.severity] || 0) + 1; return counts }, {}) },
       // The package half of the chain was not inspected, and saying so is the point: this record
       // can never reach clean, however good the metadata looks.
-      { id: "packageManifest", required: true, status: "skipped", reason: "no-package-declared-in-repository" },
+      //
+      // The reason names what THIS BUILD did - it did not look - and says nothing about the
+      // repository. It used to read "no-package-declared-in-repository", which asserted a finding
+      // we never checked: repos like firecrawl/firecrawl-mcp-server, upstash/context7 and
+      // apify/apify-mcp-server all declare a package.json, and all three were recorded as
+      // declaring none. "We did not measure it" is allowed. "We looked and there is nothing" is
+      // not, when nobody looked.
+      { id: "packageManifest", required: true, status: "skipped", reason: "package-not-inspected" },
     ],
     generatedAt: generatedAt,
   })

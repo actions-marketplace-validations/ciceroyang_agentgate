@@ -30,6 +30,21 @@ test("a repository that looks like a server becomes a record that cannot be clea
   assert.deepEqual(validateScanExecution(record.scanExecution).problems, [], "the block has to satisfy its own validator")
 })
 
+test("the skipped component says what this build did, not what the repository contains", function () {
+  // A repository record is built from the census and the classification, and neither carries
+  // package data - so this build never looks for a package. The reason has to say that. The
+  // wording it replaced, "no-package-declared-in-repository", read as a finding about the
+  // repository and was wrong for repositories that do declare a package.json.
+  const record = buildRepositoryRecords({
+    repositories: [entry()], classification: { "acme/tool": server },
+    knownUrls: new Set(), generatedAt: "2026-09-19T00:00:00.000Z",
+  }).records[0]
+  const reason = record.scanExecution.scanner_execution.components.find(function (c) { return c.id === "packageManifest" }).reason
+  assert.equal(reason, "package-not-inspected")
+  assert.doesNotMatch(reason, /^no[-_]|declared-in-repository/,
+    "the reason must not assert anything about the repository: nobody looked")
+})
+
 test("a repository the registry already covers is not counted again", function () {
   const result = buildRepositoryRecords({
     repositories: [entry()], classification: { "acme/tool": server },

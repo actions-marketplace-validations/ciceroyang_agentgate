@@ -5,6 +5,17 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- The repository record no longer claims something it never checked. Its `packageManifest`
+  component is `skipped` with reason `package-not-inspected` (was
+  `no-package-declared-in-repository`). The old string read as a finding about the repository —
+  "there is no package declared here" — when this build simply never looks: repository records are
+  built from the census and the classification, and neither carries package data. Three
+  repositories that do declare a `package.json` (firecrawl/firecrawl-mcp-server, upstash/context7,
+  apify/apify-mcp-server) were recorded as declaring none. The reason now names what this build
+  did, and nothing about the repository. Detecting the manifests is separate work: the
+  classification step already lists a repository's files, so it can carry this without new network
+  reads, but until it does the honest word is "not inspected".
+
 ## [0.4.0] - 2026-09-20
 
 - The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github
