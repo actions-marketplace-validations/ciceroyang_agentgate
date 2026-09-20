@@ -1,6 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { assertUniqueIdentities, buildRepositoryRecords, repositoryIdentity, looksLikeServer, repositoryFindings } from "../src/repository-records.mjs"
+import { assertUniqueIdentities, buildRepositoryRecords, repositoryIdentity, looksLikeServer, repositoryFindings, packageReason } from "../src/repository-records.mjs"
 import { validateScanExecution } from "../src/execution.mjs"
 
 const entry = (over) => Object.assign({
@@ -31,10 +31,10 @@ test("a repository that looks like a server becomes a record that cannot be clea
 })
 
 test("the skipped component says what this build did, not what the repository contains", function () {
-  // A repository record is built from the census and the classification, and neither carries
-  // package data - so this build never looks for a package. The reason has to say that. The
-  // wording it replaced, "no-package-declared-in-repository", read as a finding about the
-  // repository and was wrong for repositories that do declare a package.json.
+  // A classification written before it kept the manifest path carries no package data, so for
+  // that entry this build never looked. The reason has to say that. The wording it replaced,
+  // "no-package-declared-in-repository", read as a finding about the repository and was wrong for
+  // repositories that do declare a package.json.
   const record = buildRepositoryRecords({
     repositories: [entry()], classification: { "acme/tool": server },
     knownUrls: new Set(), generatedAt: "2026-09-19T00:00:00.000Z",
@@ -43,6 +43,26 @@ test("the skipped component says what this build did, not what the repository co
   assert.equal(reason, "package-not-inspected")
   assert.doesNotMatch(reason, /^no[-_]|declared-in-repository/,
     "the reason must not assert anything about the repository: nobody looked")
+})
+
+test("the package reason distinguishes what was checked from what was not", function () {
+  // Three states, and they are not interchangeable. The classification lists a repository's files,
+  // so once it keeps the manifest path a null manifest is a checked absence. A classification from
+  // before that field existed proves nothing either way, and must not borrow the checked wording.
+  assert.equal(packageReason({ manifest: "package.json" }), "manifest-found-not-inspected")
+  assert.equal(packageReason({ manifest: null }), "no-package-manifest-in-repository")
+  assert.equal(packageReason({}), "package-not-inspected")
+  assert.equal(packageReason({ kind: "server-like", matched: "src/mcp_server.py" }), "package-not-inspected",
+    "a classification without the field cannot claim the tree was searched")
+
+  const record = buildRepositoryRecords({
+    repositories: [entry()],
+    classification: { "acme/tool": { kind: "server-like", matched: "src/mcp_server.py", manifest: "pyproject.toml" } },
+    knownUrls: new Set(), generatedAt: "2026-09-19T00:00:00.000Z",
+  }).records[0]
+  const component = record.scanExecution.scanner_execution.components.find(function (c) { return c.id === "packageManifest" })
+  assert.equal(component.reason, "manifest-found-not-inspected")
+  assert.equal(record.verdict, "incomplete", "a manifest we have not read cannot make a record clean")
 })
 
 test("a repository the registry already covers is not counted again", function () {

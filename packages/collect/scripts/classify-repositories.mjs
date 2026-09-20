@@ -32,7 +32,11 @@ export function classifyPaths(paths) {
     : descriptor ? "descriptor-only"
     : manifest ? "library/orphan manifest"
     : paths.some((p) => DOCS.test(p)) ? "docs/examples" : "other"
-  return { kind, matched: serverFile || descriptor || manifest || null }
+  // The manifest path is returned, not only consumed. `kind` records that a manifest exists —
+  // "server-like" means a server file and a manifest — and then the path was thrown away, so the
+  // record built from this file could not say which package a repository declares, or even that
+  // it declares one. Carrying it here costs nothing: the tree was already fetched and parsed.
+  return { kind, matched: serverFile || descriptor || manifest || null, manifest, descriptor }
 }
 
 /**
@@ -118,7 +122,8 @@ if (isMain) {
       } else {
         const paths = json.tree.filter((e) => e.type === "blob").map((e) => e.path)
         const verdict = classifyPaths(paths)
-        results[repo.fullName] = { kind: verdict.kind, matched: verdict.matched, files: paths.length,
+        results[repo.fullName] = { kind: verdict.kind, matched: verdict.matched,
+          manifest: verdict.manifest, descriptor: verdict.descriptor, files: paths.length,
           truncated: json.truncated === true, stars: repo.stars, owner: repo.owner, pushedAt: repo.pushedAt || null }
       }
       done += 1

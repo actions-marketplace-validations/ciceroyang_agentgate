@@ -12,9 +12,17 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   built from the census and the classification, and neither carries package data. Three
   repositories that do declare a `package.json` (firecrawl/firecrawl-mcp-server, upstash/context7,
   apify/apify-mcp-server) were recorded as declaring none. The reason now names what this build
-  did, and nothing about the repository. Detecting the manifests is separate work: the
-  classification step already lists a repository's files, so it can carry this without new network
-  reads, but until it does the honest word is "not inspected".
+  did, and nothing about the repository.
+
+- The classification step now keeps the manifest path instead of only using it to pick a kind.
+  `classifyPaths` already matched `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod` and the
+  rest — a repository with a server file `and` a manifest is what `server-like` means — and then
+  discarded the path. It costs nothing to keep: the file tree was already fetched and parsed. With
+  it, the reason a package was not read has three honest states rather than one:
+  `manifest-found-not-inspected` (the tree lists a manifest; this step does not read it),
+  `no-package-manifest-in-repository` (the tree was read and holds none — a checked absence), and
+  `package-not-inspected` (a classification written before the field existed, which proves nothing
+  either way). None of the three can make a record `clean`.
 
 ## [0.4.0] - 2026-09-20
 

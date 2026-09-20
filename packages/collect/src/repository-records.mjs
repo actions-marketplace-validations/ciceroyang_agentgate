@@ -65,6 +65,22 @@ export function repositoryFindings(entry, options) {
   return findings
 }
 
+/**
+ * What this build did with the package half, in the three states the evidence can support.
+ *
+ * The classification step lists a repository's files and now keeps the manifest path, so "the tree
+ * was read and there is no manifest in it" is a statement we checked. A classification written
+ * before that field existed says nothing either way, and gets the word that admits it. A manifest
+ * that was found is named as found-and-not-read, because reading it is the work this step does not
+ * do - the reason says what happened, never what the repository contains.
+ */
+export function packageReason(classification) {
+  const e = classification || {}
+  if (typeof e.manifest === "string" && e.manifest.length > 0) return "manifest-found-not-inspected"
+  if (Object.prototype.hasOwnProperty.call(e, "manifest")) return "no-package-manifest-in-repository"
+  return "package-not-inspected"
+}
+
 function metadataDigest(entry) {
   const projected = {
     fullName: entry.fullName, stars: entry.stars, forks: entry.forks, archived: entry.archived === true,
@@ -95,7 +111,7 @@ export function repositoryRecord(entry, verdict, options) {
       // apify/apify-mcp-server all declare a package.json, and all three were recorded as
       // declaring none. "We did not measure it" is allowed. "We looked and there is nothing" is
       // not, when nobody looked.
-      { id: "packageManifest", required: true, status: "skipped", reason: "package-not-inspected" },
+      { id: "packageManifest", required: true, status: "skipped", reason: packageReason(verdict) },
     ],
     generatedAt: generatedAt,
   })
