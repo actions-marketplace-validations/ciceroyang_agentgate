@@ -5,6 +5,8 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-20
+
 - The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github
   <census> --classification <file>` adds a repository-level record for every repository the
   classification called a server and the registry does not already cover. Such a record can

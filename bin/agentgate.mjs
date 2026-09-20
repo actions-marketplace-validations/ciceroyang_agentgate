@@ -627,7 +627,9 @@ else {
   console.log("  mcp       [--index data/index.json]   serve the evidence as MCP tools over stdio (read-only)")
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
-  console.log("  refresh   [--max 300]   fetch public sources and rebuild data/index.json")
+  console.log("  refresh   [--max 300] [--repositories]   fetch public sources and rebuild data/index.json")
+  console.log("            --repositories   also run the slower half: an incremental GitHub census and classification,")
+  console.log("                             merged into the index as records counted apart from the registry")
   console.log("  history   [--history data/history] [--backfill] [--max-age 26] [--format json]   verify the chained capture ledger")
   console.log("  version")
 }

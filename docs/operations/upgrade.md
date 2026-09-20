@@ -10,6 +10,24 @@ see that it worked. “Nothing to do” is an answer, and it is written out rath
 The rules behind all of this — what a version identifier promises, what may change inside one, how
 a breaking change is announced — are in [compatibility.md](../spec/compatibility.md).
 
+## 0.4.0
+
+- **Affected:** anyone who reads a coverage percentage out of `/v1/index/summary` or the evidence
+  page, or who runs `refresh`.
+- **What changed:** the index can carry two kinds of record — registry entries and repository
+  records — and they are counted **apart** (`sources.registry` / `sources.repositories`), because
+  one percentage over both would flatter the second kind. A repository record can never be `clean`:
+  its `packageManifest` component is skipped, so its state is incomplete by construction.
+  `refresh --repositories` runs the slower half of the chain — an incremental GitHub census, then a
+  classification that only re-fetches repositories whose `pushed_at` moved. The formats and the
+  version identifiers are frozen, and [compatibility.md](../spec/compatibility.md) now says what
+  each one promises.
+- **Do:** nothing, unless you were dividing the record count by something — read `sources` instead
+  of the top-level `count`. Without `--repositories` and without the two artifacts on disk, the
+  index is exactly what it was in 0.3.0.
+- **Check:** `curl -s http://127.0.0.1:8080/v1/index/summary | jq .sources` prints both counts; on
+  a 0.3.0 installation the key is absent.
+
 ## 0.3.0
 
 - **Affected:** anyone parsing `framework --format json`, or embedding the questionnaire mapping.
