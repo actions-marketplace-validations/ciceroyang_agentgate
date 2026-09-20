@@ -371,7 +371,7 @@ This is an early open-source core. It covers collection, an evidence index, scan
 checks in CI, a runtime gateway for MCP servers over stdio, historical diffs and a read-only
 service. Deployment scripts and a runbook are in the tree, and the first deployment with its
 checks is written up in [docs/verification.md](docs/verification.md). That write-up says nothing
-about the current health of the hosted service, and the Docker image build is still unverified.
+about the current health of the hosted service. The container path is not asserted but built: CI runs `docker compose up --build` and then a health check against the running container.
 
 What the version identifiers promise, and which versions are supported, is written down in
 [docs/spec/compatibility.md](docs/spec/compatibility.md); [SECURITY.md](SECURITY.md) says how to report

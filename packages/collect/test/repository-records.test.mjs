@@ -1,6 +1,5 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
 import { assertUniqueIdentities, buildRepositoryRecords, repositoryIdentity, looksLikeServer, repositoryFindings } from "../src/repository-records.mjs"
 import { validateScanExecution } from "../src/execution.mjs"
 
@@ -78,18 +77,37 @@ test("the identity is one canonical form and two records may not share it", func
   }, /identity check failed/)
 })
 
-test("the real census produces records whose coverage block and digest hold up", function () {
-  const census = JSON.parse(readFileSync("/tmp/github-census.json", "utf8"))
-  const classification = JSON.parse(readFileSync("/tmp/server-classify.json", "utf8")).results
-  const sample = census.repos.slice(0, 200)
+test("a mixed census comes out with a verdict, a digest and no clean record", function () {
+  // This used to read the census off the machine that produced it, which is a test that passes
+  // here and fails everywhere else. The shape is what matters, so it is built here instead.
+  const repositories = [
+    entry({ fullName: "acme/server-a", repoUrl: "https://github.com/acme/server-a" }),
+    entry({ fullName: "acme/server-b", repoUrl: "https://github.com/acme/server-b", archived: true, license: null, pushedAt: "2024-01-01T00:00:00Z" }),
+    entry({ fullName: "acme/library", repoUrl: "https://github.com/acme/library" }),
+    entry({ fullName: "registry/tool", repoUrl: "https://github.com/registry/tool" }),
+  ]
+  const classification = {
+    "acme/server-a": { kind: "server-like", matched: "src/mcp_server.py" },
+    "acme/server-b": { kind: "descriptor-only", matched: "mcp.json" },
+    "acme/library": { kind: "library/orphan manifest", matched: "package.json" },
+    "registry/tool": { kind: "server-like", matched: "server.ts" },
+  }
   const result = buildRepositoryRecords({
-    repositories: sample, classification: classification, knownUrls: new Set(["https://github.com/n8n-io/n8n"]),
+    repositories: repositories, classification: classification,
+    knownUrls: new Set(["https://github.com/registry/tool"]),
     generatedAt: "2026-09-19T00:00:00.000Z", now: "2026-09-19T00:00:00.000Z",
   })
-  assert.ok(result.records.length > 0, "the sample should produce records")
+  assert.deepEqual(result.records.map(function (r) { return r.server }),
+    ["github.com/acme/server-a", "github.com/acme/server-b"],
+    "the library is not a record and the registry row is not counted twice")
+  assert.equal(result.stats.alreadyRepresented, 1)
+  assert.equal(result.stats.notAServer, 1)
   for (const record of result.records) {
     assert.equal(record.verdict, "incomplete")
     assert.deepEqual(validateScanExecution(record.scanExecution).problems, [])
     assert.match(record.evidence.repositoryMetadata.provenance.content.digest, /^[a-f0-9]{64}$/)
   }
+  const archived = result.records.find(function (r) { return r.server === "github.com/acme/server-b" })
+  assert.deepEqual(archived.evidence.repositoryMetadata.findings.map(function (f) { return f.rule }).sort(),
+    ["repository-archived", "repository-license-missing", "repository-stale"])
 })
