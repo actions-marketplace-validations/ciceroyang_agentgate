@@ -89,13 +89,19 @@ registry 可能先回一句 `Your package is being processed and may take a few 
 
 已跑通：`v0.1.1`（2026-09-17，dist-tags `next: 0.1.1`）、`v0.2.3`（2026-09-18，dist-tags `next: 0.2.3`，SLSA provenance v1，SBOM 挂在 release 上）。`v0.2.1`、`v0.2.2` 只有 GitHub release，没有上 npm。
 
-## 六、提升到 latest（最近一次：2026-09-18，0.2.4）
+## 六、提升到 latest（最近一次：2026-09-20，0.4.0）
 
 ```sh
-npm dist-tag add @zhiliangtech/agentgate@0.2.4 latest
+npm dist-tag add @zhiliangtech/agentgate@0.4.0 latest
 ```
 
-现状：`{"latest":"0.2.4","next":"0.2.4"}`。验证：`npx --yes --prefer-online @zhiliangtech/agentgate@latest version` 打印 `agentgate 0.2.4`，`@latest mcp` 能返回 initialize。
+现状：`{"latest":"0.4.0","next":"0.4.0"}`。验证：把 `npm_config_cache` 指到一个空目录再跑 `npx --yes @zhiliangtech/agentgate@latest version`，打印 `agentgate 0.4.0`；`framework --format json` 返回 58 条。
+
+**2026-09-20 这次的三处实况（和上一次不同，值得记）：**
+
+- 本机 npm **根本没登录**，所以第一步不是动态码而是 E401：`Unable to authenticate, your authentication token seems to be invalid`。先 `npm login --auth-type=web`，它给一个 URL —— **这一次是免码的**，因为浏览器本来就登录着 npmjs.com，打开就显示「身份验证成功」。此后 `npm whoami` 才回 `zhiliangtech`。
+- 写操作那一步的验证 **不是 6 位动态码，是 WebAuthn 安全密钥**：给的 URL 是 `/auth/cli/<uuid>`，打开后会跳到 `/escalate/webauthn?next=...`，页面上是「双因素身份验证 → 安全密钥」，要人在浏览器里碰一下硬件密钥或 Touch ID。**所以这一步 agent 自己过不去，必须把页面开给人看。** `expect` 那句仍然有用：它负责在 pty 里把 URL 打出来。
+- 提完之后 **本机 `npx @latest` 还是打印旧版本**（这次是 0.2.4），这不是失败，就是 packument 缓存。以 registry 直连的 `/-/package/<name>/dist-tags` 为准，或者换一个空的 `npm_config_cache`。
 
 **这一步有两个坑，2026-09-18 都踩到了：**
 
