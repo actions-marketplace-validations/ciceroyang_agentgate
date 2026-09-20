@@ -61,10 +61,10 @@
 从 0.1.2 起清单可以完全在你们机器上生成:
 
 ```sh
-npx @zhiliangtech/agentgate@0.2.5 discover --out tools.txt                                  # 只输出名字或包名@版本
-npx @zhiliangtech/agentgate@0.2.5 inventory --input tools.txt --out report.html             # 本地出报告
-npx @zhiliangtech/agentgate@0.2.5 inventory --input tools.txt --framework aicaiq --out report.html   # 问卷对照
-npx @zhiliangtech/agentgate@0.2.5 watch --input tools.txt --archive ./agentgate-archive      # 每周看变化
+npx @zhiliangtech/agentgate@0.4.0 discover --out tools.txt                                  # 只输出名字或包名@版本
+npx @zhiliangtech/agentgate@0.4.0 inventory --input tools.txt --out report.html             # 本地出报告
+npx @zhiliangtech/agentgate@0.4.0 inventory --input tools.txt --framework aicaiq --out report.html   # 问卷对照
+npx @zhiliangtech/agentgate@0.4.0 watch --input tools.txt --archive ./agentgate-archive      # 每周看变化
 ```
 
 （钉住版本是因为我们还在快速迭代;不钉的话,你拿到的行为可能和这份说明不一致。）
