@@ -24,6 +24,7 @@ LangGraph 集成）当成已有能力写进了分析。那些名字在整个仓�
 | 静态清单扫描 | `packages/guard` | `node --test packages/guard/test/*.test.mjs` | 只看 `.mcp.json` 一类清单，**不运行代码、不读源码** |
 | 变更检测：版本没变但证据变了 | `packages/history/src/diff.mjs` | `node --test packages/history/test/*.test.mjs` | 要有两次可比快照；没有时它明说没有 |
 | 只读 MCP server | `packages/mcp` | `node --test packages/mcp/test/*.test.mjs` | 只读 |
+| 别人的要求清单 → 我们的证据映射 | `packages/policy/src/framework.mjs` | `node bin/agentgate.mjs framework --id eu-aia` | 它说明**我们能给什么证据**，不是合规结论；未覆盖的条目会明写「未覆盖」 |
 
 ## 二、没有的（外面提到过，但我们没做）
 

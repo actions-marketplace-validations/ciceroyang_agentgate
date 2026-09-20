@@ -54,6 +54,20 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   package half being skipped wholesale. It now rests on the gap that actually remains — and when
   that gap is closed, the component is removed rather than quietly reinterpreted.
 
+- A second mapping: `agentgate framework --id eu-aia` covers the record-keeping obligations of
+  Regulation (EU) 2024/1689 — Article 12 and Article 19. Eight items, and the count is published
+  with them: 2 ours, 4 the customer's, 2 a third party's. **Almost nothing is ours, and that is the
+  honest result rather than a modest one** — we do not run the customer's AI system and we do not
+  produce its logs. What we can do is make the artefacts that do exist checkable
+  (`content-digest`, `archive-integrity`) and count what could not be read
+  (`coverage-accounting`, `scan-execution`).
+
+  The entry that names Articles 12(3) and 12(4) says **未覆盖** and belongs to a third party,
+  because this version of the mapping only read 12(1), 12(2), 19(1) and 19(2) — and it says which
+  of them it read, in the `source` field, because a mapping that does not say what it read is a
+  mapping nobody can check. The article text itself is not reproduced; only the paragraph numbers
+  and our own wording, the same rule the CSA mapping follows.
+
 ## [0.4.0] - 2026-09-20
 
 - The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github
