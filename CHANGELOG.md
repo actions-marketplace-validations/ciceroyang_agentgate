@@ -34,6 +34,14 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   it cannot read is reported as `unreadable` with the HTTP status, and one it can read but cannot
   parse is reported with the parse error — neither throws.
 
+- `packages/collect/scripts/audit-packages.mjs` takes those coordinates and runs the same audit the
+  registry path runs, so a repository record can carry measured evidence instead of a component that
+  is skipped because nobody looked. The server object it builds carries no `transport`: inventing
+  `stdio` would add a finding about a transport nobody checked. Hook scripts are fetched so their
+  status is real rather than "missing because we did not ask". A registry this step cannot audit yet
+  is reported as `unsupported-registry`, and a manifest with no package name as
+  `no-package-name-in-manifest` — both are facts, and neither is a pass.
+
 ## [0.4.0] - 2026-09-20
 
 - The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github
