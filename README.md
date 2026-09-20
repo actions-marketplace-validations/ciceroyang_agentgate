@@ -29,6 +29,10 @@ Server setup is in [docs/operations/deployment-runbook.md](docs/operations/deplo
 The first deployment, on 2026-09-16, is written up in
 [docs/verification.md](docs/verification.md) together with what was checked and what still is not.
 
+[docs/capabilities.md](docs/capabilities.md) lists what this project can and cannot claim, one line
+each, every line carrying a command you can run. It exists because a consultant once wrote our
+capabilities down for us and included four we do not have.
+
 ## Try it without installing
 
 The service runs at <https://xn--5kvo87g.com/>: landing page, pricing, the evidence index
