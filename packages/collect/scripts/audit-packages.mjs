@@ -91,9 +91,17 @@ if (isMain) {
   const chosen = limit > 0 ? all.slice(0, limit) : all
   const todo = chosen.filter((k) => !results[k])
   const skipped = {}
+  // The ones this step will not audit are written down too, with the reason. Leaving them out would
+  // make "we did not audit it" indistinguishable from "we never saw it", and the record built from
+  // this file would have to fall back to a vaguer word.
   for (const k of Object.keys(coordinates)) {
     const why = auditability(coordinates[k])
-    if (why !== "auditable") skipped[why] = (skipped[why] || 0) + 1
+    if (why === "auditable") continue
+    skipped[why] = (skipped[why] || 0) + 1
+    if (results[k]) continue
+    const c = coordinates[k]
+    results[k] = { registry: c.registry, name: c.name, version: c.version, manifest: c.manifest,
+      url: c.url, digest: c.digest, status: "not-audited", reason: why, findings: [] }
   }
   console.log(JSON.stringify({ manifests: Object.keys(coordinates).length, auditable: all.length,
     alreadyAudited: chosen.length - todo.length, toAudit: todo.length, notAuditable: skipped, rate }))

@@ -42,6 +42,18 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   is reported as `unsupported-registry`, and a manifest with no package name as
   `no-package-name-in-manifest` — both are facts, and neither is a pass.
 
+- `build-index.mjs --audit <package-audit.json>` joins that audit back into the index, so a
+  repository record can carry the package coordinate and a measured `packageManifest` block
+  instead of an empty `packages` array. Without the flag the records are exactly what they were.
+
+  The invariant holds, and it is now spelled out. A repository record still can never be `clean`,
+  because a third required component says why: `repositorySource`, skipped with reason
+  `source-not-read`. The metadata block reads a repository's public metadata; the package block
+  reads the package it publishes; **neither reads the repository itself**, which is what a reader
+  would have to inspect to say anything about the server. Before this, "never clean" rested on the
+  package half being skipped wholesale. It now rests on the gap that actually remains — and when
+  that gap is closed, the component is removed rather than quietly reinterpreted.
+
 ## [0.4.0] - 2026-09-20
 
 - The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github

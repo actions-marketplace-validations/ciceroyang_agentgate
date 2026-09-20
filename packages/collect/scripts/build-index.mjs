@@ -68,6 +68,9 @@ export function buildIndex(options) {
   // what it was before, which is what every existing test and the daily job expect.
   const github = asJson(options.github)
   const classification = asJson(options.classification)
+  // The audit artifact is what turns a repository record from "we know a package exists" into "we
+  // read it". Optional, like the census: without it the records are exactly what they were.
+  const audit = asJson(options.audit)
   if (!census) throw new Error("a census artifact is required")
   const threshold = options.threshold || "medium"
 
@@ -169,6 +172,7 @@ export function buildIndex(options) {
     const built = buildRepositoryRecords({
       repositories: github.repos,
       classification: (classification && classification.results) || {},
+      audit: (audit && audit.results) || {},
       knownUrls: knownUrls,
       generatedAt: options.generatedAt,
       now: options.generatedAt,
@@ -198,7 +202,7 @@ export function buildIndex(options) {
 }
 
 function parse(argv) {
-  const args = { census: null, guard: null, repos: null, github: null, classification: null, out: null, threshold: "medium", scanner: null }
+  const args = { census: null, guard: null, repos: null, github: null, classification: null, audit: null, out: null, threshold: "medium", scanner: null }
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i]
     if (a === "--census") args.census = argv[++i]
@@ -206,6 +210,7 @@ function parse(argv) {
     else if (a === "--repos") args.repos = argv[++i]
     else if (a === "--github") args.github = argv[++i]
     else if (a === "--classification") args.classification = argv[++i]
+    else if (a === "--audit") args.audit = argv[++i]
     else if (a === "--out") args.out = argv[++i]
     else if (a === "--threshold") args.threshold = argv[++i]
     else if (a === "--scanner") args.scanner = argv[++i]
@@ -218,7 +223,7 @@ function parse(argv) {
 const isMain = process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).href
 if (isMain) {
   const args = parse(process.argv.slice(2))
-  const index = buildIndex({ census: args.census, guard: args.guard, repos: args.repos, github: args.github, classification: args.classification, threshold: args.threshold, scanner: args.scanner })
+  const index = buildIndex({ census: args.census, guard: args.guard, repos: args.repos, github: args.github, classification: args.classification, audit: args.audit, threshold: args.threshold, scanner: args.scanner })
   const counts = {}
   for (const r of index.records) counts[r.verdict] = (counts[r.verdict] || 0) + 1
   if (args.out) writeFileSync(args.out, JSON.stringify(index, null, 2) + "\n")

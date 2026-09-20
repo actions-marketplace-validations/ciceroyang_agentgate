@@ -65,6 +65,64 @@ test("the package reason distinguishes what was checked from what was not", func
   assert.equal(record.verdict, "incomplete", "a manifest we have not read cannot make a record clean")
 })
 
+const auditResult = {
+  status: "audited", registry: "npm", name: "demo-mcp", version: "1.2.3", manifest: "package.json",
+  url: "https://raw.githubusercontent.com/acme/tool/main/package.json", digest: "a".repeat(64),
+  findings: [{ rule: "hook-script-network", severity: "high", evidence: "postinstall makes a request" }],
+  provenance: { package: { registry: "npm", name: "demo-mcp", version: "1.2.3" }, complete: true },
+}
+
+test("an audited package becomes measured evidence, and the record still cannot be clean", function () {
+  const record = buildRepositoryRecords({
+    repositories: [entry()],
+    classification: { "acme/tool": { kind: "server-like", matched: "src/mcp_server.py", manifest: "package.json" } },
+    audit: { "acme/tool": auditResult },
+    knownUrls: new Set(), generatedAt: "2026-09-19T00:00:00.000Z",
+  }).records[0]
+
+  assert.deepEqual(record.packages, [{ registry: "npm", name: "demo-mcp", version: "1.2.3" }],
+    "the coordinate travels with the record now that it is known")
+  assert.equal(record.evidence.packageManifest.status, "findings")
+  assert.equal(record.evidence.packageManifest.findings.length, 1)
+  assert.equal(record.evidence.packageManifest.source, "package-registry")
+
+  const components = record.scanExecution.scanner_execution.components
+  const pkg = components.find(function (c) { return c.id === "packageManifest" })
+  assert.equal(pkg.status, "completed")
+  assert.equal(pkg.findings.high, 1)
+  assert.equal(pkg.reason, null)
+
+  // The gap that keeps this out of clean is now named instead of implied: neither block read the
+  // repository itself, which is what a reader would have to inspect to say anything about the server.
+  const source = components.find(function (c) { return c.id === "repositorySource" })
+  assert.equal(source.status, "skipped")
+  assert.equal(source.reason, "source-not-read")
+  assert.equal(record.verdict, "incomplete", "metadata plus a package is still not the server")
+  assert.deepEqual(validateScanExecution(record.scanExecution).problems, [])
+})
+
+test("an audit that did not happen names why, and never borrows the other reasons", function () {
+  const build = function (audit) {
+    return buildRepositoryRecords({
+      repositories: [entry()],
+      classification: { "acme/tool": { kind: "server-like", matched: "src/mcp_server.py", manifest: "Cargo.toml" } },
+      audit: audit ? { "acme/tool": audit } : {},
+      knownUrls: new Set(), generatedAt: "2026-09-19T00:00:00.000Z",
+    }).records[0]
+  }
+  const reasonOf = function (record) {
+    return record.scanExecution.scanner_execution.components.find(function (c) { return c.id === "packageManifest" }).reason
+  }
+  assert.equal(reasonOf(build({ status: "not-audited", reason: "unsupported-registry" })), "unsupported-registry")
+  assert.equal(reasonOf(build({ status: "metadata-unavailable" })), "package-metadata-unavailable")
+  assert.equal(reasonOf(build({ status: "failed" })), "package-audit-failed")
+  // No audit entry at all falls back to what the classification can prove, and says exactly that.
+  assert.equal(reasonOf(build(null)), "manifest-found-not-inspected")
+  assert.equal(build({ status: "metadata-unavailable" }).packages.length, 0,
+    "a package we could not read is not a coordinate we can claim")
+  assert.equal(build({ status: "metadata-unavailable" }).verdict, "incomplete")
+})
+
 test("a repository the registry already covers is not counted again", function () {
   const result = buildRepositoryRecords({
     repositories: [entry()], classification: { "acme/tool": server },

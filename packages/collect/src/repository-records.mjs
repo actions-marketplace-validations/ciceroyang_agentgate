@@ -16,6 +16,10 @@ import { buildScanExecution } from "./execution.mjs"
 
 export const REPOSITORY_BLOCK = "repositoryMetadata"
 export const REPOSITORY_SOURCE = "github-census"
+/** The gap that keeps a repository record out of `clean`, named rather than implied. */
+export const REPOSITORY_SOURCE_BLOCK = "repositorySource"
+/** Where a measured package block came from: the registry the package is published to. */
+export const PACKAGE_SOURCE = "package-registry"
 export const REPOSITORY_SCOPE =
   "repositoryMetadata/v1: GitHub repository metadata (stars, forks, license, archived, pushed_at, created_at, default_branch, description) as returned by the public search API; no source code read, no package inspected"
 
@@ -81,6 +85,20 @@ export function packageReason(classification) {
   return "package-not-inspected"
 }
 
+/** Why the package half did not run, when the audit step recorded a reason. Facts, never a pass. */
+export function auditReason(audit) {
+  if (!audit) return null
+  if (audit.status === "not-audited" && typeof audit.reason === "string" && audit.reason.length > 0) return audit.reason
+  if (audit.status === "metadata-unavailable") return "package-metadata-unavailable"
+  if (audit.status === "failed") return "package-audit-failed"
+  return null
+}
+
+/** The coordinate a measured package block is about. Version may be null; it is never invented. */
+export function packageCoordinate(audit) {
+  return { registry: audit.registry || null, name: audit.name || null, version: audit.version || null }
+}
+
 function metadataDigest(entry) {
   const projected = {
     fullName: entry.fullName, stars: entry.stars, forks: entry.forks, archived: entry.archived === true,
@@ -96,31 +114,42 @@ export function repositoryRecord(entry, verdict, options) {
   const identity = repositoryIdentity(entry.repoUrl || ("https://github.com/" + entry.fullName))
   if (!identity) return null
   const findings = repositoryFindings(entry, opts)
+  const audit = opts.audit || null
+  const audited = audit && audit.status === "audited" && typeof audit.name === "string" && audit.name.length > 0
+  const components = [
+    { id: REPOSITORY_BLOCK, required: true, status: "completed", output_present: true,
+      output_parseable: true, semantic_consistency: "ok",
+      findings: findings.reduce(function (counts, f) { counts[f.severity] = (counts[f.severity] || 0) + 1; return counts }, {}) },
+    // The package half. When the two steps upstream produced coordinates and an audit, this
+    // component ran and its evidence travels with the record. When they did not, the reason names
+    // what THIS BUILD did - it did not look - and says nothing about the repository. It used to read
+    // "no-package-declared-in-repository", which asserted a finding we never checked: repos like
+    // firecrawl/firecrawl-mcp-server, upstash/context7 and apify/apify-mcp-server all declare a
+    // package.json, and all three were recorded as declaring none. "We did not measure it" is
+    // allowed. "We looked and there is nothing" is not, when nobody looked.
+    audited
+      ? { id: "packageManifest", required: true, status: "completed", output_present: true,
+          output_parseable: true, semantic_consistency: "ok",
+          findings: (audit.findings || []).reduce(function (counts, f) { counts[f.severity] = (counts[f.severity] || 0) + 1; return counts }, {}) }
+      : { id: "packageManifest", required: true, status: "skipped", reason: auditReason(audit) || packageReason(verdict) },
+    // A repository record can still never be clean, and this component is why, spelled out. The
+    // metadata block reads a repository's public metadata; the package block reads the package it
+    // publishes. Neither reads the repository itself, which is what a reader would have to inspect
+    // to say anything about the server. Before this, "never clean" rested on the package half being
+    // skipped; it now rests on the gap that actually remains.
+    { id: REPOSITORY_SOURCE_BLOCK, required: true, status: "skipped", reason: "source-not-read" },
+  ]
   const execution = buildScanExecution({
-    subject: { server: identity, packages: [] },
-    components: [
-      { id: REPOSITORY_BLOCK, required: true, status: "completed", output_present: true,
-        output_parseable: true, semantic_consistency: "ok",
-        findings: findings.reduce(function (counts, f) { counts[f.severity] = (counts[f.severity] || 0) + 1; return counts }, {}) },
-      // The package half of the chain was not inspected, and saying so is the point: this record
-      // can never reach clean, however good the metadata looks.
-      //
-      // The reason names what THIS BUILD did - it did not look - and says nothing about the
-      // repository. It used to read "no-package-declared-in-repository", which asserted a finding
-      // we never checked: repos like firecrawl/firecrawl-mcp-server, upstash/context7 and
-      // apify/apify-mcp-server all declare a package.json, and all three were recorded as
-      // declaring none. "We did not measure it" is allowed. "We looked and there is nothing" is
-      // not, when nobody looked.
-      { id: "packageManifest", required: true, status: "skipped", reason: packageReason(verdict) },
-    ],
+    subject: { server: identity, packages: audited ? [packageCoordinate(audit)] : [] },
+    components: components,
     generatedAt: generatedAt,
   })
   return {
     server: identity,
     title: typeof entry.description === "string" && entry.description.length > 0 ? entry.description.slice(0, 200) : null,
     repository: normalizeRepoUrl(entry.repoUrl || ("https://github.com/" + entry.fullName)),
-    packages: [],
-    evidence: {
+    packages: audited ? [packageCoordinate(audit)] : [],
+    evidence: Object.assign({
       [REPOSITORY_BLOCK]: {
         status: findings.length > 0 ? "findings" : "clean",
         source: REPOSITORY_SOURCE,
@@ -132,7 +161,15 @@ export function repositoryRecord(entry, verdict, options) {
           complete: true,
         },
       },
-    },
+    }, audited ? {
+      packageManifest: {
+        status: (audit.findings || []).length > 0 ? "findings" : "clean",
+        source: PACKAGE_SOURCE,
+        reason: null,
+        findings: audit.findings || [],
+        provenance: audit.provenance || null,
+      },
+    } : {}),
     verdict: "incomplete",
     scanExecution: execution,
     generatedAt: generatedAt,
@@ -165,6 +202,7 @@ export function buildRepositoryRecords(options) {
   const repositories = Array.isArray(opts.repositories) ? opts.repositories : []
   const classification = opts.classification || {}
   const knownUrls = opts.knownUrls instanceof Set ? opts.knownUrls : new Set(opts.knownUrls || [])
+  const auditByRepo = opts.audit || {}
   const records = []
   const skipped = { alreadyRepresented: 0, notAServer: 0, unusable: 0, duplicate: 0 }
   const seen = new Set()
@@ -176,7 +214,8 @@ export function buildRepositoryRecords(options) {
     if (!looksLikeServer(classification[entry.fullName])) { skipped.notAServer += 1; continue }
     if (seen.has(identity)) { skipped.duplicate += 1; continue }
     seen.add(identity)
-    const record = repositoryRecord(entry, classification[entry.fullName], opts)
+    const record = repositoryRecord(entry, classification[entry.fullName],
+      Object.assign({}, opts, { audit: auditByRepo[entry.fullName] || null }))
     if (record) records.push(record)
   }
   assertUniqueIdentities(records)
