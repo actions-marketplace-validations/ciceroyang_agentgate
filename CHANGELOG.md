@@ -68,6 +68,18 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   mapping nobody can check. The article text itself is not reproduced; only the paragraph numbers
   and our own wording, the same rule the CSA mapping follows.
 
+- The four MCP tools declare what they return, and each description says when to use it. Glama
+  scores tool definitions and publishes the rubric
+  ([glama-ai/tool-definition-quality-score](https://github.com/glama-ai/tool-definition-quality-score));
+  two of its six levers were unaddressed — no tool carried an `outputSchema`, and no description
+  named the sibling to use for the other case.
+
+  The schemas are written from the handler's own return values, not from intent.
+  `protocol.mjs` puts the handler's `structured` object into `structuredContent`, so a schema here
+  describes bytes a caller already receives. A test calls every tool and compares the declared
+  schema against the sent value; breaking one field (`total: integer` → `string`) fails with
+  `inventory_tools.summary.total: declared string, sent integer`.
+
 ## [0.4.0] - 2026-09-20
 
 - The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github

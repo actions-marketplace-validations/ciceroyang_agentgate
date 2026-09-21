@@ -26,13 +26,122 @@ const SEVERITIES = ["critical", "high", "medium", "low", "unknown", "info"]
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
 
+/**
+ * What each tool returns, written from the handler's own return value rather than from intent.
+ * `protocol.mjs` puts the `structured` object into `structuredContent`, so this schema describes
+ * bytes a caller already receives. A schema that describes something the tool does not send is a
+ * claim with nothing behind it, which is what this project exists to point at.
+ */
+const RECORD_SCHEMA = {
+  type: "object",
+  description: "One index record, reduced to what a reader can act on.",
+  properties: {
+    server: { type: ["string", "null"] },
+    verdict: { type: "string", description: "clean, findings, incomplete, or unknown when the record says neither" },
+    packages: { type: "array", items: { type: "object", properties: {
+      registry: { type: ["string", "null"] }, name: { type: ["string", "null"] }, version: { type: ["string", "null"] },
+    } } },
+    repository: { type: ["string", "null"] },
+    generatedAt: { type: ["string", "null"] },
+    coverage: { type: ["object", "null"], description: "null when the record was written before records carried a coverage block", properties: {
+      state: { type: "string", description: "complete or incomplete" },
+      required: { type: ["integer", "null"] }, completed: { type: ["integer", "null"] }, failed: { type: ["integer", "null"] },
+      components: { type: "array", items: { type: "object", properties: {
+        id: { type: ["string", "null"] }, required: { type: "boolean" }, status: { type: ["string", "null"] }, reason: { type: ["string", "null"] },
+      } } },
+    } },
+    findings: { type: "object", properties: {
+      critical: { type: "integer" }, high: { type: "integer" }, medium: { type: "integer" },
+      low: { type: "integer" }, unknown: { type: "integer" }, info: { type: "integer" },
+    } },
+    blocks: { type: "array", items: { type: "object", properties: {
+      block: { type: "string" }, status: { type: ["string", "null"] }, reason: { type: ["string", "null"] }, findings: { type: "integer" },
+    } } },
+  },
+}
+
+const INDEX_WARNING = { type: "string", description: "Present only when the server was started with a note about the index it loaded." }
+
+const OUTPUT_LOOKUP = {
+  type: "object",
+  required: ["found"],
+  properties: {
+    found: { type: "boolean", description: "false means this index has no such record; it is not a statement that the tool is safe or that it does not exist" },
+    multiple: { type: "boolean", description: "present when found is true" },
+    record: RECORD_SCHEMA,
+    records: { type: "array", items: RECORD_SCHEMA, description: "present instead of record when several matched; at most ten are listed" },
+    query: { type: "object", description: "present when found is false, echoing what was asked", properties: {
+      server: { type: ["string", "null"] }, package: { type: ["string", "null"] }, version: { type: ["string", "null"] },
+    } },
+    indexGeneratedAt: { type: ["string", "null"] },
+    indexWarning: INDEX_WARNING,
+  },
+}
+
+const OUTPUT_INVENTORY = {
+  type: "object",
+  required: ["summary", "items"],
+  properties: {
+    summary: { type: "object", required: ["total", "matched", "needsAttention"], properties: {
+      total: { type: "integer" }, matched: { type: "integer" }, needsAttention: { type: "integer" },
+    } },
+    items: { type: "array", items: { type: "object", properties: {
+      id: { type: "string" },
+      name: { type: "string" },
+      state: { type: "string", description: "the match state; only 'matched' is a confirmed match, and a match is never a safety verdict" },
+      label: { type: "string" },
+      selected: { type: ["object", "null"], description: "the index record the match resolved to, or null" },
+      coverage: { type: ["object", "null"], properties: {
+        state: { type: "string" }, required: { type: ["integer", "null"] }, completed: { type: ["integer", "null"] }, failed: { type: ["integer", "null"] },
+      } },
+      findings: { type: "integer" },
+    } } },
+    indexWarning: INDEX_WARNING,
+  },
+}
+
+const OUTPUT_COVERAGE = {
+  type: "object",
+  description: "The distribution over the whole index. Counts, not percentages: a percentage over this population is the number this project refuses to publish without its denominator.",
+  properties: {
+    generatedAt: { type: ["string", "null"] }, scanner: { type: ["string", "null"] },
+    total: { type: "integer" },
+    states: { type: "object", properties: { complete: { type: "integer" }, incomplete: { type: "integer" }, absent: { type: "integer" } } },
+    verdicts: { type: "object" }, cross: { type: "object" }, perScanner: { type: "object" }, reasons: { type: "object" }, findings: { type: "object" },
+    findingsTotal: { type: "integer" }, requiredRuns: { type: "integer" }, completedRuns: { type: "integer" },
+    verdictIncompleteButComplete: { type: "integer" },
+    problems: { type: "array" },
+    indexWarning: INDEX_WARNING,
+  },
+}
+
+const OUTPUT_CHECK = {
+  type: "object",
+  required: ["root", "verdict"],
+  properties: {
+    root: { type: "string" },
+    verdict: { type: "string", description: "clean, findings or incomplete; incomplete is not a pass" },
+    policyVersion: { type: "string" },
+    findings: { type: "array", items: { type: "object", properties: {
+      rule: { type: "string" }, severity: { type: "string" }, file: { type: ["string", "null"] },
+      reason: { type: "string" }, message: { type: ["string", "null"] },
+    } } },
+    coverage: { type: "object", description: "what the policy could not measure: a check that failed, and evidence the index did not have", properties: {
+      checksFailed: { type: "array" }, evidenceMissing: { type: "array" },
+    } },
+    relatedRecords: { type: "integer" },
+    indexWarning: INDEX_WARNING,
+  },
+}
+
 export function listTools() {
   return [
     {
       name: "lookup_server",
       title: "Look up an MCP server's evidence",
-      description: "Look up one MCP server, or one package, in the local agentgate evidence index. Returns the verdict, the coverage block (which scanners ran, which did not, and why), and the findings. A record that is incomplete is reported as incomplete, never as clean.",
+      description: "Look up one MCP server, or one package, in the local agentgate evidence index. Use this when you know what you are asking about and want its record: the verdict, the coverage block (which scanners ran, which did not, and why), and the findings. Do not use it to check a list of tools you use; inventory_tools answers that question and returns one line per tool instead. A record that is incomplete is reported as incomplete, never as clean.",
       annotations: READ_ONLY,
+      outputSchema: OUTPUT_LOOKUP,
       inputSchema: {
         type: "object",
         properties: {
@@ -46,8 +155,9 @@ export function listTools() {
     {
       name: "inventory_tools",
       title: "Match a list of tools against the index",
-      description: "Given the MCP servers and agent tools you actually use, report which ones the index has evidence for, which need your exact version, and which it has never measured. Nothing is uploaded and nothing is executed.",
+      description: "Given the MCP servers and agent tools you actually use, report which ones the index has evidence for, which need your exact version, and which it has never measured. Use this to audit a list of what you run; for a single server or package, lookup_server returns the whole record rather than a one-line state. Nothing is uploaded and nothing is executed.",
       annotations: READ_ONLY,
+      outputSchema: OUTPUT_INVENTORY,
       inputSchema: {
         type: "object",
         properties: {
@@ -66,15 +176,17 @@ export function listTools() {
     {
       name: "coverage_report",
       title: "How much of the index was actually measured",
-      description: "Report the coverage distribution of the whole index: how many records are fully measured, what stopped the rest, and how many findings came out of the work that ran. It is the same number the project quotes in public.",
+      description: "Report the coverage distribution of the whole index: how many records are fully measured, what stopped the rest, and how many findings came out of the work that ran. Use this before quoting any percentage from this server, because it is the denominator; it is the same number the project quotes in public. It answers a question about the index, not about one tool: for one tool, use lookup_server.",
       annotations: READ_ONLY,
+      outputSchema: OUTPUT_COVERAGE,
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
     },
     {
       name: "check_project",
       title: "Scan a local project for refused configuration",
-      description: "Run agentgate's own checks over a local directory: MCP client configuration, hooks, manifests and source patterns a policy would refuse. It only reads files; it does not install, execute or upload anything, and it does not scan the network.",
+      description: "Run agentgate's own checks over a local directory: MCP client configuration, hooks, manifests and source patterns a policy would refuse. Use it on a project you can read; it is not a record lookup, so for one server's record use lookup_server and for a list of tools use inventory_tools. It only reads files; it does not install, execute or upload anything, and it does not scan the network.",
       annotations: READ_ONLY,
+      outputSchema: OUTPUT_CHECK,
       inputSchema: {
         type: "object",
         properties: {
