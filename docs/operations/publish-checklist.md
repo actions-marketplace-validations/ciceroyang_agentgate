@@ -98,15 +98,18 @@ workflow 就会自动挂。**别让它只留一个会过期的 workflow artifact
 
 ## 六、提升到 latest（最近一次：2026-09-20，0.4.0）
 
-**0.5.0 现在停在 `next`，等一次提升**（2026-09-21 发布，CI 用 OIDC 发的，带 SLSA provenance）：
+**0.5.0 已于 2026-09-21 提升到 `latest`**（发布由 CI 用 OIDC 完成，带 SLSA provenance；提升由人执行）：
 
 ```sh
 npm dist-tag add @zhiliangtech/agentgate@0.5.0 latest
 ```
 
-现状（2026-09-21 23:58 核对，registry 直连，不读本机缓存）：`{"latest":"0.4.0","next":"0.5.0"}`。
-验证 0.5.0 这一版：把 `npm_config_cache` 指到一个空目录再跑
-`npx --yes @zhiliangtech/agentgate@0.5.0 version`，打印 `agentgate 0.5.0`。
+现状（2026-09-22 00:0x 核对，registry 直连，不读本机缓存）：`{"latest":"0.5.0","next":"0.5.0"}`。
+验证：`npm_config_cache` 指到空目录再跑 `npx --yes @zhiliangtech/agentgate@latest version` → `agentgate 0.5.0`。
+
+**第一次跑 `dist-tag add` 会先撞 E401**（本机根本没登录），按第五节那段先做 `npm login --auth-type=web`；
+然后**写操作本身还要一次 WebAuthn**（账号是 `auth-and-writes`，登录 ≠ 授权写）。
+0.5.0 这次两步都照这一页走通了。
 
 **2026-09-21 补一条实测：registry 的传播比这一页原先写的一分钟慢得多。**
 publish 那一步打印 `+ @zhiliangtech/agentgate@0.5.0` 并说 "being processed" 之后，
