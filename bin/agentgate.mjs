@@ -111,6 +111,7 @@ function refresh(flags) {
   // left behind. When the artifacts are absent the index is exactly what it was before.
   const repoCensus = join(dataDir, "github-census.json")
   const repoClassification = join(dataDir, "repository-classification.json")
+  const repoAudit = join(dataDir, "package-audit.json")
   if (flags.repositories) {
     let since = "2015-01-01"
     try {
@@ -133,6 +134,13 @@ function refresh(flags) {
   if (existsSync(repoCensus) && existsSync(repoClassification)) {
     indexArgs.push("--github", repoCensus, "--classification", repoClassification)
     process.stderr.write("[refresh] repository records: on (" + repoCensus + ")\n")
+  }
+  // Without this the audit is dropped on every refresh and the published index quietly goes back to
+  // "we know a package is declared" for all of them. build-index takes --audit either way; leaving
+  // it out here is silence, not a decision.
+  if (existsSync(repoAudit)) {
+    indexArgs.push("--audit", repoAudit)
+    process.stderr.write("[refresh] package audit: on (" + repoAudit + ")\n")
   }
   run("index", join(ROOT, "packages", "collect", "scripts", "build-index.mjs"), indexArgs)
   console.log("[refresh] done: " + join(dataDir, "index.json"))

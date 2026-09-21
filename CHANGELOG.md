@@ -5,6 +5,13 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- `agentgate refresh` hands `--audit` to `build-index`. It did not, so every scheduled run rebuilt
+  the published index without the package audit and the repository records fell back to "a package
+  is declared here" — 6,199 audited packages' worth of evidence, dropped on a four-hourly timer with
+  no error and no log line. The artifact was on disk the whole time. This is the quiet version of
+  the mistake the rest of this section is about: not a wrong claim, but a capability that exists in
+  the code and never reaches the file anyone reads.
+
 - A package we could not get metadata for now says which of two different things happened.
   `fetchNpmDocument` and `fetchPypiDocument` returned `null` for every failure, so a 404
   ("the registry does not have this package") and a timeout or a 429 ("this run could not reach
