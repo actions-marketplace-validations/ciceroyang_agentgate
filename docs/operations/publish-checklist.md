@@ -139,6 +139,38 @@ publish 那一步打印 `+ @zhiliangtech/agentgate@0.5.0` 并说 "being processe
 
 ---
 
+## 七、版本号要同步到哪些清单文件（2026-09-21 补：漏过一个）
+
+**发一版要动的不止 `package.json`。** 每个对外条目都各自带一份写死的版本号，漏掉任何一个，
+那边就永远停在你上一次记得改的版本上。
+
+| 文件 | 谁在读它 | 改完还要做什么 |
+| --- | --- | --- |
+| `package.json` | npm | 打 tag 触发 CI 发版 |
+| `server.json` | **官方 MCP registry** | `/tmp/mcp-publisher login github -token $(gh auth token)` 然后 `/tmp/mcp-publisher publish` |
+| `lhm.plugin.json` | **LobeHub** | `npx @lobehub/market-cli@latest plugin update --dir .` |
+| `docs/capabilities.md` | 我们自己能力页里那句 `agentgate x.y.z` | — |
+| `README.md`、`docs/operations/pilot-package.md` | 给客户抄的命令 | — |
+
+`docs/samples/evidence-pack-example/pack.json` 里也有版本号，**那是封了样的样例，不要动** ——
+它的价值就在于封条还能验过。
+
+### 2026-09-21 踩到的那个漏
+
+0.5.0 发完之后查「还有哪里残留 0.4.0」，用的是 `grep -rn 0.4.0`。**`lhm.plugin.json` 因此没被查到
+——它停在 `0.3.0`，比上一个版本还早。** 结果 LobeHub 那边跑了一次「更新」，回的是
+`Updated ciceroyang-agentgate@0.3.0 (merged into the existing version)` —— 看起来成功了，其实没动。
+
+**正确做法是 grep 版本号本身，不是 grep 上一个版本号**：
+
+```sh
+grep -rn '"version"\s*:\s*"0\.' --include="*.json" . | grep -v node_modules | grep -v "^./data/"
+```
+
+而且**要看每个 manifest 的返回值**：LobeHub 的 CLI 打印 `@0.3.0` 时就该停下来问一句为什么。
+
+---
+
 ## 已经验证的事实
 
 | 事 | 结果 | 怎么验的 |
