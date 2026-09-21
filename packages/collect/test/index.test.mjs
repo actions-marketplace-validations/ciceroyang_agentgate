@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { deriveVerdict, buildIndex, RANK, UNMEASURED } from "../scripts/build-index.mjs"
+import { aggregateVerdict, deriveVerdict, buildIndex, RANK, UNMEASURED } from "../scripts/build-index.mjs"
 import { readFileSync, readdirSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -66,6 +66,27 @@ test("a finding at the threshold decides, below it does not", function () {
 
 test("all clean is clean", function () {
   assert.equal(deriveVerdict({ a: { status: "clean", findings: [] } }, "medium"), "clean")
+})
+
+test("findings survive an unfinished run: a finding is not a claim about work that ran", function () {
+  const blocks = { a: { status: "findings", findings: [{ rule: "r", severity: "high", evidence: "e" }] } }
+  const finished = { scanner_execution: { state: "complete" } }
+  const unfinished = { scanner_execution: { state: "incomplete" } }
+  assert.equal(aggregateVerdict(blocks, "medium", finished), "findings")
+  assert.equal(aggregateVerdict(blocks, "medium", unfinished), "findings",
+    "a high finding must not be downgraded to incomplete because another scanner did not finish")
+})
+
+test("clean still needs every required scanner to finish", function () {
+  const blocks = { a: { status: "clean", findings: [] } }
+  assert.equal(aggregateVerdict(blocks, "medium", { scanner_execution: { state: "complete" } }), "clean")
+  assert.equal(aggregateVerdict(blocks, "medium", { scanner_execution: { state: "incomplete" } }), "incomplete",
+    "an unfinished run can never be clean, however clean the findings look")
+})
+
+test("an unmeasured block is incomplete however the execution record reads", function () {
+  const blocks = { a: { status: "unmeasured", findings: [] } }
+  assert.equal(aggregateVerdict(blocks, "medium", { scanner_execution: { state: "complete" } }), "incomplete")
 })
 
 test("buildIndex joins the artifacts and keeps provenance", function () {

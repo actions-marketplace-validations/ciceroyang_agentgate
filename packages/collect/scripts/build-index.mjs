@@ -45,6 +45,21 @@ export function deriveVerdict(blocks, threshold) {
   return notable ? VERDICT.FINDINGS : VERDICT.CLEAN
 }
 
+/**
+ * The aggregate verdict for one record.
+ *
+ * `clean` is a claim about work that ran: it needs every required scanner to have finished, so an
+ * unfinshed run can never be clean. `findings` is not that kind of claim — a problem we found is a
+ * problem we found, whether or not the other scanners finished. Gating findings on completion is
+ * what published 871 records carrying a >=medium finding as "incomplete"; the site then showed 35
+ * findings where 906 existed. The gate stays on the claim, not on the evidence.
+ */
+export function aggregateVerdict(blocks, threshold, execution) {
+  const derived = deriveVerdict(blocks, threshold)
+  if (derived === VERDICT.CLEAN && !canBeClean(execution)) return VERDICT.INCOMPLETE
+  return derived
+}
+
 /** Accept an already-parsed artifact or a path to one. */
 function asJson(value) {
   if (!value) return null
@@ -154,10 +169,10 @@ export function buildIndex(options) {
       repository: row.repository || null,
       packages: packages,
       evidence: blocks,
-      // The execution record says which scanners were required and which finished. If any of them
-      // did not, the verdict is incomplete however clean the findings look: a verdict of clean is
-      // a claim about work that ran, and this is where that claim is held to account.
-      verdict: canBeClean(execution) ? deriveVerdict(blocks, threshold) : VERDICT.INCOMPLETE,
+      // The execution record says which scanners were required and which finished. An unfinished run
+      // can never be clean — that claim is held to account here. It can still be "findings": see
+      // aggregateVerdict for why the gate belongs on the claim and not on the evidence.
+      verdict: aggregateVerdict(blocks, threshold, execution),
       scanExecution: execution,
       generatedAt: options.generatedAt || new Date().toISOString(),
     })
