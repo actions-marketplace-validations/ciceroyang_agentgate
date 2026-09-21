@@ -496,7 +496,11 @@ export function auditPypiPackage(server, doc, declared = {}) {
 
 /** Fetch one npm document together with the reason when there is none. Read-only. */
 export async function fetchNpmDocumentOutcome(name, http = defaultHttp) {
-  if (!isNpmPackageName(name)) return { doc: null, reason: 'invalid-package-name' }
+  // Not "invalid-package-name": npm still serves legacy packages whose names predate the lowercase
+  // rule (JSONStream and Base64 answer 200 today). isNpmPackageName is a conservative input guard,
+  // not a statement about the registry. The reason says what this step did — it did not ask — and
+  // the declared name sits in the same record for a reader to judge.
+  if (!isNpmPackageName(name)) return { doc: null, reason: 'package-name-not-requested' }
   const res = await http(npmUrl(name))
   if (res.status !== 200) return { doc: null, reason: fetchFailureReason(res.status) }
   try {

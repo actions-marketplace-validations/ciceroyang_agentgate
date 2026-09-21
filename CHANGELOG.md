@@ -14,7 +14,10 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
   of mistake as `no-package-declared-in-repository` below, in a field with a wider blast radius.
   The fetch functions keep their existing signatures and now have `…Outcome` twins that carry a
   reason (`package-not-found`, `registry-unreachable`, `registry-http-<status>`,
-  `metadata-not-json`, `invalid-package-name`), and the audit writes it down.
+  `metadata-not-json`, `package-name-not-requested`), and the audit writes it down. The last one
+  is deliberately not called "invalid name": npm still serves legacy packages that predate the
+  lowercase rule (`JSONStream` and `Base64` answer 200 today), so `isNpmPackageName` describes what
+  this step will ask about, not what the registry has.
 
 - The repository record no longer claims something it never checked. Its `packageManifest`
   component is `skipped` with reason `package-not-inspected` (was

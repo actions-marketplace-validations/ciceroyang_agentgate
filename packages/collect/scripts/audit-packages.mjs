@@ -94,14 +94,19 @@ if (isMain) {
   const limit = Number(argOf("limit", 0))
   // A run that cannot retry its own failures is stuck with them. Transient ones (a timeout, a 429)
   // need a second pass; the entries the registry has never heard of do not, and re-fetching those
-  // only spends someone else's bandwidth to learn the same thing.
+  // only spends someone else's bandwidth to learn the same thing. `--redo` matches a status or a
+  // reason, so `--redo registry-unreachable` retries exactly the failures worth retrying.
   const redo = argOf("redo", null)
   const coordinates = JSON.parse(readFileSync(coordinatesPath, "utf8")).results || {}
   const previous = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")).results || {}) : {}
   const results = { ...previous }
   const all = Object.keys(coordinates).filter((k) => auditability(coordinates[k]) === "auditable")
   const chosen = limit > 0 ? all.slice(0, limit) : all
-  const todo = chosen.filter((k) => !results[k] || (redo && results[k] && results[k].status === redo))
+  const todo = chosen.filter((k) => {
+    if (!results[k]) return true
+    if (!redo) return false
+    return results[k].status === redo || results[k].reason === redo
+  })
   const skipped = {}
   // The ones this step will not audit are written down too, with the reason. Leaving them out would
   // make "we did not audit it" indistinguishable from "we never saw it", and the record built from

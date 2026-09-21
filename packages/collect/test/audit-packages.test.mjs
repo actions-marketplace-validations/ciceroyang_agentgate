@@ -39,8 +39,11 @@ test("the fetch outcome carries the reason when there is no document", async fun
   assert.deepEqual(await fetchNpmDocumentOutcome("demo-mcp", at(0)), { doc: null, reason: "registry-unreachable" })
   assert.deepEqual(await fetchNpmDocumentOutcome("demo-mcp", at(429)), { doc: null, reason: "registry-http-429" })
   assert.deepEqual(await fetchNpmDocumentOutcome("demo-mcp", at(200, "not json")), { doc: null, reason: "metadata-not-json" })
-  // A name npm cannot resolve is never sent, so it must not be reported as absent from the registry.
-  assert.deepEqual(await fetchNpmDocumentOutcome("bad name", at(404)), { doc: null, reason: "invalid-package-name" })
+  // A name this step will not send is never sent, so it must not be reported as absent from the
+  // registry — and it must not be called an invalid npm name either: npm still serves legacy
+  // packages whose names predate the lowercase rule.
+  assert.deepEqual(await fetchNpmDocumentOutcome("bad name", at(404)), { doc: null, reason: "package-name-not-requested" })
+  assert.deepEqual(await fetchNpmDocumentOutcome("JSONStream", at(200, "{}")), { doc: null, reason: "package-name-not-requested" })
   assert.deepEqual(await fetchPypiDocumentOutcome("demo", at(404)), { doc: null, reason: "package-not-found" })
   assert.deepEqual(await fetchPypiDocumentOutcome("demo", at(0)), { doc: null, reason: "registry-unreachable" })
   const ok = await fetchNpmDocumentOutcome("demo-mcp", at(200, JSON.stringify({ name: "demo-mcp" })))
