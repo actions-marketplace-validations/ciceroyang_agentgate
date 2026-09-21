@@ -99,7 +99,10 @@ if (args.online === true) {
     const versionResponse = await fetch("https://registry.npmjs.org/" + encoded + "/" + version)
     published = { tags: tags, exists: versionResponse.status === 200 }
     add("problem", "这个版本还没有发布过", versionResponse.status === 404, version + " 已经存在于 registry（" + String(versionResponse.status) + "）")
-    add("warning", "latest 已经指向这个版本", Boolean(tags && tags.latest === version), "registry 的 dist-tags：" + JSON.stringify(tags))
+    // The condition and the label were inverted. The assertion that has to hold before a release is
+    // "latest does not point here yet" — publishing goes to `next` first and a human promotes it — so
+    // the old form warned on every normal release while printing a dist-tags line that contradicted it.
+    add("warning", "latest 还没有指向这个版本", Boolean(tags && tags.latest !== version), "registry 的 dist-tags：" + JSON.stringify(tags))
   } catch (error) {
     add("problem", "能连上 registry", false, String(error && error.message))
   }
