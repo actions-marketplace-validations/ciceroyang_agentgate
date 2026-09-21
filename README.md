@@ -319,6 +319,7 @@ node packages/collect/bin/agent-add.mjs --index data/index.json <server-name>
 - [We indexed 11,605 MCP records and could audit 258 of them](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.md) ([中文](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.zh-CN.md)) — how many of the collected servers were actually measured, and what stopped the rest. The numbers are the 2026-09-19 build the piece was written against; the index is rebuilt several times a day and moves.
 - [The loudest rule was wrong nine times out of nine](docs/articles/2026-09-the-loudest-rule-was-wrong.md)
 - [Clean is a claim about work that was done](docs/articles/2026-09-clean-is-a-claim.md)
+- [A reason that reads as a finding](docs/articles/2026-09-a-reason-that-reads-as-a-finding.md) — five coverage gaps whose text described the subject when it should have described the scanner. Four of them are mine.
 
 ## Test
 
