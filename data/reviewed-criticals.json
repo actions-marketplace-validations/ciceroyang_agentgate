@@ -553,6 +553,2306 @@
    },
    "reviewedAt": "2026-09-17",
    "note": "package manifest for telbase@0.14.0-beta.2: postinstall runs node install.js at install time; re-read 2026-09-17, the finding is real"
+  },
+  {
+   "server": "github.com/mksglu/context-mode",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "context-mode",
+     "version": "1.0.169"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "e531eb8d74cf0742da97ee4295888588d3dc286efd0e1f9bf10571c40690ae5f",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/mksglu/context-mode",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/postinstall.mjs can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "context-mode",
+     "version": "1.0.169"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "e531eb8d74cf0742da97ee4295888588d3dc286efd0e1f9bf10571c40690ae5f",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/workbackai/mcp-nodejs-debugger",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"npm install @modelcontextprotocol/sdk node-fetch ws zod\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@hyperdrive-eng/mcp-nodejs-debugger",
+     "version": "0.2.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "49593dbf3dc92e42f7c9f9bd2951d694c85048adbdae93d4699d04b9e6526b24",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/proxy-intell/facebook-ads-library-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node install-deps.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@proxy-intell/facebook-ads-library-mcp",
+     "version": "1.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "6dab3794868a6a7a80af1408e80754c6281d8cd99274fb19a3b85258b7434951",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/proxy-intell/facebook-ads-library-mcp",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "install-deps.js can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@proxy-intell/facebook-ads-library-mcp",
+     "version": "1.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "6dab3794868a6a7a80af1408e80754c6281d8cd99274fb19a3b85258b7434951",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/agenticmail/agenticmail",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.cjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@agenticmail/cli",
+     "version": "0.9.109"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "ae879fa2f12bfbe354ccef858aa46c24c9106abdef4ab959591597b26886b653",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/agenticmail/agenticmail",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/postinstall.cjs can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@agenticmail/cli",
+     "version": "0.9.109"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "ae879fa2f12bfbe354ccef858aa46c24c9106abdef4ab959591597b26886b653",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/jfarcand/mirroir-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "mirroir-mcp",
+     "version": "0.39.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "2f966bae48af637e8336914cd1f46cc3e9a0042ec492b6048f50aef336d908c2",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/jfarcand/mirroir-mcp",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "install.js can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "mirroir-mcp",
+     "version": "0.39.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "2f966bae48af637e8336914cd1f46cc3e9a0042ec492b6048f50aef336d908c2",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/achiya-automation/safari-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.cjs || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "safari-mcp",
+     "version": "2.21.12"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "ef28290c42b8df200dd6eba263cc4aafc0c1f80c5bcc4b6529df85dd4947720e",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/harness/mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/ensure-secure-adm-zip.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "harness-mcp-v2",
+     "version": "3.2.30"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "a4afc9ce86d2a728dee27a2fab870c9ff3e9f93930786ed1744ba9ae6b89df78",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/portel-dev/ncp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"npm run build:if-dev\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@portel/ncp",
+     "version": "2.3.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "770e95d54476c9f0b3a80a7d1a117fd35dd71d4e575837ce696fe79a04db74f9",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/rolecraft-sh/rolecraft",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/setup-hooks.mjs || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "rolecraft",
+     "version": "2.4.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "df2e2aff293fa726ad159fde21f30e166e82405879dd340b52ea37503df55460",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/hashfunction/markuprplus",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "markuprplus",
+     "version": "3.1.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "20f40dc9c12d63fc0e3d85bc20db477d1097e46b9f35b7ae5cdefcb9d77ff40d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/hashfunction/markuprplus",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/postinstall.mjs can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "markuprplus",
+     "version": "3.1.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "20f40dc9c12d63fc0e3d85bc20db477d1097e46b9f35b7ae5cdefcb9d77ff40d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/microck/discord.py-self-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "discord-selfbot-mcp",
+     "version": "1.8.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "7ffad60dee6da1533353bad876ef44ad0216b162586d83d6aab6528d98cf69de",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/microck/discord.py-self-mcp",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/postinstall.js can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "discord-selfbot-mcp",
+     "version": "1.8.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "7ffad60dee6da1533353bad876ef44ad0216b162586d83d6aab6528d98cf69de",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/writerslogic/scrivener-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.cjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "scrivener-mcp",
+     "version": "0.12.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "ae69ec38891c57fe1c58c6a344bf1ae9fb886a8d54740bd54b20482b236e74d3",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/rohanmuppa/brightspace-mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"npx playwright install chromium\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "brightspace-mcp-server",
+     "version": "3.0.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "261048a1baaccc2475460f2084a9b51794c3743cb9e77097a1ef0bd9c969dff2",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/cscsoftware/aidex",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "aidex-mcp",
+     "version": "2.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "51b6b2e53ed11c672e4e4610366ac1c0e26967cefa03d48bd4aaa76ab9d4a91a",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/braffolk/mcp-summarization-functions",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.preinstall=\"node -e \\\"if (process.versions.node < '22.0.0') { console.error('Requires Node.js 22 or higher. Current version: ' + process.versions.node); process.exit(1); }\\\"\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "mcp-summarization-functions",
+     "version": "0.1.5"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "227c69214cc980a8c62fdf4c65b65cbef9581bc4cbdf1e51fcee5d81a55f500b",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/lennix1337/genexus18mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/verify-install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "genexus-mcp",
+     "version": "3.7.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "11f082ea6de20d3d30b210fdef5f052afaa400624f9da76ff72409b57bbd2e4b",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/verygoodplugins/mcp-evernote",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/post-install.js 2>/dev/null || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@verygoodplugins/mcp-evernote",
+     "version": "2.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "049694d7ba8be4ee506b94e7ecd877ec5984d334d267d453e4282f6ddd40f25b",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/rsdouglas/janee",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@true-and-useful/janee",
+     "version": "0.16.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c8a328a91e27b3ecae438da16abf911455579d9cadb171ad403d19c289815524",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/leandropg19/memorys",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node npm/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "memory-industry",
+     "version": "0.25.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "92d318ef118e287eeb25563e0f8bb87d54e874d271808e4d42c30e833b8b3e9f",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/leandropg19/memorys",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "npm/postinstall.js can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "memory-industry",
+     "version": "0.25.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "92d318ef118e287eeb25563e0f8bb87d54e874d271808e4d42c30e833b8b3e9f",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/gergototh1/magyar-jogszabaly-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"test -d dist || npm run build || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@ansvar/hungarian-law-mcp",
+     "version": "1.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "5ac9d7d4f739ad04b06980135462a92daad5383c3bbd61ad6c216f76d189734d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/factorly-dev/factorly",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "factorly",
+     "version": "0.18.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "25bc9a3eb7caf2509bd1f9f963073df68d4cb5ee25209da062f28399a96af7d2",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/factorly-dev/factorly",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "install.js can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "factorly",
+     "version": "0.18.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "25bc9a3eb7caf2509bd1f9f963073df68d4cb5ee25209da062f28399a96af7d2",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/winccoa/winccoa-ae-js-mcpserver",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node postinstall.cjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@etm-professional-control/winccoa-mcp-server",
+     "version": "1.5.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c4eade410df6e41ac5b3b3fcf17e6c764701680377a666eb1d72c8b6ebfd1e73",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/bumblebiber/hmem",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/use-prebuild.cjs && node -e \\\"try{require('child_process').execSync('node dist/cli.js update-skills',{stdio:'ignore'})}catch(e){}\\\"\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "hmem-mcp",
+     "version": "8.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "115af37bdd9ba324551c2c8b236b7a48cfe5281fdc2c7e1e37c9ab8cface13a3",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/icloud-calendar-mcp/icloud-calendar-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node lib/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@icloud-calendar-mcp/server",
+     "version": "3.2.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "093c880e2334305ba91e502399f4a5cf96e8d63e3b87846b476f76afddc41532",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/icloud-calendar-mcp/icloud-calendar-mcp",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "lib/postinstall.js can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@icloud-calendar-mcp/server",
+     "version": "3.2.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "093c880e2334305ba91e502399f4a5cf96e8d63e3b87846b476f76afddc41532",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/amol21p/mcp-interactive-terminal",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node -e \\\"try{require('fs').chmodSync(require('path').join(require.resolve('node-pty'),'..','..','prebuilds',process.platform+'-'+process.arch,'spawn-helper'),0o755)}catch{}\\\"\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "mcp-interactive-terminal",
+     "version": "1.0.9"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "0640f462fcd7b2ecfd04a5d4a868f280bdf5ba553d39372655e7269109927407",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/eddiesanjuan/markupr",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "markupr",
+     "version": "2.6.8"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c219394aa1bb10bf1af31f4e2e5cd67ab860792317a0f5f28242bc4092d497fa",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/eddiesanjuan/markupr",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/postinstall.mjs can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "markupr",
+     "version": "2.6.8"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c219394aa1bb10bf1af31f4e2e5cd67ab860792317a0f5f28242bc4092d497fa",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/multiplex-ai/muggle-ai-works",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@muggleai/works",
+     "version": "5.18.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c5239dae7e8784cddf1c5f43983f49ee5d4d9b2a4a7f05ae31c2c583a3088de3",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/icoretech/warden-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node bin/patch-bitwarden-cli.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@icoretech/warden-mcp",
+     "version": "0.2.42"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "1af1aedd626e0e02a4f42b9f81cef78e984e7a5813b3aa95a2a2a16fa64b2c46",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/phantompixeldev/betterwebsearch-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/check-native.mjs || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "better-web-search-mcp",
+     "version": "0.10.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "93c2080fac6f93b3f1355d5163e43365abb41761571fa62511b280db4c81c220",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/ashwinighuge3012/jenkins-mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/check-python.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@ashwinighuge/jenkins-mcp-server",
+     "version": "1.0.7"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "f3775b7c5c62042a50ed72fe92adfb352439fff341d938282bbd0618542c6ce4",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/rafaelperoco/secretgenerator",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node dist/install.js || echo 'secretgenerator: postinstall skipped (likely a tarball-only environment); run `npx secretgenerator --help` to retry'\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@secretgenerator/cli",
+     "version": "2.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "a6847a3add5b192b2f2acb78d4de6028102f8888be456746c3e867a5063c0cc7",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/rynald0cst0ltziam/warden-ai",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node bin/postinstall.cjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "warden-ai",
+     "version": "0.7.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "1f98dbd3f8035f0b5eec68296dba753afaa3193cbdde2217337107af291f3168",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/avisangle/jenkins-mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/check-python.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@ashwinighuge/jenkins-mcp-server",
+     "version": "1.0.7"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "f3775b7c5c62042a50ed72fe92adfb352439fff341d938282bbd0618542c6ce4",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/tanaikech/next-level-google-apps-script-development",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"npm dedup\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "sample",
+     "version": "0.0.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "3de46e7e168a807a41cb35b893170c4aded0d692865cad47947c6061229283a9",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/wjabanjj/aifp-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "aifp-mcp",
+     "version": "1.5.11"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "41c20f90cae7c27b3adba734c8dc91addc3bbf70dc104cdaffe12a25f66bd77f",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/greglas75/codesift",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node ./dist/cli.js setup all 2>/dev/null && echo '\\n  ✨ CodeSift MCP installed and configured for all platforms.\\n  ⚠️  Restart your AI client (Cmd+Q for Claude Code) to load new MCP server.\\n' || echo '\\n  ✨ CodeSift MCP installed. Run: codesift setup all\\n'; node ./dist/install-check.js 2>/dev/null || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "codesift-mcp",
+     "version": "0.17.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "6307f7f2c7da04c2153b8e4b2910f444664d87069fef7df66995fced8fb699ad",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/anishmoncivarghese/sonde",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/fetch-grammars.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@cheppulabs/sonde",
+     "version": "0.4.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "07bf440b9fe4f947631c53fda1387f07fe8d9e9c6b2060005b50f68c3ae39b86",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/anishmoncivarghese/sonde",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/fetch-grammars.mjs can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@cheppulabs/sonde",
+     "version": "0.4.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "07bf440b9fe4f947631c53fda1387f07fe8d9e9c6b2060005b50f68c3ae39b86",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/munhq/codeindex",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node bin/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@munhq/codeindex",
+     "version": "0.5.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c2a3a1a491df2c0ddb5b2fa201ea008b4b57fcb63caf026a1afd57492a486b8c",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/rohitsoni1010/mcp-gearbox-js",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "mcp-gearbox",
+     "version": "0.0.12"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "719b2e6299d7dd6f50868f69e93475d57796c577c2062810c4000ab05a93ad08",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/rohitsoni1010/mcp-gearbox-js",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/install.js can reach the network and writes files (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "mcp-gearbox",
+     "version": "0.0.12"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "719b2e6299d7dd6f50868f69e93475d57796c577c2062810c4000ab05a93ad08",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/anil7948/cctx",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node dist/cli/postinstall.js 2>/dev/null || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "cctx-optimizer",
+     "version": "1.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "989a1db65e224394e52ca71fda34566067d95235547b7dcb3c96f2bf5be1031b",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/alexkay28/clickcast",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "clickcast-mcp",
+     "version": "0.4.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "6c09dc9a378734f327d897c88e22a5ce212f09ff7065b2609ee0ecd37d06d9e1",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/mehmoodqureshi/figma-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@mehmoodqureshi/figma-mcp",
+     "version": "0.2.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "8088a84449645d02b43f80813c9cf2d394db023b39a42aa42e4bbc928a6e4fdf",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/mehmoodqureshi/figma-mcp",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/postinstall.js can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@mehmoodqureshi/figma-mcp",
+     "version": "0.2.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "8088a84449645d02b43f80813c9cf2d394db023b39a42aa42e4bbc928a6e4fdf",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/maximstone/extenshi-io",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.cjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@extenshi/mcp",
+     "version": "0.6.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c8d2c7566e27638c8c2641383d8c7111fa78f2792b4f416896dabd7dc159e03b",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/maximstone/extenshi-io",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/postinstall.cjs can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@extenshi/mcp",
+     "version": "0.6.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "c8d2c7566e27638c8c2641383d8c7111fa78f2792b4f416896dabd7dc159e03b",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/lhead/akemon",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/fix-node-pty.cjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "akemon",
+     "version": "0.3.7"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "f5492ade18e5a0662971a1c8f4304bd73380f45143525def08dbad763b3bda23",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/l-margiela/olx-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"playwright install chromium --with-deps || echo 'Playwright browsers will be installed on first use'\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "olx-mcp",
+     "version": "1.0.14"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "b6ef40d587802b63bad50eb1f4d4d3b3f39946ef0c74add9c6c38bfb183500e5",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/pjueon/promptboard",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/download-binary.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "promptboard",
+     "version": "0.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "e38c1c216e7755181b3ac1736a5c6358e161f877f39834837d46c8b83c1cc706",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/versoxbt/desktop-pilot-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"swift build -c release 2>&1 || echo 'Build failed. Install Xcode Command Line Tools: xcode-select --install'\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "desktop-pilot-mcp",
+     "version": "1.0.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "197b9c375ae37625c233e05317a8f2359aea44dce796d44a1582449e163d3830",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/navskh/im",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node bin/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "idea-manager",
+     "version": "2.5.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "cd23c34d58846b0c71dae3d782aaaf8dd7cf73c596addb3a3518bb53a6b5f6cf",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/navskh/im",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "bin/postinstall.js can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "idea-manager",
+     "version": "2.5.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "cd23c34d58846b0c71dae3d782aaaf8dd7cf73c596addb3a3518bb53a6b5f6cf",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/xplo8e/hacktricks-mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "hacktricks-mcp-server",
+     "version": "1.3.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "bc434665e15e5119fb142f458409d229bdcdd4578d5d298f1d469d45116bb99f",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/kevin-weitgenant/linkedin-posts-hunter-mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"playwright install --with-deps chromium\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "linkedin-posts-hunter-mcp",
+     "version": "1.0.3"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "db7aaa8caad1a583b6df5fdf9c0193d27df8fa13f42973a3f2bc87c88bd8c77b",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/ayush-k-shukla/gmail-mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "gmail-mcp-server",
+     "version": "1.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "a5a46da5d8a5c536072065e48437c0b6b571a0255e4ab573090f3fecb03b1304",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/meyusufdemirci/app-store-operator",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "app-store-operator",
+     "version": "0.3.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "f677cc2493e6b33bb66949e3623ce80d82db63b53f28b4046ee52c43a61bd233",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/nisalgunawardhana/gmail-mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "gmail-mcp-server",
+     "version": "1.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "a5a46da5d8a5c536072065e48437c0b6b571a0255e4ab573090f3fecb03b1304",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/mafedelahoz/mcp-cuddlynest",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"playwright install chromium\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "cuddlynest-mcp",
+     "version": "0.2.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "7f95acbe52b5b8dc9961b65df0c12ac3ad1e4e5c69b689a0b1e7c82a5e50f3c4",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/salitaba/maven-decoder-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.install=\"node scripts/install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "maven-decoder-mcp",
+     "version": "1.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "7574c94509272b131f61e05700fccffdac7e2c77e8185932d2c1990dfae9e609",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/salitaba/maven-decoder-mcp",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/install.js can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "maven-decoder-mcp",
+     "version": "1.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "7574c94509272b131f61e05700fccffdac7e2c77e8185932d2c1990dfae9e609",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/danishashko/make-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node bin/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "make-mcp-server",
+     "version": "1.4.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "e84fa210e66595397036f4ef566569385dded6ea0420eb4efb3d7b322930ce78",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/adshaa/mempalacejs",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node dist/cli/index.js setup || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@mempalace/core",
+     "version": "0.1.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "59459c8fc1602b026592ce2c2fc5462dfba3ac5dfd6100d5fb8670ae714f0435",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/adshaa/mempalacejs",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "dist/cli/index.js can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@mempalace/core",
+     "version": "0.1.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "59459c8fc1602b026592ce2c2fc5462dfba3ac5dfd6100d5fb8670ae714f0435",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/sushilkulkarni1389/pixdom",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"npx playwright install chromium\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "pixdom",
+     "version": "0.1.2"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "b35dbd639bd17ba1e7096f3542380e55e4b10ef2a67d9b2e002467be798cb0fa",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/thuong180702/ideagauntlet",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node -e \\\"try{require('fs').accessSync('dist/postinstall.js');require('child_process').execSync('node dist/postinstall.js',{stdio:'inherit'})}catch(e){process.exit(0)}\\\"\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "idea-gauntlet",
+     "version": "0.7.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "379b24b207deeab3bb4c5eaa68de654eb14985177ca4e58da83c98e3d486a8db",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/vaibhavpandeyvpz/wappmcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"patch-package\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "wappmcp",
+     "version": "0.4.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "9993c72d5241d39d06376bc94e0bee952dace732c64586714a60596a27d235e1",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/labskrishna/kalairos",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/download-model.js || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "kalairos",
+     "version": "1.9.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "5fb0d66b470e28361327f087181bdced02a014132e68f784e2282a2526f08c2a",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/labskrishna/kalairos",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts/download-model.js can reach the network and writes files (network-module)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "kalairos",
+     "version": "1.9.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "5fb0d66b470e28361327f087181bdced02a014132e68f784e2282a2526f08c2a",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/smartlabsat/claude-playwright",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "claude-playwright",
+     "version": "0.1.4"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "4952f97fa70263833f4eb4133aff38242dccf3330b5279b0694396311014b265",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/bookedsolidtech/helixir",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node -e \\\"try{require('fs').statSync('scripts/install-gitleaks-shim.mjs')}catch{process.exit(0)};require('child_process').spawnSync(process.execPath,['scripts/install-gitleaks-shim.mjs'],{stdio:'inherit'})\\\"\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "helixir",
+     "version": "0.6.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "88e8f168accfeb8dec7211ecd20fb5eea3567e781a0b859b163367b677060015",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/bookedsolidtech/helixir",
+   "rule": "install-hook-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "scripts.postinstall matches process-spawn: \"node -e \\\"try{require('fs').statSync('scripts/install-gitleaks-shim.mjs')}catch{process.exit(0)};require('child_process').spawnSync(process.execPath,['scripts/install-gitleaks-shim.mjs'],{stdio:'inherit'})\\\"\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "helixir",
+     "version": "0.6.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "88e8f168accfeb8dec7211ecd20fb5eea3567e781a0b859b163367b677060015",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/prem22k/adviser-cli-tool",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node ./scripts/install-python.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@prem22k/adviser-cli",
+     "version": "0.3.3"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "454a9f0cae8fc2e57ada79706945a59ac29d482b30e3d74201820aaad71005de",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/prem22k/adviser-cli-tool",
+   "rule": "install-hook-script-critical",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "critical",
+   "evidence": "./scripts/install-python.js can reach the network and spawns a process (process-spawn)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@prem22k/adviser-cli",
+     "version": "0.3.3"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "454a9f0cae8fc2e57ada79706945a59ac29d482b30e3d74201820aaad71005de",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/permanu/superskill",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node dist/setup/postinstall.js || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "superskill",
+     "version": "0.6.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "be40b1ccf5d93c2c7b788dc44548c3a4597fff0e512346d2695b617f387e6804",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/devkindhq/swell-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/ensure-executable.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "swell-mcp",
+     "version": "1.1.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "9405ef8eb3fcedc5a8f7dbc944d594a0332f5b49a3d88c7d86af438c589c85f9",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/ozankasikci/unity-editor-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"chmod +x bin/unity-editor-mcp || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "unity-editor-mcp",
+     "version": "1.6.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "7102209dc37326d8ac2ffb52928082984d7802e69bee34cdfc8231db21250a48",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/rm-rf-prod/groundtruth-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node postinstall.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@groundtruth-mcp/gt-mcp",
+     "version": "7.5.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "48a05864f09515e23a98e1a72db3cccd7ce7a243a0b72567a83d8c84c99cc563",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/xcodethink/pixelcheck",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.mjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "pixelcheck",
+     "version": "2.1.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "ba3914385740f5d28bcefffcb04600885ed6b73b064c53199127c2c4cb38b403",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/qualixar/slm-mcp-hub",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "slm-mcp-hub",
+     "version": "0.3.3"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "9fd7c78f0f8076e6cb140546cd94d773129bfdc74055198d310428f491c7b38a",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/kryptosai/agent-observability",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.mjs || true\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "agent-obs",
+     "version": "1.0.7"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "ae95e1d08026cbde020a0fc66b3632b76c55c96b9b13e96d9c6cb7b2282b2af8",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/eddienubes/furaflight",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/install.cjs\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@furaflight/mcp",
+     "version": "0.0.12"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "dae641ab56e5e053fb739ac024ad930d0f02d2f5a089be30406bbeaa233a0f0d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/usrivastava92/teamblind-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"playwright install chromium\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@usrivastava92/teamblind-mcp",
+     "version": "1.2.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "3ea3e620ca02b00c43ecf1bd0de329147cfacdd22848d790db1432b16a9d05c2",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/haidaresber/ai-browser",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"playwright install chromium\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "ecobrowser",
+     "version": "0.1.5"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "2e4ff3f603314fcae5f4ba6d308d5151b940ff1688803ab4dea86bbe18ae15a0",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/yagyeshvyas/vibeguard",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@yagyeshvyas/vibeguard",
+     "version": "1.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "2546cad845205d5944cc463ef1528a30ffa23a5c69654cac737549502cc8502f",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/yagyeshvyas/vibeguard",
+   "rule": "install-hook-script-missing-from-package",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall runs scripts/postinstall.js, which the published package does not contain (unpkg and jsdelivr both return 404)",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@yagyeshvyas/vibeguard",
+     "version": "1.3.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "2546cad845205d5944cc463ef1528a30ffa23a5c69654cac737549502cc8502f",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/senoff/xlsx-for-ai",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/postinstall.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "xlsx-for-ai",
+     "version": "4.0.6"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "3e1a76db2bbb5ba8020134ec288604aaf574cfae101bdd0c372bebb4b234dccb",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/trsdn/mistraldocai-mcp",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node scripts/setup.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "@trsdn/mistraldocai-mcp-server",
+     "version": "2.0.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "40b090c053b732ee3b373b1dbc9e386220fbf27d30ec2405307c8529b2c2a39a",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/jjhbrams/project-amber",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"node install.js\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "gui",
+     "version": "0.1.0"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "919992a3e583ed078da9a7530e2a8f032688f86273d435f1f4ac1fb6c52c198d",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
+  },
+  {
+   "server": "github.com/expertvagabond/solana-mcp-server",
+   "rule": "install-time-execution",
+   "block": "packageManifest",
+   "file": null,
+   "severity": "high",
+   "evidence": "scripts.postinstall=\"npm run install-solana\"",
+   "provenance": {
+    "package": {
+     "registry": "npm",
+     "name": "solana-mcp-server",
+     "version": "1.0.1"
+    },
+    "content": {
+     "algorithm": "sha256",
+     "digest": "116a0d16992fc6f5684da4ed47a037d745e622c5627626eba4dfc1a85b620edf",
+     "scope": "registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents"
+    },
+    "complete": true
+   },
+   "reviewedAt": "2026-09-21",
+   "note": ""
   }
  ]
 }
