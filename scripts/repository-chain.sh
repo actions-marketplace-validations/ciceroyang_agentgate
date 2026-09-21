@@ -44,6 +44,29 @@ else
   echo "classify-repositories skipped in a smoke run: re-fetching trees proves nothing new here"
 fi
 
+# A classification with entries but not one manifest path is not a result - it is what a run looks
+# like when it started before the code that records the field was deployed. On 2026-09-21 that
+# happened: a 3.8 hour full run produced 17,089 entries with no manifest path anywhere, and the two
+# steps below wrote empty artifacts that read as "the ecosystem declares no packages". Stop here
+# instead. Zero out of seventeen thousand is a bug until proven otherwise.
+if [ -z "$LIMIT" ]; then
+  WITHOUT=$(node --input-type=module -e "
+    import { readFileSync } from 'node:fs'
+    const c = JSON.parse(readFileSync('$CLASSIFICATION', 'utf8')).results || {}
+    const all = Object.values(c)
+    const withM = all.filter(function (v) { return typeof v.manifest === 'string' && v.manifest.length > 0 })
+    console.log(withM.length + ' ' + all.length)
+  ")
+  set -- $WITHOUT
+  if [ "$2" -gt 0 ] && [ "$1" -eq 0 ]; then
+    echo "STOP: $2 classification entries and not one manifest path. The classifier that produced"
+    echo "      this file predates the manifest field (see the 2026-09-21 incident in the CHANGELOG)."
+    echo "      Re-run classify-repositories with the current code before continuing."
+    exit 3
+  fi
+  echo "classification: $1 of $2 entries carry a manifest path"
+fi
+
 step "fetch-manifests"
 node packages/collect/scripts/fetch-manifests.mjs \
   --classification "$CLASSIFICATION" --census "$CENSUS" --out "$COORDINATES"${LIMIT:+ --limit "$LIMIT"}
