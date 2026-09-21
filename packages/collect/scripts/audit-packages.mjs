@@ -103,8 +103,10 @@ if (isMain) {
   const limit = Number(argOf("limit", 0))
   // A run that cannot retry its own failures is stuck with them. Transient ones (a timeout, a 429)
   // need a second pass; the entries the registry has never heard of do not, and re-fetching those
-  // only spends someone else's bandwidth to learn the same thing. `--redo` matches a status or a
-  // reason, so `--redo registry-unreachable` retries exactly the failures worth retrying.
+  // only spends someone else's bandwidth to learn the same thing. `--redo` matches a status, a
+  // reason, or one repository's full name, so `--redo registry-unreachable` retries exactly the
+  // failures worth retrying and `--redo owner/name` re-measures exactly one entry after a rule
+  // changes — without asking the registries about 6,000 packages to fix one.
   const redo = argOf("redo", null)
   const coordinates = JSON.parse(readFileSync(coordinatesPath, "utf8")).results || {}
   const previous = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")).results || {}) : {}
@@ -114,7 +116,7 @@ if (isMain) {
   const todo = chosen.filter((k) => {
     if (!results[k]) return true
     if (!redo) return false
-    return results[k].status === redo || results[k].reason === redo
+    return results[k].status === redo || results[k].reason === redo || k === redo
   })
   const skipped = {}
   // The ones this step will not audit are written down too, with the reason. Leaving them out would

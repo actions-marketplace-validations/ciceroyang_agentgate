@@ -334,11 +334,17 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}, h
       for (const ref of hookScriptRefs(scripts)) {
         const content = normalizeHookScriptPath(ref) !== null ? hookScripts[ref] : undefined
         if (typeof content !== 'string') {
-          // The reason is part of the finding: "not published" and "the CDN did not answer" are
-          // different claims, and only the first one is about the package.
+          // The reason decides which finding this is. "The package does not ship this file" is a
+          // defect in the package, and we established it; anything else leaves us unable to say.
+          // One word for both is what let a real defect sit in the unknown bucket.
           const why = hookScriptReasons[ref]
-          add('install-hook-script-unavailable', 'unknown',
-            'hook runs ' + ref + '; content could not be fetched' + (typeof why === 'string' ? ' (' + why + ')' : ''))
+          if (why === 'hook-script-not-published') {
+            add('install-hook-script-missing-from-package', 'high',
+              'scripts.' + hook + ' runs ' + ref + ', which the published package does not contain (unpkg and jsdelivr both return 404)')
+          } else {
+            add('install-hook-script-unavailable', 'unknown',
+              'hook runs ' + ref + '; content could not be fetched' + (typeof why === 'string' ? ' (' + why + ')' : ''))
+          }
           continue
         }
         const scriptLabel = criticalPatternOf(content)
@@ -569,7 +575,12 @@ export function registryProvenance(server, doc = null, hookScripts = {}, hookScr
       versionManifest: manifest ? { status: 'present', value: manifest } : { status: 'missing' },
       hookScripts: scripts,
     },
-    complete: !!manifest && scripts.every((script) => script.status === 'present'),
+    // A file the package does not ship is a checked absence, the same way a repository tree with no
+    // manifest in it is: we asked both CDNs and both said it is not there. That is knowledge about
+    // the package, and it is complete. A CDN that never answered is not, and neither is a ref this
+    // step chose not to fetch — those stay incomplete, and they are the ones worth retrying.
+    complete: !!manifest && scripts.every((script) => script.status === 'present'
+      || script.reason === 'hook-script-not-published'),
   })
 }
 

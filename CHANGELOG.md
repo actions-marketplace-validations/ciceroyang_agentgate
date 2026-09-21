@@ -5,6 +5,16 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- A file the published package does not ship is now a finding instead of a gap. `registryProvenance`
+  marked the evidence incomplete whenever a hook script could not be read, so
+  `@yagyeshvyas/vibeguard` — whose manifest declares `"postinstall": "node scripts/postinstall.js"`
+  while the tarball contains no such file — was recorded as `install-hook-script-unavailable`
+  (unknown) with `complete: false`. We had asked both unpkg and jsdelivr and both answered. A
+  checked absence is knowledge, the same way a repository tree with no manifest in it is; the rule
+  now says so, and the finding is what is actually true: `install-hook-script-missing-from-package`
+  (high), with evidence that is complete. A CDN that never answered, or a ref this step chose not
+  to fetch, still leaves the evidence incomplete — those are worth retrying, and this one is not.
+
 - A hook script we could not read now says which of three things happened. `fetchHookScript`
   returned `null` for a file the package does not ship, for a CDN that never answered, and for a
   path this step refused to request — one word, `install-hook-script-unavailable`, for all three.

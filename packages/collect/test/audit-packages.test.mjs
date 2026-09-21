@@ -103,11 +103,15 @@ test("the reason reaches the finding and the provenance, and refs past the cap s
   const coords = { registry: "npm", name: "demo-mcp", version: "1.0.0", status: "read" }
   const r = await auditOne(coords, { http })
   assert.equal(r.status, "audited")
-  const unavailable = r.findings.find((x) => x.rule === "install-hook-script-unavailable")
-  assert.ok(unavailable, "the hook script could not be read, so the finding has to be there")
-  assert.match(unavailable.evidence, /hook-script-not-published/,
-    "without the reason the finding cannot be told apart from a CDN that never answered")
-  assert.equal(r.provenance.complete, false)
+  // Both CDNs said the file is not in the package. That is a defect we established, so it is a
+  // finding about the package rather than an unknown, and the evidence for it is complete.
+  const missingFile = r.findings.find((x) => x.rule === "install-hook-script-missing-from-package")
+  assert.ok(missingFile, "a hook the package does not ship is a finding, not an unknown")
+  assert.equal(missingFile.severity, "high")
+  assert.match(missingFile.evidence, /does not contain/)
+  assert.ok(!r.findings.some((x) => x.rule === "install-hook-script-unavailable"),
+    "we asked and got an answer, so nothing here is unavailable")
+  assert.equal(r.provenance.complete, true)
   // contentProvenance hashes its input into the digest and does not store it, so the digest is
   // where the reason survives: two different reasons are two different attestations.
   const server = syntheticServer(coords)
