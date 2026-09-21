@@ -87,15 +87,33 @@ gh release create v0.2.4 --title "0.2.4" --notes-file /tmp/notes.md   # 可选�
 
 registry 可能先回一句 `Your package is being processed and may take a few minutes to become available.`，大约 30 秒后 dist-tags 才可见——**看到这句就是发布成功，不是错误**。
 
-已跑通：`v0.1.1`（2026-09-17，dist-tags `next: 0.1.1`）、`v0.2.3`（2026-09-18，dist-tags `next: 0.2.3`，SLSA provenance v1，SBOM 挂在 release 上）。`v0.2.1`、`v0.2.2` 只有 GitHub release，没有上 npm。
+已跑通：`v0.1.1`（2026-09-17）、`v0.2.3`（2026-09-18）、**`v0.5.0`（2026-09-21，run 35621901451，SLSA provenance，SBOM 挂在 release 上）**。
+`v0.2.1`、`v0.2.2` 只有 GitHub release，没有上 npm。
+
+**0.5.0 这次的实况：workflow 里那一步「Attach the SBOM to the release when there is one」打的是
+`no GitHub release for v0.5.0; the SBOM is on this workflow run` —— 因为 release 是在 publish
+之后才建的。** 所以顺序上有两种做法，任选其一：(a) 先 push tag 让 CI 发版，再从 workflow 产物里
+把 SBOM 下载下来挂到新建的 release 上（0.5.0 和 0.4.0 都是这么补的）；(b) 先建 release 再推 tag，
+workflow 就会自动挂。**别让它只留一个会过期的 workflow artifact** —— 信里那条「你可以自己核」会核不动。
 
 ## 六、提升到 latest（最近一次：2026-09-20，0.4.0）
 
+**0.5.0 现在停在 `next`，等一次提升**（2026-09-21 发布，CI 用 OIDC 发的，带 SLSA provenance）：
+
 ```sh
-npm dist-tag add @zhiliangtech/agentgate@0.4.0 latest
+npm dist-tag add @zhiliangtech/agentgate@0.5.0 latest
 ```
 
-现状：`{"latest":"0.4.0","next":"0.4.0"}`。验证：把 `npm_config_cache` 指到一个空目录再跑 `npx --yes @zhiliangtech/agentgate@latest version`，打印 `agentgate 0.4.0`；`framework --format json` 返回 58 条。
+现状（2026-09-21 23:58 核对，registry 直连，不读本机缓存）：`{"latest":"0.4.0","next":"0.5.0"}`。
+验证 0.5.0 这一版：把 `npm_config_cache` 指到一个空目录再跑
+`npx --yes @zhiliangtech/agentgate@0.5.0 version`，打印 `agentgate 0.5.0`。
+
+**2026-09-21 补一条实测：registry 的传播比这一页原先写的一分钟慢得多。**
+publish 那一步打印 `+ @zhiliangtech/agentgate@0.5.0` 并说 "being processed" 之后，
+**直连 `dist-tags` 在 1 分钟、3 分钟时都还是旧的，版本 URL 还是 404；到约 5 分钟才变**。
+所以「发布成功」的判据是日志里的 `+ @zhiliangtech/agentgate@x.y.z` 与
+`Provenance statement published to transparency log`，**不是立刻能查到**。
+在等到之前不要重发——重发会撞 "cannot publish over the previously published versions"。
 
 **2026-09-20 这次的三处实况（和上一次不同，值得记）：**
 
