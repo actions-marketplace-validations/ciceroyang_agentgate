@@ -114,7 +114,10 @@ test("an audit that did not happen names why, and never borrows the other reason
     return record.scanExecution.scanner_execution.components.find(function (c) { return c.id === "packageManifest" }).reason
   }
   assert.equal(reasonOf(build({ status: "not-audited", reason: "unsupported-registry" })), "unsupported-registry")
-  assert.equal(reasonOf(build({ status: "metadata-unavailable" })), "package-metadata-unavailable")
+  assert.equal(reasonOf(build({ status: "metadata-unavailable" })), "package-metadata-unavailable",
+    "an audit written before it recorded a reason still gets a word, not silence")
+  assert.equal(reasonOf(build({ status: "metadata-unavailable", reason: "package-not-found" })), "package-not-found")
+  assert.equal(reasonOf(build({ status: "metadata-unavailable", reason: "registry-unreachable" })), "registry-unreachable")
   assert.equal(reasonOf(build({ status: "failed" })), "package-audit-failed")
   // No audit entry at all falls back to what the classification can prove, and says exactly that.
   assert.equal(reasonOf(build(null)), "manifest-found-not-inspected")

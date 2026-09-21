@@ -89,7 +89,10 @@ export function packageReason(classification) {
 export function auditReason(audit) {
   if (!audit) return null
   if (audit.status === "not-audited" && typeof audit.reason === "string" && audit.reason.length > 0) return audit.reason
-  if (audit.status === "metadata-unavailable") return "package-metadata-unavailable"
+  // When the audit knows which of the two happened, say that. "The registry has no such package"
+  // is a fact about the package; "this run could not reach the registry" is a fact about the run.
+  // One word for both leaves the reader unable to tell a wrong coordinate from a failed fetch.
+  if (audit.status === "metadata-unavailable") return audit.reason || "package-metadata-unavailable"
   if (audit.status === "failed") return "package-audit-failed"
   return null
 }

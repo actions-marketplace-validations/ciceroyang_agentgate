@@ -5,6 +5,12 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- The index carries the audit's own reason for a package it could not read, instead of one word for
+  both cases. `auditReason` mapped every `metadata-unavailable` to `package-metadata-unavailable`,
+  so the published coverage summary still merged "the registry has no such package" with "this run
+  could not reach the registry" — the two facts the audit had just started telling apart. An audit
+  written before it recorded a reason still gets the old word rather than silence.
+
 - `agentgate refresh` hands `--audit` to `build-index`. It did not, so every scheduled run rebuilt
   the published index without the package audit and the repository records fell back to "a package
   is declared here" — 6,199 audited packages' worth of evidence, dropped on a four-hourly timer with
