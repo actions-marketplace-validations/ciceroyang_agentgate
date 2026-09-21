@@ -5,6 +5,17 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- A package we could not get metadata for now says which of two different things happened.
+  `fetchNpmDocument` and `fetchPypiDocument` returned `null` for every failure, so a 404
+  ("the registry does not have this package") and a timeout or a 429 ("this run could not reach
+  the registry") arrived at the record as the same `metadata-unavailable` with no reason at all.
+  The first is a fact about the package; the second is a fact about the run. Merging them meant the
+  published file could not be used to tell a wrong coordinate from a failed fetch — the same shape
+  of mistake as `no-package-declared-in-repository` below, in a field with a wider blast radius.
+  The fetch functions keep their existing signatures and now have `…Outcome` twins that carry a
+  reason (`package-not-found`, `registry-unreachable`, `registry-http-<status>`,
+  `metadata-not-json`, `invalid-package-name`), and the audit writes it down.
+
 - The repository record no longer claims something it never checked. Its `packageManifest`
   component is `skipped` with reason `package-not-inspected` (was
   `no-package-declared-in-repository`). The old string read as a finding about the repository —

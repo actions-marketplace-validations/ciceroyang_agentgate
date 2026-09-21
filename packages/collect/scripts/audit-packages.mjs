@@ -18,8 +18,8 @@
  *     --out data/package-audit.json --rate 2
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
-import { auditPackage, auditPypiPackage, fetchNpmDocument, fetchPypiDocument, fetchHookScript,
-  hookScriptRefs, registryProvenance } from "../mcp-audit.mjs"
+import { auditPackage, auditPypiPackage, fetchNpmDocumentOutcome, fetchPypiDocumentOutcome,
+  fetchHookScript, hookScriptRefs, registryProvenance } from "../mcp-audit.mjs"
 import { contentProvenance } from "../provenance.mjs"
 
 /** Registries this step can audit today. Anything else is named, never quietly skipped. */
@@ -41,12 +41,19 @@ export function auditability(coords) {
   return "auditable"
 }
 
-async function auditOne(coords, httpOpts) {
+/**
+ * A package we could not get metadata for is a coverage gap, and the gap has to say
+ * what it is: "the registry says this package does not exist" is a claim about the
+ * package, while "the registry did not answer" is a claim about this run. Recording
+ * only `metadata-unavailable` makes the two indistinguishable, so the published file
+ * could not be used to tell a wrong coordinate from a failed fetch.
+ */
+export async function auditOne(coords, httpOpts = {}) {
   const server = syntheticServer(coords)
   const declared = { version: coords.version }
   if (coords.registry === "npm") {
-    const doc = await fetchNpmDocument(coords.name, httpOpts.http)
-    if (!doc) return { status: "metadata-unavailable", findings: [] }
+    const { doc, reason } = await fetchNpmDocumentOutcome(coords.name, httpOpts.http)
+    if (!doc) return { status: "metadata-unavailable", reason, findings: [] }
     const refs = hookScriptRefs(pickVersionManifest(doc, coords)?.scripts)
     const hookScripts = {}
     for (const path of refs.slice(0, 5)) {
@@ -56,8 +63,9 @@ async function auditOne(coords, httpOpts) {
     return { status: "audited", findings: auditPackage(server, doc, declared, hookScripts),
       provenance: registryProvenance(server, doc, hookScripts) }
   }
-  const doc = await fetchPypiDocument(coords.name, httpOpts.http)
-  if (!doc) return { status: "metadata-unavailable", findings: [] }
+  const pypi = await fetchPypiDocumentOutcome(coords.name, httpOpts.http)
+  if (!pypi.doc) return { status: "metadata-unavailable", reason: pypi.reason, findings: [] }
+  const doc = pypi.doc
   return { status: "audited", findings: auditPypiPackage(server, doc, declared),
     provenance: contentProvenance({ package: { registry: "pypi", name: coords.name, version: coords.version },
       scope: "pypiDocument/v1: the published PyPI document for the declared package",

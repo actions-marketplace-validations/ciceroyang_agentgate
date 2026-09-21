@@ -417,15 +417,34 @@ export async function fetchHookScript(name, version, path, http = defaultHttp) {
   return null
 }
 
+/**
+ * Why the registry gave us nothing. One vocabulary, shared by both registries.
+ *
+ * "the package is not on the registry" and "the registry did not answer us" are
+ * different facts: the first is about the package, the second is about this run.
+ * Collapsing them makes an unmeasured package indistinguishable from a wrong
+ * coordinate, which is the failure this project exists to catch.
+ */
+export function fetchFailureReason(status) {
+  if (status === 0) return 'registry-unreachable'
+  if (status === 404) return 'package-not-found'
+  return 'registry-http-' + status
+}
+
+/** Fetch one PyPI JSON document together with the reason when there is none. Read-only. */
+export async function fetchPypiDocumentOutcome(name, http = defaultHttp) {
+  const res = await http('https://pypi.org/pypi/' + name + '/json')
+  if (res.status !== 200) return { doc: null, reason: fetchFailureReason(res.status) }
+  try {
+    return { doc: JSON.parse(res.text), reason: null }
+  } catch {
+    return { doc: null, reason: 'metadata-not-json' }
+  }
+}
+
 /** Fetch one PyPI JSON document; null on any failure. Read-only. */
 export async function fetchPypiDocument(name, http = defaultHttp) {
-  const res = await http('https://pypi.org/pypi/' + name + '/json')
-  if (res.status !== 200) return null
-  try {
-    return JSON.parse(res.text)
-  } catch {
-    return null
-  }
+  return (await fetchPypiDocumentOutcome(name, http)).doc
 }
 
 /**
@@ -475,15 +494,21 @@ export function auditPypiPackage(server, doc, declared = {}) {
   return findings
 }
 
-export async function fetchNpmDocument(name, http = defaultHttp) {
-  if (!isNpmPackageName(name)) return null
+/** Fetch one npm document together with the reason when there is none. Read-only. */
+export async function fetchNpmDocumentOutcome(name, http = defaultHttp) {
+  if (!isNpmPackageName(name)) return { doc: null, reason: 'invalid-package-name' }
   const res = await http(npmUrl(name))
-  if (res.status !== 200) return null
+  if (res.status !== 200) return { doc: null, reason: fetchFailureReason(res.status) }
   try {
-    return JSON.parse(res.text)
+    return { doc: JSON.parse(res.text), reason: null }
   } catch {
-    return null
+    return { doc: null, reason: 'metadata-not-json' }
   }
+}
+
+/** Fetch one npm document; null on any failure. Read-only. */
+export async function fetchNpmDocument(name, http = defaultHttp) {
+  return (await fetchNpmDocumentOutcome(name, http)).doc
 }
 
 /** Provenance covers the same metadata and direct script texts used by this scan. */
