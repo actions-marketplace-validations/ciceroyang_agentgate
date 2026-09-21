@@ -68,7 +68,7 @@ npx @zhiliangtech/agentgate check --root .
 npx @zhiliangtech/agentgate serve
 ```
 
-`npx` follows the `latest` dist-tag. Pin a version (`@zhiliangtech/agentgate@0.4.0`) if you need
+`npx` follows the `latest` dist-tag. Pin a version (`@zhiliangtech/agentgate@0.5.0`) if you need
 an exact one.
 
 With no policy file, `check` uses a built-in default that refuses nothing extra, and `serve`

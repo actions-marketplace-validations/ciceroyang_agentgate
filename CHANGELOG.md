@@ -5,6 +5,8 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-21
+
 - A file the published package does not ship is now a finding instead of a gap. `registryProvenance`
   marked the evidence incomplete whenever a hook script could not be read, so
   `@yagyeshvyas/vibeguard` — whose manifest declares `"postinstall": "node scripts/postinstall.js"`

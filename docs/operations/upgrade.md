@@ -10,6 +10,32 @@ see that it worked. “Nothing to do” is an answer, and it is written out rath
 The rules behind all of this — what a version identifier promises, what may change inside one, how
 a breaking change is announced — are in [compatibility.md](../spec/compatibility.md).
 
+## 0.5.0
+
+- **Affected:** anyone reading `execution.byReason` out of `/v1/index/summary`, anyone who runs
+  `refresh` on a schedule, and anyone whose code branches on a finding rule name from the package
+  audit.
+- **What changed:** the package audit now actually reaches the published index. `refresh` never
+  passed `--audit` to `build-index`, so every scheduled rebuild dropped the audit and left ~6,200
+  audited packages described as "a package is declared here" — no error, no log line, the artifact on
+  disk the whole time. With it joined, `packageManifest` appears on repository records and the
+  coverage summary names what could not be measured instead of folding it into one word.
+  Three vocabularies became finer: a package whose metadata is absent now says whether the registry
+  has no such package or this run could not reach it; a hook script now says whether the package does
+  not ship it, a CDN did not answer, or this step did not ask; and a file the package does not ship
+  became its own finding, `install-hook-script-missing-from-package`, rather than an unknown.
+  The four MCP tools declare `outputSchema`, and each description names when to use it and which
+  sibling to use instead.
+- **Do:** nothing is required to upgrade, but two things are worth a look if you consume the data.
+  If you were treating every `metadata-unavailable` as one state, read the `reason` beside it —
+  `package-not-found` and `package-name-not-requested` are different facts. If you match on
+  `install-hook-script-unavailable`, note that the "package does not ship the file" case moved out
+  of it into `install-hook-script-missing-from-package`.
+- **Check:** `curl -s http://127.0.0.1:8080/v1/index/summary | jq -r '.execution.byReason | keys[]'`
+  lists `package-not-found` on an index built by this version; a 0.4.0 index has no such key.
+  `curl -s http://127.0.0.1:8080/v1/servers/github.com/mksglu/context-mode | jq '.record.evidence.packageManifest.findings[].rule'`
+  prints the install-hook findings for a package that has them.
+
 ## 0.4.0
 
 - **Affected:** anyone who reads a coverage percentage out of `/v1/index/summary` or the evidence

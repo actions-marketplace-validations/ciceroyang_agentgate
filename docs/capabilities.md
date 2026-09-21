@@ -12,7 +12,7 @@ LangGraph 集成）当成已有能力写进了分析。那些名字在整个仓�
 | 能力 | 代码在哪 | 跑这条命令 | **这条不证明什么** |
 | --- | --- | --- | --- |
 | 有哪些命令 | `bin/agentgate.mjs` | `node bin/agentgate.mjs` | 别用 `--help`：`refresh --help` 会真的开始跑活 |
-| 版本 | `package.json` | `node bin/agentgate.mjs version` → `agentgate 0.4.0` | 本机版本不等于你 `npx` 装到的最新版 |
+| 版本 | `package.json` | `node bin/agentgate.mjs version` → `agentgate 0.5.0` | 本机版本不等于你 `npx` 装到的最新版 |
 | 索引有两个来源，分开计数 | `packages/collect/scripts/build-index.mjs` | `curl -s https://xn--5kvo87g.com/v1/index/summary` 看 `sources.registry` / `sources.repositories` | 数字只是"我们索引里有多少条"，不是"生态里有多少" |
 | 每条记录带扫描执行块 | `packages/collect/src/execution.mjs` | 同上，看 `execution.byReason` | 它说"哪些检查跑了"，不说"这个 server 安全" |
 | 仓库记录永远不会是 clean，理由写在组件里 | `packages/collect/src/repository-records.mjs` | `node --test packages/collect/test/repository-records.test.mjs` | 它不读仓库源码 —— 组件里写明 `source-not-read` |
