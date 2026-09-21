@@ -25,6 +25,8 @@ LangGraph 集成）当成已有能力写进了分析。那些名字在整个仓�
 | 变更检测：版本没变但证据变了 | `packages/history/src/diff.mjs` | `node --test packages/history/test/*.test.mjs` | 要有两次可比快照；没有时它明说没有 |
 | 只读 MCP server | `packages/mcp` | `node --test packages/mcp/test/*.test.mjs` | 只读 |
 | 别人的要求清单 → 我们的证据映射 | `packages/policy/src/framework.mjs` | `node bin/agentgate.mjs framework --id eu-aia` | 它说明**我们能给什么证据**，不是合规结论；未覆盖的条目会明写「未覆盖」 |
+| 一个包装了没有、装的时候会在安装期跑什么 | `packages/collect/scripts/audit-packages.mjs` | `curl -s https://xn--5kvo87g.com/v1/servers/github.com/mksglu/context-mode` → `packageManifest` 里有 `install-time-execution` 与 `install-hook-script-critical` | **只读脚本文本，从不运行**。`critical` 描述的是**能力**（安装期执行、能触网、能起进程），不是恶意：逐条读过的 critical 里，多数是下载二进制、装 Python 依赖、注册宿主机钩子这类**包的用途本身要求**的行为 |
+| 测不了的，写明是**哪一种**测不了 | `packages/collect/mcp-audit.mjs` | `curl -s https://xn--5kvo87g.com/v1/index/summary` → `execution.byReason` 里 `package-not-found` 与 `package-name-not-requested` 是分开的两条 | 「注册表里没有这个包」是关于**包**的事实，「这次没够着注册表」是关于**这次运行**的事实。它们不合并，但也不代表我们已经测过别的 |
 
 ## 二、没有的（外面提到过，但我们没做）
 

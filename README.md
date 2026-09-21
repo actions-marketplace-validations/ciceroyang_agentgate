@@ -68,7 +68,7 @@ npx @zhiliangtech/agentgate check --root .
 npx @zhiliangtech/agentgate serve
 ```
 
-`npx` follows the `latest` dist-tag. Pin a version (`@zhiliangtech/agentgate@0.2.0`) if you need
+`npx` follows the `latest` dist-tag. Pin a version (`@zhiliangtech/agentgate@0.4.0`) if you need
 an exact one.
 
 With no policy file, `check` uses a built-in default that refuses nothing extra, and `serve`
@@ -316,7 +316,7 @@ node packages/collect/bin/agent-add.mjs --index data/index.json <server-name>
 
 ## Writing
 
-- [The audit finished on 264 of 2,057 MCP servers](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.md) ([中文](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.zh-CN.md)) — how many of the collected servers were actually measured, and what stopped the rest.
+- [We indexed 11,605 MCP records and could audit 258 of them](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.md) ([中文](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.zh-CN.md)) — how many of the collected servers were actually measured, and what stopped the rest. The numbers are the 2026-09-19 build the piece was written against; the index is rebuilt several times a day and moves.
 - [The loudest rule was wrong nine times out of nine](docs/articles/2026-09-the-loudest-rule-was-wrong.md)
 - [Clean is a claim about work that was done](docs/articles/2026-09-clean-is-a-claim.md)
 
