@@ -92,12 +92,16 @@ if (isMain) {
   const out = String(argOf("out", "data/package-audit.json"))
   const rate = Number(argOf("rate", 2))
   const limit = Number(argOf("limit", 0))
+  // A run that cannot retry its own failures is stuck with them. Transient ones (a timeout, a 429)
+  // need a second pass; the entries the registry has never heard of do not, and re-fetching those
+  // only spends someone else's bandwidth to learn the same thing.
+  const redo = argOf("redo", null)
   const coordinates = JSON.parse(readFileSync(coordinatesPath, "utf8")).results || {}
   const previous = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")).results || {}) : {}
   const results = { ...previous }
   const all = Object.keys(coordinates).filter((k) => auditability(coordinates[k]) === "auditable")
   const chosen = limit > 0 ? all.slice(0, limit) : all
-  const todo = chosen.filter((k) => !results[k])
+  const todo = chosen.filter((k) => !results[k] || (redo && results[k] && results[k].status === redo))
   const skipped = {}
   // The ones this step will not audit are written down too, with the reason. Leaving them out would
   // make "we did not audit it" indistinguishable from "we never saw it", and the record built from
@@ -112,7 +116,8 @@ if (isMain) {
       url: c.url, digest: c.digest, status: "not-audited", reason: why, findings: [] }
   }
   console.log(JSON.stringify({ manifests: Object.keys(coordinates).length, auditable: all.length,
-    alreadyAudited: chosen.length - todo.length, toAudit: todo.length, notAuditable: skipped, rate }))
+    alreadyAudited: chosen.length - todo.length, toAudit: todo.length, redo: redo || null,
+    notAuditable: skipped, rate }))
 
   const wait = (ms) => new Promise((r) => setTimeout(r, ms))
   let tokens = 0
