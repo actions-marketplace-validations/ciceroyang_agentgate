@@ -19,11 +19,14 @@
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { auditPackage, auditPypiPackage, fetchNpmDocumentOutcome, fetchPypiDocumentOutcome,
-  fetchHookScript, hookScriptRefs, registryProvenance } from "../mcp-audit.mjs"
+  fetchHookScriptOutcome, hookScriptRefs, registryProvenance } from "../mcp-audit.mjs"
 import { contentProvenance } from "../provenance.mjs"
 
 /** Registries this step can audit today. Anything else is named, never quietly skipped. */
 export const AUDITABLE = ["npm", "pypi"]
+
+/** How many install-hook scripts per package this step reads. What it skips, it names. */
+export const HOOK_SCRIPT_LIMIT = 5
 
 /**
  * The server object the audit functions expect, built out of coordinates and nothing else.
@@ -56,12 +59,18 @@ export async function auditOne(coords, httpOpts = {}) {
     if (!doc) return { status: "metadata-unavailable", reason, findings: [] }
     const refs = hookScriptRefs(pickVersionManifest(doc, coords)?.scripts)
     const hookScripts = {}
-    for (const path of refs.slice(0, 5)) {
-      const text = await fetchHookScript(coords.name, coords.version, path, httpOpts.http)
-      if (typeof text === "string") hookScripts[path] = text
+    const hookScriptReasons = {}
+    for (let i = 0; i < refs.length; i += 1) {
+      const path = refs[i]
+      // Beyond the cap we did not look, and the record has to say that rather than borrowing the
+      // word for a file the package does not ship. Three different things, three reasons.
+      if (i >= HOOK_SCRIPT_LIMIT) { hookScriptReasons[path] = "hook-script-not-fetched"; continue }
+      const outcome = await fetchHookScriptOutcome(coords.name, coords.version, path, httpOpts.http)
+      if (typeof outcome.text === "string") hookScripts[path] = outcome.text
+      else hookScriptReasons[path] = outcome.reason
     }
-    return { status: "audited", findings: auditPackage(server, doc, declared, hookScripts),
-      provenance: registryProvenance(server, doc, hookScripts) }
+    return { status: "audited", findings: auditPackage(server, doc, declared, hookScripts, hookScriptReasons),
+      provenance: registryProvenance(server, doc, hookScripts, hookScriptReasons) }
   }
   const pypi = await fetchPypiDocumentOutcome(coords.name, httpOpts.http)
   if (!pypi.doc) return { status: "metadata-unavailable", reason: pypi.reason, findings: [] }

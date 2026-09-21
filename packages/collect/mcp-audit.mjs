@@ -291,7 +291,7 @@ export function hookScriptRefs(scripts) {
  * @param {{version?: string}} [declared] - the version the registry declares.
  * @returns {Array<object>} findings.
  */
-export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
+export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}, hookScriptReasons = {}) {
   const findings = []
   const add = (rule, severity, evidence) => findings.push({ rule, severity, evidence })
   const packages = Array.isArray(server?.packages) ? server.packages : []
@@ -334,7 +334,11 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
       for (const ref of hookScriptRefs(scripts)) {
         const content = normalizeHookScriptPath(ref) !== null ? hookScripts[ref] : undefined
         if (typeof content !== 'string') {
-          add('install-hook-script-unavailable', 'unknown', 'hook runs ' + ref + '; content could not be fetched')
+          // The reason is part of the finding: "not published" and "the CDN did not answer" are
+          // different claims, and only the first one is about the package.
+          const why = hookScriptReasons[ref]
+          add('install-hook-script-unavailable', 'unknown',
+            'hook runs ' + ref + '; content could not be fetched' + (typeof why === 'string' ? ' (' + why + ')' : ''))
           continue
         }
         const scriptLabel = criticalPatternOf(content)
@@ -398,23 +402,48 @@ function npmUrl(name) {
   return 'https://registry.npmjs.org/' + name.replace('/', '%2f')
 }
 
-/** Fetch one npm document; returns null on any failure (the caller records unknown). */
-/** Fetch a file from a published package (unpkg, then jsdelivr). Read-only. */
-export async function fetchHookScript(name, version, path, http = defaultHttp) {
+/**
+ * Why a published file could not be read, in the same three-way shape as the registry fetch.
+ *
+ * A 404 from every CDN is knowledge about the package: it does not ship that file. A CDN that
+ * never answered is knowledge about this run, and saying "the content could not be fetched"
+ * for both leaves the reader unable to tell a package that is missing a file from a fetch that
+ * failed — and leaves a retryable failure looking like a permanent fact.
+ */
+export function hookScriptFailureReason(statuses, redirected) {
+  if (statuses.length > 0 && statuses.every(function (s) { return s === 404 })) return 'hook-script-not-published'
+  if (statuses.length === 0 && redirected) return 'hook-script-redirected'
+  if (statuses.indexOf(0) !== -1) return 'registry-unreachable'
+  return 'registry-http-' + statuses[0]
+}
+
+/** Fetch a file from a published package (unpkg, then jsdelivr) together with why it is absent. */
+export async function fetchHookScriptOutcome(name, version, path, http = defaultHttp) {
   const clean = normalizeHookScriptPath(path)
-  if (!isNpmPackageName(name) || !isExactNpmVersion(version) || clean === null) return null
+  // Refused before any request, so this is not evidence that the registry lacks anything.
+  if (!isNpmPackageName(name) || !isExactNpmVersion(version) || clean === null) {
+    return { text: null, reason: 'hook-script-path-not-requested' }
+  }
   const candidates = [
     'https://unpkg.com/' + name + '@' + version + '/' + clean,
     'https://cdn.jsdelivr.net/npm/' + name + '@' + version + '/' + clean,
   ]
+  const statuses = []
+  let redirected = false
   for (const url of candidates) {
     const res = await http(url)
     // defaultHttp exposes the final URL. Do not bind a redirected package,
     // version, path or origin to the package/version that was requested.
-    if (res.url !== undefined && res.url !== url) continue
-    if (res.status === 200 && typeof res.text === 'string') return res.text
+    if (res.url !== undefined && res.url !== url) { redirected = true; continue }
+    if (res.status === 200 && typeof res.text === 'string') return { text: res.text, reason: null }
+    statuses.push(res.status)
   }
-  return null
+  return { text: null, reason: hookScriptFailureReason(statuses, redirected) }
+}
+
+/** Fetch a file from a published package; null on any failure. Read-only. */
+export async function fetchHookScript(name, version, path, http = defaultHttp) {
+  return (await fetchHookScriptOutcome(name, version, path, http)).text
 }
 
 /**
@@ -516,7 +545,7 @@ export async function fetchNpmDocument(name, http = defaultHttp) {
 }
 
 /** Provenance covers the same metadata and direct script texts used by this scan. */
-export function registryProvenance(server, doc = null, hookScripts = {}) {
+export function registryProvenance(server, doc = null, hookScripts = {}, hookScriptReasons = {}) {
   const pkg = Array.isArray(server?.packages) ? server.packages[0] : null
   const identity = { registry: pkg?.registryType ?? null, name: pkg?.identifier ?? null, version: pkg?.version ?? null }
   if (identity.registry !== 'npm') {
@@ -530,7 +559,7 @@ export function registryProvenance(server, doc = null, hookScripts = {}) {
   const manifest = exactNpmManifest(doc, identity.version, identity.name)
   const scripts = hookScriptRefs(manifest?.scripts).map((path) => normalizeHookScriptPath(path) !== null && typeof hookScripts[path] === 'string'
     ? { path, status: 'present', content: hookScripts[path] }
-    : { path, status: 'missing' })
+    : { path, status: 'missing', reason: hookScriptReasons[path] ?? null })
   return contentProvenance({
     package: identity,
     scope: 'registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents',
@@ -562,9 +591,14 @@ export async function auditRegistryServer(server, { http = defaultHttp } = {}) {
     const doc = await fetchNpmDocument(row.package, http)
     const manifest = exactNpmManifest(doc, row.version, row.package)
     const hookScripts = {}
-    for (const ref of hookScriptRefs(manifest?.scripts)) hookScripts[ref] = await fetchHookScript(row.package, row.version, ref, http)
-    row.findings = auditPackage(server, doc, { version: row.version }, hookScripts)
-    row.provenance = registryProvenance(server, doc, hookScripts)
+    const hookScriptReasons = {}
+    for (const ref of hookScriptRefs(manifest?.scripts)) {
+      const outcome = await fetchHookScriptOutcome(row.package, row.version, ref, http)
+      if (typeof outcome.text === 'string') hookScripts[ref] = outcome.text
+      else hookScriptReasons[ref] = outcome.reason
+    }
+    row.findings = auditPackage(server, doc, { version: row.version }, hookScripts, hookScriptReasons)
+    row.provenance = registryProvenance(server, doc, hookScripts, hookScriptReasons)
     row.audited = true
     row.auditKind = 'npm'
   } else if (row.registryType === 'pypi' && row.package) {

@@ -1,7 +1,8 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 import { syntheticServer, auditability, auditOne } from "../scripts/audit-packages.mjs"
-import { fetchFailureReason, fetchNpmDocumentOutcome, fetchPypiDocumentOutcome } from "../mcp-audit.mjs"
+import { fetchFailureReason, fetchNpmDocumentOutcome, fetchPypiDocumentOutcome,
+  hookScriptFailureReason, fetchHookScriptOutcome, registryProvenance } from "../mcp-audit.mjs"
 
 test("the server object carries the coordinates and nothing else", function () {
   const server = syntheticServer({ registry: "npm", name: "demo-mcp", version: "1.2.3" })
@@ -62,4 +63,58 @@ test("a package whose metadata could not be fetched is written down with its rea
   // The two are different records. If they were the same string this test would pass
   // while the published file still could not tell them apart.
   assert.notEqual(missing.reason, offline.reason)
+})
+test("a file the package does not ship is not the same as a fetch that failed", function () {
+  // Three things can leave us without a hook script's text, and only the first is about the package.
+  assert.equal(hookScriptFailureReason([404, 404], false), "hook-script-not-published")
+  assert.equal(hookScriptFailureReason([0, 0], false), "registry-unreachable")
+  assert.equal(hookScriptFailureReason([429, 429], false), "registry-http-429")
+  assert.equal(hookScriptFailureReason([], true), "hook-script-redirected")
+  // One CDN says 404 and the other never answered: we cannot conclude the file is absent.
+  assert.equal(hookScriptFailureReason([404, 0], false), "registry-unreachable")
+  assert.notEqual(hookScriptFailureReason([404, 404], false), hookScriptFailureReason([0, 0], false))
+})
+
+test("the hook script fetch carries its reason", async function () {
+  const both = (status, text) => async () => ({ status, text })
+  assert.deepEqual(await fetchHookScriptOutcome("demo-mcp", "1.0.0", "install.js", both(404, "")),
+    { text: null, reason: "hook-script-not-published" })
+  assert.deepEqual(await fetchHookScriptOutcome("demo-mcp", "1.0.0", "install.js", both(0, "")),
+    { text: null, reason: "registry-unreachable" })
+  // Never sent, so it is not evidence about the registry.
+  assert.deepEqual(await fetchHookScriptOutcome("bad name", "1.0.0", "install.js", both(404, "")),
+    { text: null, reason: "hook-script-path-not-requested" })
+  assert.deepEqual(await fetchHookScriptOutcome("demo-mcp", "1.0.0", "../escape.js", both(404, "")),
+    { text: null, reason: "hook-script-path-not-requested" })
+  const ok = await fetchHookScriptOutcome("demo-mcp", "1.0.0", "install.js", both(200, "console.log(1)"))
+  assert.equal(ok.reason, null)
+  assert.equal(ok.text, "console.log(1)")
+})
+
+test("the reason reaches the finding and the provenance, and refs past the cap say so", async function () {
+  const doc = {
+    "dist-tags": { latest: "1.0.0" },
+    versions: { "1.0.0": { name: "demo-mcp", version: "1.0.0", scripts: { postinstall: "node a.js && node b.js" } } },
+  }
+  const routes = {
+    "https://registry.npmjs.org/demo-mcp": { status: 200, text: JSON.stringify(doc) },
+  }
+  const http = async (url) => routes[url] || { status: 404, text: "" }
+  const coords = { registry: "npm", name: "demo-mcp", version: "1.0.0", status: "read" }
+  const r = await auditOne(coords, { http })
+  assert.equal(r.status, "audited")
+  const unavailable = r.findings.find((x) => x.rule === "install-hook-script-unavailable")
+  assert.ok(unavailable, "the hook script could not be read, so the finding has to be there")
+  assert.match(unavailable.evidence, /hook-script-not-published/,
+    "without the reason the finding cannot be told apart from a CDN that never answered")
+  assert.equal(r.provenance.complete, false)
+  // contentProvenance hashes its input into the digest and does not store it, so the digest is
+  // where the reason survives: two different reasons are two different attestations.
+  const server = syntheticServer(coords)
+  const published = registryProvenance(server, doc, {}, { "a.js": "hook-script-not-published" })
+  const unreachable = registryProvenance(server, doc, {}, { "a.js": "registry-unreachable" })
+  const unstated = registryProvenance(server, doc, {}, {})
+  assert.notEqual(published.content.digest, unreachable.content.digest,
+    "a package that does not ship the file and a CDN that did not answer must not attest the same")
+  assert.notEqual(published.content.digest, unstated.content.digest)
 })

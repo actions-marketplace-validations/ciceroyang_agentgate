@@ -5,6 +5,14 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- A hook script we could not read now says which of three things happened. `fetchHookScript`
+  returned `null` for a file the package does not ship, for a CDN that never answered, and for a
+  path this step refused to request — one word, `install-hook-script-unavailable`, for all three.
+  The first is knowledge about the package; the second is knowledge about this run and is worth
+  retrying; the third is this build's own choice, and refs past the five-per-package cap now say
+  `hook-script-not-fetched` rather than borrowing the word for a missing file. The reason travels
+  into the finding's evidence and into the provenance digest, so a recorded review covers it.
+
 - The index carries the audit's own reason for a package it could not read, instead of one word for
   both cases. `auditReason` mapped every `metadata-unavailable` to `package-metadata-unavailable`,
   so the published coverage summary still merged "the registry has no such package" with "this run
