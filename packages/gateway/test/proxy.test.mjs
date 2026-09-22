@@ -88,6 +88,7 @@ test("a batch with only allowed calls is forwarded and answered", async function
   const res = await runProxy(POLICY, [[{ jsonrpc: "2.0", id: 12, method: "tools/call", params: { name: "read_file" } }]])
   assert.equal(res.reached.length, 1, "an allowed batch should reach the server")
   assert.match(res.out, /ran read_file/)
+  assert.equal(res.log.filter(e => e.method === "tools/call" && e.decision === "allowed" && e.tool === "read_file").length, 1)
 })
 
 test("a forbidden tool is removed from a batch tools/list response", async function () {

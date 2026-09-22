@@ -10,6 +10,40 @@ see that it worked. “Nothing to do” is an answer, and it is written out rath
 The rules behind all of this — what a version identifier promises, what may change inside one, how
 a breaking change is announced — are in [compatibility.md](../spec/compatibility.md).
 
+## Unreleased: trust hardening
+
+These changes are local and are not included in the published version merely because the source
+still reports the same package version. Assign a new release version under the compatibility
+policy before publishing; do not overwrite an existing registry release.
+
+- **Affected:** scripts consuming discovery text, required-evidence policy users, watch archive
+  consumers, collector operators, evidence-pack reviewers and subpath site deployments.
+- **Do:** use `discover --format inventory` for a credential-free inventory JSON handoff, or accept
+  registry-qualified text such as `npm:some-tool@1.2.3` and `pypi:some-tool@1.2.3`; legacy inventory
+  text remains readable. Retain `discover --format json` separately for source and conflict review:
+  the inventory input intentionally contains only tool identity, not config paths or diagnostics.
+- **Do:** pass an explicit, non-sample `--index` (Action input `index`) when the policy requires
+  indexed evidence. The local npm package name and version must match the record. Absence is
+  incomplete; an unreadable, malformed or sample index is an input error, not a fallback.
+- **Do:** preserve existing watch archives and make a reviewed capture with the upgraded binary.
+  An old projection has no identity/finding fingerprint, so this transition may show an
+  added/removed baseline rather than a real package change. Subsequent captures compare the new
+  projection. Do not rewrite old hashes or interpret this migration as a new vulnerability.
+- **Do:** after approving collection, refresh repository metadata/classification, rerun
+  `fetch-manifests.mjs` and `audit-packages.mjs`, then rebuild the index with that audit. Legacy
+  cache entries without identity and observation metadata are not reused by these scripts.
+  `agentgate refresh` alone does not run the manifest/audit stages; it can still consume an audit
+  already on disk. Rebuilding an index is not a new observation and does not migrate old evidence.
+- **Do:** treat an empty archive or an empty/non-decision call log as unmeasured. Pack verification
+  proves internal file/hash consistency only, not authentic observation time, log completeness or
+  protection against rebuilding the entire pack. Keep an independently trusted copy when needed.
+- **Do:** use `build-site.mjs --base-path /agentgate` for the project-site deployment. Supply
+  `--diff-index-sha256` only when the diff genuinely belongs to those exact index bytes; an
+  unbound diff is omitted. Refresh failure now stops Pages deployment instead of publishing a sample.
+- **Check:** run `npm test`, the acceptance scripts and `scripts/verify.sh`; inspect sample labels,
+  observation times, required-evidence failures and the migration capture before customer use.
+  Local success does not validate the deployed service, a customer's environment or customer adoption.
+
 ## 0.5.0
 
 - **Affected:** anyone reading `execution.byReason` out of `/v1/index/summary`, anyone who runs
@@ -152,4 +186,3 @@ look like one.*
 - **What changed:** the bootstrap release, published by hand, with no provenance attestation.
 - **Do:** move to a supported version. The window is defined in
   [compatibility.md](../spec/compatibility.md); `0.1.x` is deprecated on npm.
-

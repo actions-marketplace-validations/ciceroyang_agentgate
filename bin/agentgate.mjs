@@ -16,7 +16,7 @@ import { installShutdown } from "../packages/service/src/observability.mjs"
 import { DEFAULT_PORT, DEFAULT_HOST } from "../packages/service/src/defaults.mjs"
 import { runScan } from "../packages/guard/src/engine.mjs"
 import { makeReader } from "../packages/guard/src/fs-scan.mjs"
-import { discover, renderText } from "../packages/guard/src/discover.mjs"
+import { discover, renderText, renderInventory } from "../packages/guard/src/discover.mjs"
 import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
 import { loadPolicy, defaultPolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
@@ -146,20 +146,17 @@ function refresh(flags) {
   console.log("[refresh] done: " + join(dataDir, "index.json"))
 }
 
-function readPackageName(root) {
-  const p = join(root, "package.json")
-  if (!existsSync(p)) return null
-  try { return JSON.parse(readFileSync(p, "utf8")).name || null } catch (error) { return null }
-}
-
 function recordsFor(root, indexPath) {
-  if (!indexPath || !existsSync(indexPath)) return null
-  let index
-  try { index = JSON.parse(readFileSync(indexPath, "utf8")) } catch (error) { return null }
-  const name = readPackageName(root)
-  if (!name) return []
-  return (index.records || []).filter(function (r) {
-    return (r.packages || []).some(function (p) { return p.name === name })
+  if (!indexPath) return null
+  if (indexPath === true) throw new Error("--index requires a file path")
+  const index = JSON.parse(readFileSync(indexPath, "utf8"))
+  if (!index || !Array.isArray(index.records)) throw new Error("index.records must be an array")
+  if (index.snapshot === true || index.sample === true) throw new Error("a historical sample cannot support a policy decision")
+  let pkg
+  try { pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) } catch { return [] }
+  if (!pkg.name || !pkg.version) return []
+  return index.records.filter(function (r) {
+    return Array.isArray(r?.packages) && r.packages.some(function (p) { return p.registry === "npm" && p.name === pkg.name && p.version === pkg.version })
   })
 }
 
@@ -192,7 +189,9 @@ function runCheck(root, flags) {
     checks = ALL_CHECKS.filter(function (c) { return wanted.indexOf(c.id) !== -1 })
   }
   const scan = runScan({ root: root, checks: checks, readText: makeReader(), exclude: exclude })
-  const records = recordsFor(root, flags.index || process.env.AGENTGATE_INDEX)
+  let records
+  try { records = recordsFor(root, flags.index || process.env.AGENTGATE_INDEX) }
+  catch (error) { console.error("index: " + error.message); process.exit(3) }
   const result = evaluate({ policy: policy, scan: scan, records: records })
   const lines = []
   lines.push("policy " + result.policyVersion + "   root " + root)
@@ -431,7 +430,7 @@ function discoverCommand(flags) {
   const home = flags.home ? resolve(String(flags.home)) : homedir()
   const roots = String(flags.roots || ".").split(",").map(function (s) { return resolve(s.trim()) }).filter(Boolean)
   const format = flags.format || "text"
-  if (["text", "json"].indexOf(format) === -1) { console.error("discover: --format only supports text or json"); process.exit(3) }
+  if (["text", "json", "inventory"].indexOf(format) === -1) { console.error("discover: --format only supports text, json or inventory"); process.exit(3) }
   const report = discover({
     home: home,
     roots: roots,
@@ -439,7 +438,8 @@ function discoverCommand(flags) {
     exists: existsSync,
     readFile: function (p) { return readFileSync(p, "utf8") },
   })
-  const rendered = format === "json" ? JSON.stringify(report, null, 2) : renderText(report)
+  const rendered = format === "json" ? JSON.stringify(report, null, 2) : format === "inventory" ? renderInventory(report) : renderText(report)
+  if (report.conflicts.length) console.error("discover: 相同别名对应不同身份或版本，已全部保留，请核对：" + report.conflicts.join(", "))
   if (flags.out) {
     if (resolve(String(flags.out)) === resolve(join(home, ".claude.json"))) { console.error("discover: 报告不能覆盖配置文件"); process.exit(3) }
     try {
@@ -509,8 +509,8 @@ function proxy(flags, rest) {
   let policy
   try { policy = loadPolicy(flags.policy || "agentgate.policy.json") } catch (error) { console.error("policy: " + error.message); process.exit(3) }
   const logPath = flags.log || "agentgate-calls.jsonl"
-  process.stderr.write("agentgate proxy: " + rest.join(" ") + "\n")
-  process.stderr.write("agentgate proxy: refusals logged to " + logPath + "\n")
+  process.stderr.write("agentgate proxy: starting server (command and arguments withheld)\n")
+  process.stderr.write("agentgate proxy: decisions logged to " + logPath + "\n")
   createProxy({
     command: rest[0],
     args: rest.slice(1),
@@ -575,8 +575,8 @@ function packCommand(flags) {
   if (flags.calls && flags.calls !== true) {
     try {
       const lines = readFileSync(String(flags.calls), "utf8").split(/\r?\n/).filter(function (line) { return line.trim().length > 0 })
-      for (const line of lines) JSON.parse(line)
-      calls = { provided: true, parsed: true, count: lines.length }
+      const decisions = lines.map(line => JSON.parse(line)).filter(entry => entry && entry.direction === "client" && entry.method === "tools/call" && typeof entry.tool === "string" && entry.tool.length > 0 && ["allowed", "refused"].includes(entry.decision) && Number.isFinite(Date.parse(entry.at)))
+      calls = { provided: true, parsed: true, count: lines.length, decisionCount: decisions.length }
     } catch (error) { calls = { provided: true, parsed: false, count: 0 } }
   }
   let pack
@@ -605,6 +605,8 @@ function packCommand(flags) {
   } else process.exitCode = 0
 }
 
+// Help is side-effect free even for commands that normally collect data or start services.
+if (args.flags.help) args.command = "help"
 if (args.command === "inventory") inventory(args.flags)
 else if (args.command === "pack") packCommand(args.flags)
 else if (args.command === "discover") discoverCommand(args.flags)
@@ -622,7 +624,7 @@ else if (args.command === "version") console.log("agentgate " + VERSION)
 else {
   console.log("agentgate <command>")
   console.log("")
-  console.log("  discover  [--home <dir>] [--roots a,b] [--format text|json] [--out report.txt]   read the MCP configs already on this machine")
+  console.log("  discover  [--home <dir>] [--roots a,b] [--format text|json|inventory] [--out report.txt]   read the MCP configs already on this machine")
   console.log("  inventory --input tools.txt [--index data/index.json] [--framework aicaiq] [--format html|json] [--out report.html]")
   console.log("  framework [--id aicaiq] [--format text|json] [--out file]   who answers which questionnaire item")
   console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")

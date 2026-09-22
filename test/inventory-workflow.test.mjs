@@ -89,6 +89,10 @@ test("local service serves the inventory and exact module allowlist, and has no 
   assert.equal(page.status, 200)
   assert.doesNotMatch(page.body, /__INVENTORY_INDEX__/)
   assert.match(page.body, /example\/tool/)
+  const english = svc.handle("GET", "/en/inventory.html")
+  assert.equal(english.status, 200)
+  assert.match(english.body, /<html lang="en">/)
+  assert.match(english.body, /example\/tool/)
   for (const path of ["/inventory-page.mjs", "/inventory.mjs", "/inventory-report.mjs"]) {
     const asset = svc.handle("GET", path)
     assert.equal(asset.status, 200, path)

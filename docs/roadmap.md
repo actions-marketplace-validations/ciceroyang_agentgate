@@ -2,6 +2,33 @@
 
 *What "an initial working product" means here, so it can be checked rather than felt.*
 
+## Current commercial objective
+
+Earn the first enterprise user, turn demonstrated value into paid use and progressively profitable
+delivery, then build an investment case from customer evidence. MCP competitors are the market
+context, not a substitute for a buyer choosing and using this product.
+
+The current priority is a trustworthy tool-evidence review workflow, not a broader feature list.
+The [trust-hardening handoff](operations/trust-hardening.md) separates local fixes from a deployed
+release and customer validation. Historical milestone acceptance below is engineering evidence,
+not evidence that an enterprise has adopted the product or that the business is profitable.
+
+Advance by observed customer outcomes:
+
+- **Trial:** an external team brings an authorized real tool list, confirms the report's gaps and
+  uses it for a concrete review decision. The initial buyer/problem hypothesis is an AI product or
+  platform team preparing an MCP tool review or security questionnaire; validate it in conversation.
+- **Paid use:** identify the user, budget owner, procurement/security requirements and a deliverable
+  they will purchase. A positive comment or a free report is not a paid commitment.
+- **Repeatable economics:** record delivery effort, collection/hosting cost, support burden and
+  actual payment/renewal. Do not call a contract profitable before accounting for these costs.
+- **Investment readiness:** show repeat usage, repeatable acquisition and paid outcomes with
+  permission to reference them. Funding remains an external decision, not an engineering milestone.
+
+No new prices, service guarantees, customer names or outreach authority are established here.
+Existing pilot offers remain proposals, not validated pricing. Build buyer-specific enterprise
+features only after a real requirement and willingness to adopt are established.
+
 A product is not a pile of working scripts. The line below is drawn at the point where a
 company that has never heard of this can clone it, start it, point it at their own
 repository, get a decision with reasons, and see that decision enforced. Everything past

@@ -78,6 +78,12 @@ not a default.
 
 ## The evaluation rule
 
+For `check` and `audit`, indexed evidence is matched to the local `package.json` npm name and
+exact version, not just its name. A policy requiring measured blocks, scanners, pinned packages
+or server restrictions cannot pass without matching records. Explicit unreadable, malformed or
+historical-sample indexes are input errors (exit 3); no matching evidence is incomplete (exit 2).
+Scanner requirements add to, never replace, validation of the whole execution record.
+
 The result is one of three values and there is no fourth:
 
 - **`incomplete`** if any check failed to run, or any required evidence is unmeasured.
@@ -94,6 +100,7 @@ approved, and no threshold can turn a partial answer into a pass.
 | 0 | clean |
 | 1 | findings |
 | 2 | incomplete |
+| 3 | invalid explicit input |
 
 ## Versioning
 

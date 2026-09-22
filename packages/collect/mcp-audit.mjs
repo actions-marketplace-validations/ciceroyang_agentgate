@@ -331,7 +331,7 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}, h
         add('install-hook-critical', 'critical', 'scripts.' + hook + ' matches ' + label + ': ' + JSON.stringify(value))
         continue
       }
-      for (const ref of hookScriptRefs(scripts)) {
+      for (const { ref } of ownRefs) {
         const content = normalizeHookScriptPath(ref) !== null ? hookScripts[ref] : undefined
         if (typeof content !== 'string') {
           // The reason decides which finding this is. "The package does not ship this file" is a
@@ -525,7 +525,10 @@ export function auditPypiPackage(server, doc, declared = {}) {
   if (info.version && declaredVersion && info.version !== declaredVersion) {
     add('declared-version-not-latest', 'info', 'registry declares ' + declaredVersion + ', PyPI latest is ' + info.version)
   }
-  if (info.yanked === true) add('package-yanked', 'info', 'the declared version is yanked on PyPI')
+  const yanked = files.filter(file => file.yanked === true)
+  if (yanked.length > 0) add('package-yanked', 'info', yanked.length === files.length
+    ? 'all files of the declared version ' + declaredVersion + ' are yanked on PyPI'
+    : 'some files of the declared version ' + declaredVersion + ' are yanked on PyPI; other files remain available')
   return findings
 }
 

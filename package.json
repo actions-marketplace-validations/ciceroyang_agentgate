@@ -9,7 +9,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs packages/guard/test/*.test.mjs packages/guard/test/invariant.mjs packages/collect/test/*.test.mjs packages/policy/test/*.test.mjs packages/history/test/*.test.mjs packages/gateway/test/*.test.mjs packages/service/test/*.test.mjs packages/verify/test/*.test.mjs packages/watch/test/*.test.mjs packages/backup/test/*.test.mjs packages/mcp/test/*.test.mjs packages/pack/test/*.test.mjs",
+    "test": "node --test test/*.test.mjs packages/guard/test/*.test.mjs packages/guard/test/invariant.mjs packages/collect/test/*.test.mjs packages/policy/test/*.test.mjs packages/history/test/*.test.mjs packages/gateway/test/*.test.mjs packages/service/test/*.test.mjs packages/verify/test/*.test.mjs packages/watch/test/*.test.mjs packages/backup/test/*.test.mjs packages/mcp/test/*.test.mjs packages/pack/test/*.test.mjs packages/release/test/*.test.mjs",
     "test:guard": "node --test packages/guard/test/*.test.mjs packages/guard/test/invariant.mjs",
     "test:collect": "node --test packages/collect/test/*.test.mjs",
     "test:verify": "node --test packages/verify/test/*.test.mjs",

@@ -34,6 +34,7 @@
 | 文档 | 是什么 |
 | --- | --- |
 | [pilot-package.md](pilot-package.md) | 免费试点的范围与信任阶梯（L0–L3），对客户讲清"代码不用给我" |
+| [trust-hardening.md](trust-hardening.md) | 企业试用前的可信性修复、迁移、验收和未发布边界 |
 | [plan-b-no-icp.md](plan-b-no-icp.md) | 没有备案时的部署路线 |
 
 ## 这份文档自己的维护规则

@@ -19,7 +19,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 function refreshBody() {
   const source = readFileSync(join(ROOT, "bin", "agentgate.mjs"), "utf8")
   const start = source.indexOf("function refresh(flags) {")
-  const end = source.indexOf("function readPackageName(root) {")
+  const end = source.indexOf("function recordsFor(root, indexPath) {")
   assert.ok(start !== -1 && end > start, "refresh() moved; this test needs to be pointed at it again")
   return source.slice(start, end)
 }

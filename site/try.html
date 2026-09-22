@@ -3,6 +3,7 @@
 <title>十分钟自己试 · 智量</title>
 <meta name="description" content="三种做法：翻一遍证据索引、扫自己的仓库、接进 CI。不用注册，不用给凭据。">
 <link rel="canonical" href="https://xn--5kvo87g.com/try.html">
+<link rel="alternate" hreflang="zh-CN" href="https://xn--5kvo87g.com/try.html"><link rel="alternate" hreflang="en" href="https://xn--5kvo87g.com/en/try.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="智量 · agentgate">
@@ -27,6 +28,7 @@ a{color:inherit}
 footer{margin-top:64px;color:var(--muted);font-size:14px;border-top:1px solid var(--line);padding-top:16px}
 </style></head><body><main>
 
+<p class="muted" style="text-align:right"><strong>中文</strong> · <a lang="en" hreflang="en" href="en/try.html">English</a></p>
 <h1>十分钟自己试</h1>
 <p class="muted">不需要注册，不需要给凭据。三种做法，按你愿意花的力气挑一种。</p>
 
@@ -39,9 +41,9 @@ footer{margin-top:64px;color:var(--muted);font-size:14px;border-top:1px solid va
 
 <p>证据索引已经做成了一个可以直接翻的页面：</p>
 
-<p><a class="cta" href="https://ciceroyang.github.io/agentgate/evidence.html">打开证据索引</a></p>
+<p><a class="cta" href="evidence.html">打开证据索引</a></p>
 
-<p>按判定或名字筛，点任意一行看它的证据块与结论。这份索引每天从实时注册表重建,所以它现在是当天的全量;仓库里另有一份 300 条的样本索引,断网时也能跑。</p>
+<p>按判定或名字筛，点任意一行看它的证据块与结论。请以页面标出的采集时间、来源和覆盖范围为准；计划每日刷新不等于每次都成功，也不代表覆盖整个生态。仓库里的历史样本只供演示，不能作为当前检查证据。</p>
 
 <h2>或者：查一个具体的判定</h2>
 <p>自托管的服务提供同样的数据。下面这条命令连不上,说明部署还没完成:</p>
@@ -68,7 +70,9 @@ node packages/guard/bin/agent-guard.mjs /path/to/your/repo --fail-on high</code>
 }</code></pre>
 <pre><code>- uses: ciceroyang/agentgate@main
   with:
-    policy: agentgate.policy.json</code></pre>
+    policy: agentgate.policy.json
+    index: data/index.json</code></pre>
+<p>这个策略要求已有包证据。先准备与本地 npm 包名、精确版本对应的真实索引；没有对应证据会返回 incomplete，不能用历史样本替代。只想做本地源码扫描时，可先使用上面的扫描命令。</p>
 <p>Action 会跑检查、把 SARIF 传给 code scanning、把报告评论在 PR 上，然后带着检查自己的退出码退出。<b>退出码 2 意味着结果不完整，它照样会让构建失败。</b></p>
 
 <h2>想让我们替你做一次？</h2>

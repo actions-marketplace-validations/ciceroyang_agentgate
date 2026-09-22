@@ -21,6 +21,12 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { auditPackage, auditPypiPackage, fetchNpmDocumentOutcome, fetchPypiDocumentOutcome,
   fetchHookScriptOutcome, hookScriptRefs, registryProvenance } from "../mcp-audit.mjs"
 import { contentProvenance } from "../provenance.mjs"
+import { fingerprint, codeFingerprint, reusable } from "../src/cache.mjs"
+
+const SCANNER = codeFingerprint([new URL(import.meta.url), new URL("../mcp-audit.mjs", import.meta.url), new URL("../provenance.mjs", import.meta.url), new URL("../src/cache.mjs", import.meta.url)])
+export function auditCacheKey(coords) {
+  return fingerprint([coords.registry, coords.name, coords.version, coords.manifest, coords.url, coords.digest, coords.cacheKey || null, SCANNER])
+}
 
 /** Registries this step can audit today. Anything else is named, never quietly skipped. */
 export const AUDITABLE = ["npm", "pypi"]
@@ -110,7 +116,7 @@ if (isMain) {
   const redo = argOf("redo", null)
   const coordinates = JSON.parse(readFileSync(coordinatesPath, "utf8")).results || {}
   const previous = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")).results || {}) : {}
-  const results = { ...previous }
+  const results = Object.fromEntries(Object.keys(coordinates).filter(k => previous[k]?.status === "audited" && reusable(previous[k], auditCacheKey(coordinates[k]), "auditedAt")).map(k => [k, previous[k]]))
   const all = Object.keys(coordinates).filter((k) => auditability(coordinates[k]) === "auditable")
   const chosen = limit > 0 ? all.slice(0, limit) : all
   const todo = chosen.filter((k) => {
@@ -126,7 +132,6 @@ if (isMain) {
     const why = auditability(coordinates[k])
     if (why === "auditable") continue
     skipped[why] = (skipped[why] || 0) + 1
-    if (results[k]) continue
     const c = coordinates[k]
     results[k] = { registry: c.registry, name: c.name, version: c.version, manifest: c.manifest,
       url: c.url, digest: c.digest, status: "not-audited", reason: why, findings: [] }
@@ -166,7 +171,9 @@ if (isMain) {
         result = { status: "failed", error: String(error && error.message ? error.message : error).slice(0, 160) }
       }
       results[fullName] = Object.assign({ registry: coords.registry, name: coords.name, version: coords.version,
-        manifest: coords.manifest, url: coords.url, digest: coords.digest }, result)
+        manifest: coords.manifest, url: coords.url, digest: coords.digest,
+        observedAt: coords.observedAt || null, auditedAt: new Date().toISOString(),
+        cacheKey: auditCacheKey(coords), scanner: SCANNER }, result)
       done += 1
       if (done % 50 === 0) {
         checkpoint()

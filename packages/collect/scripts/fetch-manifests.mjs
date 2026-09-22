@@ -17,6 +17,12 @@
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { createHash } from "node:crypto"
+import { fingerprint, codeFingerprint, reusable } from "../src/cache.mjs"
+
+const READER = codeFingerprint([new URL(import.meta.url), new URL("../src/cache.mjs", import.meta.url)])
+export function manifestCacheKey(fullName, manifest, repo = {}) {
+  return fingerprint([fullName, manifest, repo.defaultBranch || null, repo.pushedAt || null, READER])
+}
 
 export const MANIFEST_REGISTRY = {
   "package.json": "npm",
@@ -42,10 +48,28 @@ export function registryFor(path) {
   return null
 }
 
-function tomlValue(text, key) {
-  const re = new RegExp("^\\s*" + key + "\\s*=\\s*[\"\']([^\"\']+)[\"\']", "m")
-  const m = re.exec(text)
-  return m ? m[1] : null
+function tomlTable(text, table) {
+  // Deliberately limited: unsupported TOML remains unknown, never borrowed from another table.
+  if (/"""|'''/.test(text)) return null
+  let active = false, seen = false
+  const fields = {}
+  for (const line of text.split(/\r?\n/)) {
+    const header = /^\s*\[([^\]]+)\]\s*(?:#.*)?$/.exec(line)
+    if (/^\s*\[/.test(line)) {
+      const name = header?.[1].trim().replace(/^["'](project|package)["']$/, "$1")
+      active = name === table
+      if (active && seen) return null
+      if (active) seen = true
+      continue
+    }
+    if (!active) continue
+    const key = /^\s*(name|version|dynamic)\s*=/.exec(line)
+    if (!key) continue
+    if (Object.hasOwn(fields, key[1])) return null
+    const value = /^\s*(?:name|version|dynamic)\s*=\s*(?:"([^"\\]*)"|'([^']*)')\s*(?:#.*)?$/.exec(line)
+    fields[key[1]] = value ? value[1] ?? value[2] : null
+  }
+  return seen ? { name: fields.name || null, version: Object.hasOwn(fields, "dynamic") ? null : fields.version || null } : null
 }
 
 function xmlTag(text, tag) {
@@ -68,7 +92,9 @@ export function coordinatesFrom(path, content) {
       return { registry, name, version }
     }
     if (base === "pyproject.toml" || base === "cargo.toml") {
-      return { registry, name: tomlValue(content, "name"), version: tomlValue(content, "version") }
+      const fields = base === "cargo.toml" ? tomlTable(content, "package")
+        : /^\s*\[\s*(?:project|"project"|'project')\s*\]\s*(?:#.*)?$/m.test(content) ? tomlTable(content, "project") : tomlTable(content, "tool.poetry")
+      return { registry, name: fields?.name || null, version: fields?.version || null }
     }
     if (base === "pom.xml") {
       const group = xmlTag(content, "groupId")
@@ -110,12 +136,14 @@ if (isMain) {
   const classification = JSON.parse(readFileSync(classificationPath, "utf8")).results || {}
   const census = JSON.parse(readFileSync(censusPath, "utf8"))
   const branchOf = {}
+  const repoOf = Object.fromEntries((census.repos || []).map(repo => [repo.fullName, repo]))
   for (const repo of census.repos || []) branchOf[repo.fullName] = repo.defaultBranch || null
   const work = Object.keys(classification).filter((k) => typeof classification[k].manifest === "string" && classification[k].manifest.length > 0)
   const previous = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")).results || {}) : {}
-  const results = { ...previous }
+  const keyOf = k => manifestCacheKey(k, classification[k].manifest, repoOf[k])
+  const results = Object.fromEntries(work.filter(k => previous[k]?.status === "read" && reusable(previous[k], keyOf(k), "observedAt")).map(k => [k, previous[k]]))
   const todo = (limit > 0 ? work.slice(0, limit) : work).filter((k) => !results[k])
-  console.log(JSON.stringify({ withManifest: work.length, alreadyRead: work.length - todo.length, toFetch: todo.length, rate }))
+  console.log(JSON.stringify({ withManifest: work.length, alreadyRead: Object.keys(results).length, toFetch: todo.length, rate }))
 
   const wait = (ms) => new Promise((r) => setTimeout(r, ms))
   let tokens = 0
@@ -158,6 +186,7 @@ if (isMain) {
           registry: coords.registry, name: coords.name, version: coords.version,
           unparsed: coords.unparsed || null }
       }
+      Object.assign(results[fullName], { cacheKey: keyOf(fullName), observedAt: new Date().toISOString(), repositoryRevision: repoOf[fullName]?.pushedAt || null, reader: READER })
       done += 1
       if (done % 100 === 0) {
         checkpoint()

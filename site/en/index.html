@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zhiliang · AgentGate</title>
+<meta name="description" content="Know which MCP tools your agents can use, where they came from, and what evidence exists for each one. Open-source, self-hostable, and explicit about unknowns.">
+<link rel="canonical" href="https://xn--5kvo87g.com/en/">
+<link rel="alternate" hreflang="zh-CN" href="https://xn--5kvo87g.com/">
+<link rel="alternate" hreflang="en" href="https://xn--5kvo87g.com/en/">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Zhiliang · AgentGate"><meta property="og:locale" content="en_US">
+<meta property="og:title" content="Zhiliang · AgentGate"><meta property="og:description" content="A reproducible evidence trail for the MCP tools your agents can use."><meta property="og:url" content="https://xn--5kvo87g.com/en/">
+<meta name="twitter:card" content="summary">
+<style>:root{--fg:#111;--muted:#5b6472;--line:#e6e8eb;--bg:#fff}@media(prefers-color-scheme:dark){:root{--fg:#e8eaed;--muted:#9aa4b2;--line:#2a2f36;--bg:#0f1115}}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,-apple-system,sans-serif}main{max-width:760px;margin:0 auto;padding:40px 20px 96px}.lang{text-align:right;color:var(--muted);font-size:14px}h1{font-size:32px;margin:8px 0 6px;letter-spacing:.5px}h2{font-size:19px;margin:44px 0 12px;padding-top:20px;border-top:1px solid var(--line)}.sub{color:var(--muted);margin:0 0 4px}.tag{display:inline-block;font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin:0 6px 4px 0}ol{padding-left:22px}code{background:rgba(127,127,127,.12);padding:1px 5px;border-radius:4px;font-size:14px}a{color:inherit}.cta{display:inline-block;margin:10px 6px 0 0;padding:10px 16px;border:1px solid var(--fg);border-radius:8px;text-decoration:none}footer{margin-top:64px;color:var(--muted);font-size:14px;border-top:1px solid var(--line);padding-top:16px}</style></head><body><main>
+<p class="lang"><a lang="zh-CN" hreflang="zh-CN" href="../index.html">中文</a> · <strong>English</strong></p>
+<h1>Zhiliang</h1>
+<p class="sub">AgentGate · A reproducible evidence trail for the tools your agents can use.</p>
+<p><span class="tag">AGPL-3.0 core</span><span class="tag">Self-hosted</span><span class="tag">Read-only public sources</span></p>
+<p><a class="cta" href="inventory.html">Review my tool inventory</a> <a class="cta" href="evidence.html">Browse the public evidence index</a></p>
+
+<h2>The problem it addresses</h2>
+<p>Which tools can your agents call today? Where did each tool come from? What runs during installation? Who approved it? Did its published evidence change without a version change? These answers are often kept in a spreadsheet—or nowhere. AgentGate turns that chain into evidence that can be reproduced and reviewed.</p>
+
+<h2>Three invariants</h2>
+<ol>
+  <li><strong>A result can be <code>clean</code> only when every required check completed.</strong> A crashed or skipped check produces <code>incomplete</code> and exit code 2. Policy thresholds cannot turn that into a pass.</li>
+  <li><strong>Anything not measured stays <code>unmeasured</code>.</strong> Missing manifests, unavailable registry metadata, and packages that could not be retrieved remain visible in the report.</li>
+  <li><strong>History is retained.</strong> Evidence changes without a version change are called out separately because that record cannot be reconstructed later.</li>
+</ol>
+
+<h2>How to use it</h2>
+<p>Self-host the service, enforce a policy in CI, or place tool calls behind the runtime gateway so the same policy can apply after deployment.</p>
+<p><code>node bin/agentgate.mjs serve</code> · <code>node bin/agentgate.mjs check --policy policy.json</code> · <code>node bin/agentgate.mjs proxy --policy policy.json -- &lt;server&gt;</code></p>
+
+<h2>Free evidence review</h2>
+<p><strong>You do not need to share source code.</strong> Send us a list of the MCP servers and agent tools you use. We review public registry records and published packages, then produce an evidence-based report: unpinned versions, install-time behavior, and evidence that changed without a version change after monitoring began. If something cannot be checked, the report says so instead of calling it clean.</p>
+<p>If you want deeper coverage, run the open-source scanner inside your environment and share only its output. Your code stays on your machine.</p>
+<p>This is currently limited to three companies for four weeks. There is no fee; we ask for one one-hour feedback call.</p>
+<p><a class="cta" href="mailto:contact@xn--5kvo87g.com?subject=Free%20AgentGate%20evidence%20review">Request a review</a></p>
+
+<h2>Open source and the planned enterprise product</h2>
+<p>The collection, indexing, policy, scanning, gateway, and history-diff core is open source and self-hostable. SSO/SAML, RBAC, multi-tenancy, extended retention, signed audit exports, and SIEM integrations are product goals; <strong>they are not available today</strong>. What is available now is the open-source core and the free evidence review.</p>
+
+<footer>
+<p><a href="evidence.html">Evidence index</a> · <a href="history.html">Capture history</a> · <a href="pricing.html">Pricing</a> · <a href="try.html">Try it</a> · <a href="https://github.com/ciceroyang/agentgate">GitHub</a> · <a href="mailto:contact@xn--5kvo87g.com">contact@智量.com</a></p>
+<p>We read public source material only. Dynamic validation is limited to our own isolated environment. We do not interact with third-party production systems.</p>
+</footer>
+</main></body></html>

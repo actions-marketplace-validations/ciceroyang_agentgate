@@ -31,6 +31,27 @@ test("inventory report keeps gaps before findings and both versions with their s
   assert.match(html, /没有扫描本机/);
 });
 
+test("English inventory input produces an English standalone report", () => {
+  const entries = parseInventory('[{"server":"acme/tool","package":"@acme/tool","registry":"npm","version":"1.0.0"}]', { locale: "en" });
+  const report = createInventoryReport(entries, {
+    generatedAt: "2026-09-17T00:00:00Z", scanner: "fixture", snapshot: false,
+    records: [{ server: "acme/tool", generatedAt: "2026-09-17T00:00:00Z", verdict: "clean",
+      packages: [{ registry: "npm", name: "@acme/tool", version: "1.0.0" }],
+      evidence: { packageManifest: { status: "clean", source: "fixture", findings: [], provenance: {
+        package: { registry: "npm", name: "@acme/tool", version: "1.0.0" },
+        content: { algorithm: "sha256", digest: "a".repeat(64), scope: "manifest" }, complete: true,
+      } } } }],
+  }, { generatedAt: "2026-09-17T01:00:00Z", locale: "en" });
+  const html = renderInventoryReport(report);
+  assert.equal(report.locale, "en");
+  assert.match(report.items[0].reason, /not a security certification/i);
+  assert.match(html, /<html lang="en">/);
+  assert.match(html, /Tool inventory evidence report/);
+  assert.match(html, /Evidence matched · not a safety claim/);
+  assert.match(html, /Uncovered work was not counted as a pass/);
+  assert.doesNotMatch(html, /我的工具清单|证据已对应|扫描覆盖/);
+});
+
 test("inventory report escapes every input, candidate, finding and provenance field", () => {
   const payload = '\"><script src="https://evil.invalid/x">bad</script><img src=x onerror=alert(1)>&';
   const poison = {
@@ -151,4 +172,3 @@ test("an item with no selected record makes no coverage claim", () => {
   assert.doesNotMatch(html, /扫描覆盖/);
   assert.doesNotMatch(html, /写于 scan-execution 之前/);
 });
-

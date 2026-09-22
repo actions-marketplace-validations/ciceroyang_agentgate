@@ -28,6 +28,10 @@
 
 最多 500 条、文件或文本最多 1 MB。纯文本每行一个名称；精确输入推荐 JSON：
 
+文本也接受带来源的包坐标，如 `npm:@example/files@1.2.3`、`pypi:mcp-server-fetch@2025.1.17`。
+`discover --format inventory` 输出下面的输入结构；完整来源和同名冲突需另外查看
+`discover --format json`。两者都不输出启动参数或环境变量，不能把配置文件直接当清单导入。
+
 ```json
 {
   "tools": [

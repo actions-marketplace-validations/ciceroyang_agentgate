@@ -50,7 +50,7 @@ npx @zhiliangtech/agentgate check --root .
 npx @zhiliangtech/agentgate serve
 ```
 
-`npx` 跟随 `latest` 这个 dist-tag。需要精确版本就钉住它（`@zhiliangtech/agentgate@0.2.0`）。
+`npx` 跟随 `latest` 这个 dist-tag。需要精确版本就钉住它（`@zhiliangtech/agentgate@0.5.0`）。
 
 没有策略文件时，`check` 用内置默认策略（不额外拒绝任何东西），`serve` 用它发布时带的那份快照作答。`refresh` 只写你身边的 `./data`，不会写进装好的包目录。
 
@@ -156,15 +156,17 @@ node bin/agentgate.mjs pack --verify agentgate-pack     # 重算每个文件的 
 ```
 
 ```sh
-node bin/agentgate.mjs check --policy agentgate.policy.json --root .
+node bin/agentgate.mjs check --policy agentgate.policy.json --root . --index data/index.json
 ```
+
+上述策略要求索引证据，必须提供与本地 npm 包名和精确版本对应的真实索引：没有对应证据退出 2；显式索引不存在、格式错误或是历史样本退出 3。本地源码扫描不能代替要求的包证据。
 
 没有策略文件、也没给 `--policy` 时，check 照样跑：它报告检查发现了什么，并说明自己用的是内置默认策略（不额外拒绝任何东西）——**替用户发明义务只会让结果更不值钱**。但明确指定了却读不了的策略文件仍然是错误，那说明打错了字。
 
 同一份评估也可以交给一个人，而不是交给终端：
 
 ```sh
-node bin/agentgate.mjs check --policy agentgate.policy.json --root . --format html --out report.html
+node bin/agentgate.mjs check --policy agentgate.policy.json --root . --index data/index.json --format html --out report.html
 ```
 
 一个静态、能打印、无脚本的文件。**测不到的东西会单独成节、排在发现前面**：一份把"没查的部分"埋起来的报告，读起来比它实际更完整。这个文件就是免费体检的交付物。

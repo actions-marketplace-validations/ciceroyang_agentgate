@@ -168,6 +168,9 @@ export function repositoryRecord(entry, verdict, options) {
       packageManifest: {
         status: (audit.findings || []).length > 0 ? "findings" : "clean",
         source: PACKAGE_SOURCE,
+        observedAt: audit.observedAt || null,
+        auditedAt: audit.auditedAt || null,
+        scanner: audit.scanner || null,
         reason: null,
         findings: audit.findings || [],
         provenance: audit.provenance || null,

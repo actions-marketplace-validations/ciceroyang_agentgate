@@ -5,6 +5,38 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- Fail closed when required indexed evidence is absent; reject invalid or sample indexes and
+  match local npm evidence by registry, name and exact version. Named scanner requirements now
+  preserve the whole-execution gate, including output/consistency validation. The Action accepts
+  an explicit evidence index.
+- Bind manifest/audit caches to source identity, repository revision, content and scanner code;
+  expire observations rather than renewing their timestamps. Old cache formats are re-read.
+  Parse supported TOML package tables without borrowing names or versions from other tables.
+- Preserve discovery identity across registries and aliases; add a credential-free inventory JSON
+  export. Watch fingerprints now cover findings, content evidence and scanner identity while
+  retaining only hashes of private material.
+- Log allowed batch calls and each whole-batch refusal, withhold proxy startup arguments, and
+  require actual decision records and nonempty archives before claiming evidence-pack coverage.
+- Check PyPI withdrawal at the declared-version file level; attribute install-script findings to
+  the hook that references them.
+- Stop Pages deployment on collection failure instead of substituting a sample. Support subpath
+  deployment, label samples, bind displayed diffs to exact non-sample index bytes, and narrow
+  historical-chain claims to internal consistency. Help no longer triggers collection.
+- Include release unit tests in the default suite and release-content checks in CI. These changes
+  are not a deployment or a claim of enterprise readiness; see the
+  [trust-hardening handoff](docs/operations/trust-hardening.md).
+
+### Breaking
+
+- Discovery text now includes the registry prefix; scripts consuming the old bare package text
+  must migrate. The inventory JSON export preserves package coordinates but does not carry full
+  discovery diagnostics: retain the full discovery JSON when reviewing sources and alias conflicts.
+- Invalid, absent or incomplete required evidence no longer passes `check`; the provisional pack
+  requires nonempty archives and actual gateway decisions for the corresponding evidence classes.
+  Existing files remain readable, but previously optimistic outcomes can become incomplete.
+- The first watch capture after upgrading from the old projection can report a baseline identity
+  change. Preserve the original archive; see [upgrade instructions](docs/operations/upgrade.md).
+
 ## [0.5.0] - 2026-09-21
 
 - A file the published package does not ship is now a finding instead of a gap. `registryProvenance`

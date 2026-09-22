@@ -220,8 +220,12 @@ A policy states what a company refuses. It is data rather than code, and it has 
 ```
 
 ```sh
-node bin/agentgate.mjs check --policy agentgate.policy.json --root .
+node bin/agentgate.mjs check --policy agentgate.policy.json --root . --index data/index.json
 ```
+
+The policy above requires indexed evidence. Supply a real index matching the local npm package's
+exact name and version: missing evidence exits 2; an explicit missing, malformed or sample index
+exits 3. A local source scan does not substitute for the required package evidence.
 
 With no policy file and no `--policy`, the check still runs. It reports what the checks found and
 says it used the built-in default, which refuses nothing extra; inventing obligations on your
@@ -231,7 +235,7 @@ be read is an error, because that is a typo.
 The same evaluation can go to a person instead of a terminal:
 
 ```sh
-node bin/agentgate.mjs check --policy agentgate.policy.json --root . --format html --out report.html
+node bin/agentgate.mjs check --policy agentgate.policy.json --root . --index data/index.json --format html --out report.html
 ```
 
 One static, printable file with no script in it. Anything that could not be measured gets its own
@@ -257,6 +261,7 @@ the pull request rather than left in a log nobody opens.
 - uses: ciceroyang/agentgate@main
   with:
     policy: agentgate.policy.json
+    index: data/index.json
 ```
 
 See [examples/github-actions/policy.yml](examples/github-actions/policy.yml). The action runs the

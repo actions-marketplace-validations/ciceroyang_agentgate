@@ -63,7 +63,7 @@ test("a fully backed pack exits 0 and every file is written", function () {
   appendWatch(archive, { report: report, entries: parseInventory(readFileSync(inputPath, "utf8")), capturedAt: WHEN })
   appendWatch(archive, { report: report, entries: parseInventory(readFileSync(inputPath, "utf8")), capturedAt: WHEN })
   const calls = join(dir, "calls.jsonl")
-  writeFileSync(calls, JSON.stringify({ method: "tools/call", decision: "allow" }) + "\n")
+  writeFileSync(calls, JSON.stringify({ at: WHEN, direction: "client", method: "tools/call", tool: "fixture-read", decision: "allowed" }) + "\n")
   const out = join(dir, "pack")
   const run = cli(["--input", inputPath, "--index", indexPath, "--archive", archive, "--calls", calls, "--out", out])
   assert.equal(run.status, 0, run.stderr + run.stdout)

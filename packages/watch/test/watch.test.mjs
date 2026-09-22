@@ -127,7 +127,9 @@ test("every chat service gets the payload it expects", function () {
 
 test("the projection keeps what changed and drops the customer's material", function () {
   const rows = projectionOf(reportOf([item("a", "matched", "1.0.0", 2)]))
-  assert.deepEqual(rows, [{ key: "a", state: "matched", label: "版本与证据对应", version: "1.0.0", evidence: "1.0.0", findings: 2 }])
+  assert.match(rows[0].fingerprint, /^[a-f0-9]{64}$/)
+  assert.equal(rows[0].identity, '[null,"npm","a",null]')
+  assert.deepEqual(rows.map(({ identity, fingerprint, ...row }) => row), [{ key: "a", state: "matched", label: "版本与证据对应", version: "1.0.0", evidence: "1.0.0", findings: 2 }])
 })
 
 test("a diff of two identical projections is empty rather than undefined", function () {

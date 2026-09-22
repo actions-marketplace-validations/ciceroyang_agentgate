@@ -4,6 +4,7 @@ import { aggregateVerdict, deriveVerdict, buildIndex, RANK, UNMEASURED } from ".
 import { readFileSync, readdirSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+import { executionFromBlocks } from "../src/execution.mjs"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const REPO = resolve(HERE, "..", "..", "..")
@@ -79,7 +80,8 @@ test("findings survive an unfinished run: a finding is not a claim about work th
 
 test("clean still needs every required scanner to finish", function () {
   const blocks = { a: { status: "clean", findings: [] } }
-  assert.equal(aggregateVerdict(blocks, "medium", { scanner_execution: { state: "complete" } }), "clean")
+  assert.equal(aggregateVerdict(blocks, "medium", executionFromBlocks({ server: "fixture", blocks })), "clean")
+  assert.equal(aggregateVerdict(blocks, "medium", { scanner_execution: { state: "complete" } }), "incomplete", "a state label without actual execution evidence cannot pass")
   assert.equal(aggregateVerdict(blocks, "medium", { scanner_execution: { state: "incomplete" } }), "incomplete",
     "an unfinished run can never be clean, however clean the findings look")
 })

@@ -1,4 +1,5 @@
 import { severityRank, matchesServer, POLICY_VERSION } from "./policy.mjs"
+import { componentComplete, validateScanExecution } from "../../collect/src/execution.mjs"
 
 /**
  * Evaluate a policy against a local scan and, when an index is given, against the
@@ -11,13 +12,18 @@ import { severityRank, matchesServer, POLICY_VERSION } from "./policy.mjs"
 export function evaluate(options) {
   const policy = options.policy
   const scan = options.scan || null
-  const records = options.records || null
+  const records = Array.isArray(options.records) ? options.records : []
   const findings = []
   const checksFailed = []
   const evidenceMissing = []
   const executionIncomplete = []
   const malformed = []
   const threshold = severityRank(policy.threshold)
+  const requiredScanners = policy.requiredScanners || []
+  if (options.records != null && !Array.isArray(options.records)) malformed.push({ source: "index", detail: "records must be an array" })
+  if (records.length === 0 && (policy.measuredEvidence.length > 0 || requiredScanners.length > 0 || policy.pinPackages || policy.forbiddenServers.length > 0)) {
+    evidenceMissing.push({ server: "(local project)", block: "index", reason: "no matching evidence records loaded; provide an index for the exact package and version" })
+  }
 
   if (scan) {
     for (const failed of (scan.coverage && scan.coverage.checksFailed) || []) checksFailed.push(failed)
@@ -47,30 +53,31 @@ export function evaluate(options) {
     for (const blockName of policy.measuredEvidence) {
       const block = (record.evidence || {})[blockName]
       if (!block) { evidenceMissing.push({ server: record.server, block: blockName, reason: "the evidence block is absent" }); continue }
-      if (block.status === "unmeasured") evidenceMissing.push({ server: record.server, block: blockName, reason: block.reason || "unmeasured" })
+      if (!["clean", "findings"].includes(block.status)) evidenceMissing.push({ server: record.server, block: blockName, reason: block.reason || "unmeasured or invalid evidence status" })
     }
     // A scan-execution record that is not complete cannot support `clean`, whatever the findings
     // say. That is an invariant, not a policy option: it is checked for every record that carries
     // the block. A policy may additionally name scanners it insists on.
     const execution = record.scanExecution && record.scanExecution.scanner_execution
-    const requiredScanners = policy.requiredScanners || []
-    if (requiredScanners.length === 0) {
-      if (execution && (execution.state !== "complete" || (execution.components || []).some(function (c) { return c.required && c.status !== "completed" }))) {
-        executionIncomplete.push({
-          server: record.server,
-          state: execution.state === "complete" ? "incomplete" : (execution.state || "unknown"),
-          failed: (execution.components || []).filter(function (c) { return c.required && c.status !== "completed" }).map(function (c) { return c.id }),
-        })
-      }
-    } else {
+    const components = Array.isArray(execution?.components) ? execution.components : []
+    if (record.scanExecution && (!execution || execution.state !== "complete" || !validateScanExecution(record.scanExecution).ok)) {
+      executionIncomplete.push({
+        server: record.server,
+        state: execution?.state === "complete" ? "incomplete" : (execution?.state || "unknown"),
+        failed: components.filter(c => c?.required && !componentComplete(c)).map(c => c.id),
+      })
+    }
+    if (requiredScanners.length > 0) {
       const missing = requiredScanners.filter(function (id) {
-        const component = (execution && execution.components || []).filter(function (c) { return c.id === id })[0]
-        return !component || component.status !== "completed"
+        const component = components.filter(function (c) { return c?.id === id })[0]
+        return !component || !componentComplete(component)
       })
       if (missing.length > 0) executionIncomplete.push({ server: record.server, state: execution ? (execution.state || "unknown") : "absent", failed: missing })
     }
     if (policy.pinPackages) {
-      for (const pkg of record.packages || []) {
+      if (!Array.isArray(record.packages) || record.packages.length === 0) evidenceMissing.push({ server: record.server, block: "packageManifest", reason: "no declared package coordinates to verify" })
+      for (const pkg of Array.isArray(record.packages) ? record.packages : []) {
+        if (!pkg || typeof pkg !== "object") { malformed.push({ source: "index", detail: "invalid package coordinate" }); continue }
         if (!pkg.version) evidenceMissing.push({ server: record.server, block: "packageManifest", reason: "package " + pkg.name + " has no pinned version" })
       }
     }
