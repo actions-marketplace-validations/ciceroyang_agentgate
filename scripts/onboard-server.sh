@@ -214,8 +214,9 @@ fi
 run mkdir -p "$STATIC_DIR" "$DOCS_DIR"
 if [ -f "$DIR/data/index.json" ] || [ "$APPLY" != "1" ]; then
   run "$NODE_BIN" "$DIR/scripts/build-site.mjs" --index "$DIR/data/index.json" --out "$STATIC_DIR" --name evidence.html --pages "$DIR/site"
-  # 证据索引链到样例报告，在线上不能是死链
+  # 中英文证据页分别链到本语言样例报告，在线上不能是死链。
   run bash -c "$NODE_BIN $DIR/bin/agentgate.mjs check --root $DIR/examples/action-verify --policy $DIR/examples/action-verify/agentgate.policy.json --format html --out $STATIC_DIR/report-sample.html || true"
+  run bash -c "$NODE_BIN $DIR/bin/agentgate.mjs check --root $DIR/examples/action-verify --policy $DIR/examples/action-verify/agentgate.policy.json --format html --lang en --out $STATIC_DIR/en/report-sample.html || true"
 fi
 
 if [ "$MODE" = "node" ]; then

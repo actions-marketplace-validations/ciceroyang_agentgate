@@ -108,7 +108,14 @@ test("the plain pages are published beside the index, and the index does not ove
   // The sample report is a separate step in the published workflow; generate it the same way so
   // this test walks the site a visitor actually gets.
   const sample = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check", "--root", join(ROOT, "examples", "action-verify"), "--policy", join(ROOT, "examples", "action-verify", "agentgate.policy.json"), "--format", "html", "--out", join(out, "report-sample.html")], { encoding: "utf8" })
+  assert.equal(sample.status, 1, sample.stderr)
   assert.ok(existsSync(join(out, "report-sample.html")), "the sample report was not written: " + sample.stderr)
+  const englishSample = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check", "--root", join(ROOT, "examples", "action-verify"), "--policy", join(ROOT, "examples", "action-verify", "agentgate.policy.json"), "--format", "html", "--lang", "en", "--out", join(out, "en", "report-sample.html")], { encoding: "utf8" })
+  assert.equal(englishSample.status, 1, englishSample.stderr)
+  const englishReport = readFileSync(join(out, "en", "report-sample.html"), "utf8")
+  assert.match(englishReport, /<html lang="en">/)
+  assert.match(englishReport, /Check coverage/)
+  assert.doesNotMatch(englishReport, /[\u3400-\u9fff]/)
 
   const landing = readFileSync(join(out, "index.html"), "utf8")
   assert.match(landing, /智量/, "the landing page is what a visitor lands on")
@@ -434,6 +441,12 @@ test("the English site is built from the same index with working language routes
     assert.doesNotMatch(html, /__[A-Z][A-Z0-9_]+__/, "unresolved placeholder in " + name)
   }
   const evidence = readFileSync(join(out, "en", "evidence.html"), "utf8")
+  for (const name of ["index.html", "pilot.html", "evidence.html"]) {
+    const page = readFileSync(join(out, "en", name), "utf8")
+    assert.match(page, /href="report-sample\.html"/, name)
+    assert.doesNotMatch(page, /href="\.\.\/report-sample\.html"/, name)
+  }
+  assert.match(evidence, /Chinese-language sample evidence pack/)
   assert.match(evidence, /Showing /)
   assert.match(evidence, /incomplete means required work was not measured/)
   const script = /<script>([\s\S]*)<\/script>/.exec(evidence)
@@ -451,5 +464,6 @@ test("the English site is built from the same index with working language routes
   const sitemap = readFileSync(join(out, "sitemap.xml"), "utf8")
   assert.match(sitemap, /<loc>https:\/\/xn--5kvo87g\.com\/en\/<\/loc>/)
   assert.match(sitemap, /<loc>https:\/\/xn--5kvo87g\.com\/en\/pilot\.html<\/loc>/)
+  assert.match(sitemap, /<loc>https:\/\/xn--5kvo87g\.com\/en\/report-sample\.html<\/loc>/)
   assert.ok(sitemap.includes("/en/s/" + slug + ".html"))
 })

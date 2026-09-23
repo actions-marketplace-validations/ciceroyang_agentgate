@@ -38,11 +38,20 @@ try {
   step("有英文企业试点页", existsSync(join(www, "en", "pilot.html")))
 
   // 2. 样例报告：证据索引链到它，在线上不能是死链
-  spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check",
+  const sampleZh = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check",
     "--root", join(ROOT, "examples", "action-verify"),
     "--policy", join(ROOT, "examples", "action-verify", "agentgate.policy.json"),
     "--format", "html", "--out", join(www, "report-sample.html")], { encoding: "utf8" })
-  step("样例报告出得来", existsSync(join(www, "report-sample.html")))
+  step("中文样例报告出得来", sampleZh.status === 1 && existsSync(join(www, "report-sample.html")), sampleZh.stderr)
+  const sampleEn = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check",
+    "--root", join(ROOT, "examples", "action-verify"),
+    "--policy", join(ROOT, "examples", "action-verify", "agentgate.policy.json"),
+    "--format", "html", "--lang", "en", "--out", join(www, "en", "report-sample.html")], { encoding: "utf8" })
+  step("英文样例报告出得来", sampleEn.status === 1 && existsSync(join(www, "en", "report-sample.html")), sampleEn.stderr)
+  if (existsSync(join(www, "en", "report-sample.html"))) {
+    const english = readFileSync(join(www, "en", "report-sample.html"), "utf8")
+    step("英文样例报告的界面是英文", english.includes('<html lang="en">') && english.includes("Check coverage") && !english.includes("证据体检报告"))
+  }
 
   // 3. 定时任务的第一天:没有可比对象,也必须成功落下基线
   const snap = spawnSync(process.execPath, [join(ROOT, "scripts", "daily-snapshot.mjs"),
@@ -59,11 +68,12 @@ try {
       if (!existsSync(join(www, m[1]))) dead.push(name + " -> " + m[1])
     }
   }
-  if (existsSync(join(www, "en", "pilot.html"))) {
-    const html = readFileSync(join(www, "en", "pilot.html"), "utf8")
+  for (const name of ["index.html", "pilot.html", "evidence.html"]) {
+    if (!existsSync(join(www, "en", name))) continue
+    const html = readFileSync(join(www, "en", name), "utf8")
     for (const m of html.matchAll(/href="((?:\.\.\/)?[a-z0-9-]+\.html)"/g)) {
       const target = resolve(join(www, "en"), m[1])
-      if (!existsSync(target)) dead.push("en/pilot.html -> " + m[1])
+      if (!existsSync(target)) dead.push("en/" + name + " -> " + m[1])
     }
   }
   step("部署出来的页面之间没有死链", dead.length === 0, dead.join(", "))

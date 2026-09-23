@@ -20,6 +20,23 @@ test("an incomplete result says so before the findings", function () {
   assert.match(html, /metadata-unavailable/)
 })
 
+test("English report translates the interface without changing evidence or verdict", function () {
+  const result = base({
+    verdict: "incomplete",
+    findings: [{ rule: "AG-MCP-010", severity: "medium", file: "a.json", message: "Unpinned dependency", reason: "Policy threshold" }],
+    coverage: { checksRun: [], checksFailed: [{ id: "mcp-config", error: "parser failed" }], evidenceMissing: [{ server: "a/b", block: "packageManifest", reason: "metadata-unavailable" }], filesRead: [], unparsedFiles: [], malformed: [] },
+  })
+  const html = toHtmlReport(result, { lang: "en", root: "/repo", generatedAt: "2026-09-23T00:00:00Z" })
+  assert.match(html, /<html lang="en">/)
+  assert.match(html, /Evidence check report/)
+  assert.match(html, /This result is incomplete, not a pass/)
+  assert.ok(html.indexOf("Unmeasured evidence") < html.indexOf("Findings ("))
+  assert.match(html, /metadata-unavailable/)
+  assert.match(html, /Unpinned dependency/)
+  assert.match(html, /INCOMPLETE/)
+  assert.doesNotMatch(html, /[\u3400-\u9fff]/)
+})
+
 test("no unmeasured section when nothing is unmeasured", function () {
   assert.equal(toHtmlReport(base({}), {}).includes("无法测量的部分"), false)
 })

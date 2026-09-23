@@ -222,11 +222,15 @@ function renderResult(run, root, flags) {
   const format = flags.format || "console"
   return format === "sarif" ? toSarif(run.result, { version: VERSION })
     : format === "json" ? JSON.stringify(run.result, null, 2)
-    : format === "html" ? toHtmlReport(run.result, { root: root, policy: run.policy, generatedAt: new Date().toISOString() })
+    : format === "html" ? toHtmlReport(run.result, { root: root, policy: run.policy, generatedAt: new Date().toISOString(), lang: flags.lang })
     : run.human
 }
 
 function check(flags) {
+  if (flags.lang !== undefined && !["zh-CN", "en"].includes(flags.lang)) {
+    console.error("check: --lang only supports zh-CN or en")
+    process.exit(3)
+  }
   const root = resolve(flags.root || ".")
   const run = runCheck(root, flags)
   const rendered = renderResult(run, root, flags)
@@ -627,7 +631,7 @@ else {
   console.log("  discover  [--home <dir>] [--roots a,b] [--format text|json|inventory] [--out report.txt]   read the MCP configs already on this machine")
   console.log("  inventory --input tools.txt [--index data/index.json] [--framework aicaiq] [--format html|json] [--out report.html]")
   console.log("  framework [--id aicaiq] [--format text|json] [--out file]   who answers which questionnaire item")
-  console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")
+  console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--lang zh-CN|en] [--out file]")
   console.log("  audit     --roots a,b,c [--policy p.json] [--index data/index.json] [--fail-on medium] [--format text|json]")
   console.log("  pack      --input tools.txt [--index data/index.json] [--framework aicaiq] [--archive dir] [--calls calls.jsonl] [--out agentgate-pack]")
   console.log("            --verify <dir>   重算 sha256 与封条，任何一个字节被改就非零退出")

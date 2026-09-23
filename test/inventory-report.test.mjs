@@ -52,6 +52,18 @@ test("English inventory input produces an English standalone report", () => {
   assert.doesNotMatch(html, /我的工具清单|证据已对应|扫描覆盖/);
 });
 
+test("English questionnaire section uses English labels but preserves source mapping text", () => {
+  const html = renderInventoryReport(fixture({ locale: "en", items: [] }), { framework: {
+    name: "Example", note: "原始说明", source: "Original source", entries: [{ id: "Q1", topic: "原始问题", owner: "customer", weProvide: "原始证据", boundary: "原始边界" }],
+  } });
+  assert.match(html, /Questionnaire mapping/);
+  assert.match(html, /Evidence owner/);
+  assert.match(html, /Customer provides evidence/);
+  assert.match(html, /Mapping text is shown in its original language/);
+  assert.match(html, /原始证据/);
+  assert.doesNotMatch(html, /问卷对照|最终由谁交账/);
+});
+
 test("inventory report escapes every input, candidate, finding and provenance field", () => {
   const payload = '\"><script src="https://evil.invalid/x">bad</script><img src=x onerror=alert(1)>&';
   const poison = {
