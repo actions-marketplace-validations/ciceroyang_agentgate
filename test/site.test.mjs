@@ -426,7 +426,7 @@ test("the English site is built from the same index with working language routes
   const out = scratchDir("ag-site-en-")
   const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
   assert.equal(run.status, 0, run.stderr)
-  for (const name of ["index.html", "pricing.html", "try.html", "inventory.html", "history.html", "evidence.html", "privacy.html", "security.html", "404.html"]) {
+  for (const name of ["index.html", "pricing.html", "pilot.html", "try.html", "inventory.html", "history.html", "evidence.html", "privacy.html", "security.html", "404.html"]) {
     const file = join(out, "en", name)
     assert.ok(existsSync(file), "missing English page: " + name)
     const html = readFileSync(file, "utf8")
@@ -450,5 +450,6 @@ test("the English site is built from the same index with working language routes
   assert.doesNotMatch(server, /没测到|哪些扫描器跑完了/)
   const sitemap = readFileSync(join(out, "sitemap.xml"), "utf8")
   assert.match(sitemap, /<loc>https:\/\/xn--5kvo87g\.com\/en\/<\/loc>/)
+  assert.match(sitemap, /<loc>https:\/\/xn--5kvo87g\.com\/en\/pilot\.html<\/loc>/)
   assert.ok(sitemap.includes("/en/s/" + slug + ".html"))
 })

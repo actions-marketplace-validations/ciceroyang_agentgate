@@ -35,6 +35,7 @@ try {
   for (const name of ["index.html", "evidence.html", "pricing.html", "try.html"]) {
     step("有 " + name, existsSync(join(www, name)))
   }
+  step("有英文企业试点页", existsSync(join(www, "en", "pilot.html")))
 
   // 2. 样例报告：证据索引链到它，在线上不能是死链
   spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check",
@@ -56,6 +57,13 @@ try {
     const html = readFileSync(join(www, name), "utf8")
     for (const m of html.matchAll(/href="([a-z0-9-]+\.html)"/g)) {
       if (!existsSync(join(www, m[1]))) dead.push(name + " -> " + m[1])
+    }
+  }
+  if (existsSync(join(www, "en", "pilot.html"))) {
+    const html = readFileSync(join(www, "en", "pilot.html"), "utf8")
+    for (const m of html.matchAll(/href="((?:\.\.\/)?[a-z0-9-]+\.html)"/g)) {
+      const target = resolve(join(www, "en"), m[1])
+      if (!existsSync(target)) dead.push("en/pilot.html -> " + m[1])
     }
   }
   step("部署出来的页面之间没有死链", dead.length === 0, dead.join(", "))

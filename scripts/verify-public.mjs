@@ -44,6 +44,8 @@ try {
     const r = await get(base + p)
     check("页面 " + p, r.status === 200 && r.type.indexOf("text/html") !== -1, r.status + " " + r.type)
   }
+  const pilot = await get(base + "/en/pilot.html")
+  check("英文企业试点页", pilot.status === 200 && pilot.type.indexOf("text/html") !== -1 && pilot.text.indexOf("Week 1 continuation gate") !== -1, pilot.status + " " + pilot.type)
 
   // RFC 9116 puts this at a fixed path; a security page without it is a page nobody's scanner
   // will find.

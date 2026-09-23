@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Enterprise Pilot · AgentGate</title>
+<meta name="description" content="A four-week MCP evidence review that turns an approved tool list into a reviewable report and an explicit approval, remediation, monitoring, or stop decision.">
+<link rel="canonical" href="https://xn--5kvo87g.com/en/pilot.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Zhiliang · AgentGate"><meta property="og:locale" content="en_US">
+<meta property="og:title" content="Four-Week MCP Evidence Review"><meta property="og:description" content="Start with tool names, not production access. Get an evidence-backed decision and a clear stop point after Week 1."><meta property="og:url" content="https://xn--5kvo87g.com/en/pilot.html">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--ink:#101828;--muted:#526074;--line:#d9e0ea;--paper:#f7f9fc;--white:#fff;--accent:#1459d9;--accent-2:#0b3f9f;--soft:#eaf1ff;--good:#116b4f;--warn:#8a4b08;--shadow:0 20px 55px rgba(25,45,82,.12)}
+@media(prefers-color-scheme:dark){:root{--ink:#edf2f9;--muted:#aab6c7;--line:#303b4b;--paper:#0c111b;--white:#121a27;--accent:#78a6ff;--accent-2:#aac6ff;--soft:#182a48;--good:#75d6ae;--warn:#f5bd70;--shadow:0 20px 55px rgba(0,0,0,.28)}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit}.wrap{width:min(1120px,calc(100% - 40px));margin:auto}.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;font-weight:760;text-decoration:none;letter-spacing:-.02em}.mark{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--ink);color:var(--paper);font:700 14px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.navlinks{display:flex;align-items:center;gap:20px;font-size:14px;color:var(--muted)}.navlinks a{text-decoration:none}.navlinks a:hover,.navlinks a:focus-visible{color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(320px,.78fr);gap:64px;align-items:center;padding:92px 0 78px}.eyebrow{margin:0 0 18px;color:var(--accent);font:700 13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.12em}.hero h1{max-width:740px;margin:0;font-size:clamp(42px,6.3vw,76px);line-height:1.02;letter-spacing:-.055em}.lead{max-width:680px;margin:26px 0 0;color:var(--muted);font-size:20px;line-height:1.6}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 18px;border:1px solid var(--ink);border-radius:10px;font-weight:700;text-decoration:none}.button.primary{background:var(--ink);color:var(--paper)}.button:hover,.button:focus-visible{transform:translateY(-1px);box-shadow:0 8px 24px rgba(25,45,82,.12)}.assurances{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:24px;color:var(--muted);font-size:14px}.assurances span:before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:var(--good)}
+.decision-card{position:relative;padding:28px;border:1px solid var(--line);border-radius:18px;background:var(--white);box-shadow:var(--shadow);overflow:hidden}.decision-card:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--accent),#73a2ff)}.card-label{margin:0 0 22px;color:var(--muted);font:700 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.1em}.path{display:grid;gap:0}.node{position:relative;padding:0 0 28px 34px}.node:last-child{padding-bottom:0}.node:before{content:"";position:absolute;left:5px;top:8px;width:9px;height:9px;border:3px solid var(--white);border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px var(--accent)}.node:not(:last-child):after{content:"";position:absolute;left:10px;top:22px;bottom:4px;width:1px;background:var(--line)}.node strong{display:block;font-size:16px}.node small{display:block;margin-top:4px;color:var(--muted);font-size:14px;line-height:1.5}.decision-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.decision-tags span{padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);font:650 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.section{padding:76px 0;border-top:1px solid var(--line)}.section-head{display:grid;grid-template-columns:.68fr 1.32fr;gap:48px;margin-bottom:36px}.kicker{margin:3px 0 0;color:var(--accent);font:700 13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.1em}.section h2{max-width:720px;margin:0;font-size:clamp(30px,4vw,48px);line-height:1.12;letter-spacing:-.04em}.section-intro{max-width:720px;margin:16px 0 0;color:var(--muted);font-size:18px}.weeks{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:16px;background:var(--white);overflow:hidden}.week{min-height:300px;padding:24px;border-right:1px solid var(--line)}.week:last-child{border-right:0}.week-no{display:inline-block;margin-bottom:42px;color:var(--accent);font:700 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.08em}.week h3{margin:0 0 10px;font-size:20px;line-height:1.25;letter-spacing:-.02em}.week p{margin:0;color:var(--muted);font-size:15px}.output{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink)!important;font-weight:650}.output span{display:block;margin-bottom:4px;color:var(--muted);font:600 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.08em}
+.gate{display:grid;grid-template-columns:.82fr 1.18fr;gap:48px;align-items:start;padding:38px;border-radius:18px;background:var(--ink);color:var(--paper)}.gate h2{color:var(--paper)}.gate .kicker{color:#95b8ff}.gate-copy{margin:0;color:#c1cada;font-size:18px}.choices{display:grid;gap:10px;margin-top:24px}.choice{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:14px 0;border-top:1px solid rgba(255,255,255,.16)}.choice b{color:#9fbcff;font:700 13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase}.choice span{color:#d9e0eb}.fine{margin:20px 0 0;color:#aeb9ca;font-size:14px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:22px}.panel{padding:30px;border:1px solid var(--line);border-radius:16px;background:var(--white)}.panel h3{margin:0 0 18px;font-size:22px;letter-spacing:-.02em}.panel ul{margin:0;padding-left:20px}.panel li{margin:10px 0;color:var(--muted)}.panel li strong{color:var(--ink)}.boundary{border-top:4px solid var(--good)}.limits{border-top:4px solid var(--warn)}
+.evidence-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.evidence-item{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--white)}.evidence-item b{display:block;margin-bottom:8px;color:var(--accent);font:700 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.08em}.evidence-item p{margin:0;color:var(--muted)}
+.closing{display:grid;grid-template-columns:1.25fr .75fr;gap:44px;align-items:end;padding:72px 0}.closing h2{margin:0;font-size:clamp(34px,5vw,60px);line-height:1.05;letter-spacing:-.05em}.closing p{margin:18px 0 0;color:var(--muted);font-size:18px}.closing-actions{text-align:right}.closing-actions .button{width:100%}.closing-actions small{display:block;margin-top:12px;color:var(--muted);font-size:13px}.footer{display:flex;justify-content:space-between;gap:24px;padding:26px 0 48px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}.footer p{margin:0}.footer a{margin-right:14px}
+@media(max-width:900px){.hero{grid-template-columns:1fr;gap:38px;padding-top:64px}.decision-card{max-width:620px}.section-head{grid-template-columns:1fr;gap:12px}.weeks{grid-template-columns:1fr 1fr}.week:nth-child(2){border-right:0}.week:nth-child(-n+2){border-bottom:1px solid var(--line)}.gate{grid-template-columns:1fr}.evidence-grid{grid-template-columns:1fr 1fr}.closing{grid-template-columns:1fr}.closing-actions{text-align:left;max-width:380px}}
+@media(max-width:620px){.wrap{width:min(100% - 28px,1120px)}.navlinks a:not(:last-child){display:none}.hero{padding:48px 0 58px}.hero h1{font-size:42px}.lead{font-size:18px}.decision-card{padding:22px}.section{padding:58px 0}.weeks,.split,.evidence-grid{grid-template-columns:1fr}.week{min-height:0;border-right:0;border-bottom:1px solid var(--line)}.week:last-child{border-bottom:0}.week-no{margin-bottom:24px}.gate{padding:28px 22px}.closing{padding:58px 0}.footer{display:block}.footer p+P{margin-top:12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button:hover,.button:focus-visible{transform:none}}
+</style></head><body>
+<header class="wrap nav">
+  <a class="brand" href="index.html"><span class="mark">AG</span><span>Zhiliang · AgentGate</span></a>
+  <nav class="navlinks" aria-label="Primary"><a href="evidence.html">Evidence index</a><a href="security.html">Security</a><a href="../index.html" lang="zh-CN" hreflang="zh-CN">中文</a><a href="https://github.com/ciceroyang/agentgate">GitHub</a></nav>
+</header>
+<main>
+  <section class="wrap hero">
+    <div>
+      <p class="eyebrow">Four-week design partner pilot</p>
+      <h1>Turn your MCP tool list into a decision.</h1>
+      <p class="lead">Start with approved tool names—not production access or source code. AgentGate builds a reviewable evidence record so your security or platform team can approve, remediate, monitor, investigate, or stop with the unknowns still visible.</p>
+      <div class="actions"><a class="button primary" href="mailto:contact@xn--5kvo87g.com?subject=AgentGate%20enterprise%20pilot&body=We%20would%20like%20to%20discuss%20the%20four-week%20MCP%20evidence%20review.">Request the pilot</a><a class="button" href="../report-sample.html">Open a sample report</a></div>
+      <div class="assurances" aria-label="Pilot boundaries"><span>No credentials</span><span>No production access</span><span>No fee</span><span>Stop after Week 1</span></div>
+    </div>
+    <aside class="decision-card" aria-label="Pilot decision path">
+      <p class="card-label">Decision record</p>
+      <div class="path">
+        <div class="node"><strong>Scope</strong><small>An approved inventory and a written evidence boundary.</small></div>
+        <div class="node"><strong>Review</strong><small>Sources, completed checks, failures, corrections, and unmeasured work.</small></div>
+        <div class="node"><strong>Decide</strong><div class="decision-tags"><span>approve</span><span>remediate</span><span>monitor</span><span>investigate</span><span>stop</span></div></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><p class="kicker">The mutual action plan</p><div><h2>Every week produces evidence or a decision.</h2><p class="section-intro">The pilot is not an open-ended product tour. The customer and AgentGate each have a defined action, deliverable, and exit point.</p></div></div>
+      <div class="weeks">
+        <article class="week"><span class="week-no">Week 1</span><h3>Inventory and first report</h3><p>You review scope and obvious omissions. We match the approved list against available public evidence and expose every failed or unmeasured check.</p><p class="output"><span>Output</span>Initial HTML report and a continue, adjust, or stop decision.</p></article>
+        <article class="week"><span class="week-no">Week 2</span><h3>Correct the evidence</h3><p>Your reviewer identifies false positives, missed context, and the decision the evidence needs to support. We correct interpretation errors and separate customer-owned questions.</p><p class="output"><span>Output</span>Reviewed findings, a gap register, and an optional policy file.</p></article>
+        <article class="week"><span class="week-no">Week 3</span><h3>Observe change</h3><p>You confirm relevant inventory or version changes. We compare retained public-evidence snapshots without inventing history that was never captured.</p><p class="output"><span>Output</span>Change note and updated evidence record.</p></article>
+        <article class="week"><span class="week-no">Week 4</span><h3>Make the decision</h3><p>Your team chooses what to approve, reject, remediate, monitor, or investigate. We review usefulness, accuracy, operating burden, and purchasing reality.</p><p class="output"><span>Output</span>Final report and an explicit next-step decision.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section"><div class="wrap gate">
+    <div><p class="kicker">Week 1 continuation gate</p><h2>No useful signal? Stop.</h2></div>
+    <div><p class="gate-copy">The first report must reveal a material unknown, validate a concern, or support a real review decision at an acceptable cost to your team.</p>
+      <div class="choices"><div class="choice"><b>Continue</b><span>The evidence is relevant and independently reviewable.</span></div><div class="choice"><b>Adjust</b><span>Tool naming, evidence level, or decision context needs correction.</span></div><div class="choice"><b>Stop</b><span>The result is irrelevant, too incomplete, or too expensive to review.</span></div></div>
+      <p class="fine">If you stop, there is no fee and you keep the initial report.</p>
+    </div>
+  </div></section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><p class="kicker">Trust boundary</p><div><h2>Start with less access.</h2><p class="section-intro">The default input is a shareable list of MCP servers or agent tools. Deeper evidence is optional and requires explicit approval.</p></div></div>
+      <div class="split">
+        <article class="panel boundary"><h3>What you can provide</h3><ul><li><strong>Default:</strong> approved tool names.</li><li><strong>Optional:</strong> redacted configuration with secrets and internal addresses removed.</li><li><strong>Optional:</strong> reviewed, redacted scanner output produced inside your environment.</li><li><strong>Optional:</strong> a specifically authorized read-only source subset.</li></ul></article>
+        <article class="panel limits"><h3>What not to send</h3><ul><li>Passwords, tokens, API keys, or connection strings.</li><li>Internal addresses or material you are not authorized to share.</li><li>Production access or permission to run the tools under review.</li><li>Source code unless a specific read-only scope is approved.</li></ul></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><p class="kicker">What success records</p><div><h2>Feedback is not the finish line.</h2><p class="section-intro">A positive comment is useful, but the pilot is designed to capture operational and purchasing evidence.</p></div></div>
+      <div class="evidence-grid">
+        <article class="evidence-item"><b>Scope</b><p>The actual tools reviewed and the material boundary used.</p></article>
+        <article class="evidence-item"><b>Unknowns</b><p>Unclear identity, source, version, coverage, or ownership.</p></article>
+        <article class="evidence-item"><b>Accuracy</b><p>Confirmed false positives and important missed context.</p></article>
+        <article class="evidence-item"><b>Decision</b><p>A real approval, rejection, remediation, monitoring, or investigation action.</p></article>
+        <article class="evidence-item"><b>Reuse</b><p>Whether the evidence is used again after a relevant change.</p></article>
+        <article class="evidence-item"><b>Purchase path</b><p>Willingness to pay, the internal owner, and required prerequisites.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap split">
+      <article class="panel"><h3>What the pilot can establish</h3><ul><li>What public evidence exists for the agreed inventory.</li><li>What was checked, failed, corrected, or left unmeasured.</li><li>Whether the record supports a real governance decision.</li><li>Whether the outcome is worth repeating, self-hosting, or buying.</li></ul></article>
+      <article class="panel"><h3>What it does not prove</h3><ul><li>That a tool is secure, compliant, or approved.</li><li>How the tool behaves in your production environment.</li><li>Complete vulnerability or policy coverage.</li><li>Availability of SSO, RBAC, multi-tenancy, signed audit export, or SIEM integration today.</li></ul></article>
+    </div>
+  </section>
+
+  <section class="wrap closing">
+    <div><p class="eyebrow">A bounded first step</p><h2>Bring the list. Leave with a decision.</h2><p>The pilot is private by default. We do not identify your company, publish the inventory, quote feedback, or create a case study without written permission.</p></div>
+    <div class="closing-actions"><a class="button primary" href="mailto:contact@xn--5kvo87g.com?subject=AgentGate%20enterprise%20pilot&body=We%20would%20like%20to%20discuss%20the%20four-week%20MCP%20evidence%20review.">Request the pilot</a><small>contact@智量.com · contact@xn--5kvo87g.com</small></div>
+  </section>
+</main>
+<footer class="wrap footer"><p><a href="index.html">Home</a><a href="evidence.html">Evidence</a><a href="security.html">Security</a><a href="privacy.html">Data handling</a><a href="pricing.html">Pricing</a></p><p>Open-source core · AGPL-3.0</p></footer>
+</body></html>
