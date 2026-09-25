@@ -291,7 +291,7 @@ export function hookScriptRefs(scripts) {
  * @param {{version?: string}} [declared] - the version the registry declares.
  * @returns {Array<object>} findings.
  */
-export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
+export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}, hookScriptReasons = {}) {
   const findings = []
   const add = (rule, severity, evidence) => findings.push({ rule, severity, evidence })
   const packages = Array.isArray(server?.packages) ? server.packages : []
@@ -331,10 +331,20 @@ export function auditPackage(server, pkgMeta, declared = {}, hookScripts = {}) {
         add('install-hook-critical', 'critical', 'scripts.' + hook + ' matches ' + label + ': ' + JSON.stringify(value))
         continue
       }
-      for (const ref of hookScriptRefs(scripts)) {
+      for (const { ref } of ownRefs) {
         const content = normalizeHookScriptPath(ref) !== null ? hookScripts[ref] : undefined
         if (typeof content !== 'string') {
-          add('install-hook-script-unavailable', 'unknown', 'hook runs ' + ref + '; content could not be fetched')
+          // The reason decides which finding this is. "The package does not ship this file" is a
+          // defect in the package, and we established it; anything else leaves us unable to say.
+          // One word for both is what let a real defect sit in the unknown bucket.
+          const why = hookScriptReasons[ref]
+          if (why === 'hook-script-not-published') {
+            add('install-hook-script-missing-from-package', 'high',
+              'scripts.' + hook + ' runs ' + ref + ', which the published package does not contain (unpkg and jsdelivr both return 404)')
+          } else {
+            add('install-hook-script-unavailable', 'unknown',
+              'hook runs ' + ref + '; content could not be fetched' + (typeof why === 'string' ? ' (' + why + ')' : ''))
+          }
           continue
         }
         const scriptLabel = criticalPatternOf(content)
@@ -398,34 +408,78 @@ function npmUrl(name) {
   return 'https://registry.npmjs.org/' + name.replace('/', '%2f')
 }
 
-/** Fetch one npm document; returns null on any failure (the caller records unknown). */
-/** Fetch a file from a published package (unpkg, then jsdelivr). Read-only. */
-export async function fetchHookScript(name, version, path, http = defaultHttp) {
+/**
+ * Why a published file could not be read, in the same three-way shape as the registry fetch.
+ *
+ * A 404 from every CDN is knowledge about the package: it does not ship that file. A CDN that
+ * never answered is knowledge about this run, and saying "the content could not be fetched"
+ * for both leaves the reader unable to tell a package that is missing a file from a fetch that
+ * failed — and leaves a retryable failure looking like a permanent fact.
+ */
+export function hookScriptFailureReason(statuses, redirected) {
+  if (statuses.length > 0 && statuses.every(function (s) { return s === 404 })) return 'hook-script-not-published'
+  if (statuses.length === 0 && redirected) return 'hook-script-redirected'
+  if (statuses.indexOf(0) !== -1) return 'registry-unreachable'
+  return 'registry-http-' + statuses[0]
+}
+
+/** Fetch a file from a published package (unpkg, then jsdelivr) together with why it is absent. */
+export async function fetchHookScriptOutcome(name, version, path, http = defaultHttp) {
   const clean = normalizeHookScriptPath(path)
-  if (!isNpmPackageName(name) || !isExactNpmVersion(version) || clean === null) return null
+  // Refused before any request, so this is not evidence that the registry lacks anything.
+  if (!isNpmPackageName(name) || !isExactNpmVersion(version) || clean === null) {
+    return { text: null, reason: 'hook-script-path-not-requested' }
+  }
   const candidates = [
     'https://unpkg.com/' + name + '@' + version + '/' + clean,
     'https://cdn.jsdelivr.net/npm/' + name + '@' + version + '/' + clean,
   ]
+  const statuses = []
+  let redirected = false
   for (const url of candidates) {
     const res = await http(url)
     // defaultHttp exposes the final URL. Do not bind a redirected package,
     // version, path or origin to the package/version that was requested.
-    if (res.url !== undefined && res.url !== url) continue
-    if (res.status === 200 && typeof res.text === 'string') return res.text
+    if (res.url !== undefined && res.url !== url) { redirected = true; continue }
+    if (res.status === 200 && typeof res.text === 'string') return { text: res.text, reason: null }
+    statuses.push(res.status)
   }
-  return null
+  return { text: null, reason: hookScriptFailureReason(statuses, redirected) }
+}
+
+/** Fetch a file from a published package; null on any failure. Read-only. */
+export async function fetchHookScript(name, version, path, http = defaultHttp) {
+  return (await fetchHookScriptOutcome(name, version, path, http)).text
+}
+
+/**
+ * Why the registry gave us nothing. One vocabulary, shared by both registries.
+ *
+ * "the package is not on the registry" and "the registry did not answer us" are
+ * different facts: the first is about the package, the second is about this run.
+ * Collapsing them makes an unmeasured package indistinguishable from a wrong
+ * coordinate, which is the failure this project exists to catch.
+ */
+export function fetchFailureReason(status) {
+  if (status === 0) return 'registry-unreachable'
+  if (status === 404) return 'package-not-found'
+  return 'registry-http-' + status
+}
+
+/** Fetch one PyPI JSON document together with the reason when there is none. Read-only. */
+export async function fetchPypiDocumentOutcome(name, http = defaultHttp) {
+  const res = await http('https://pypi.org/pypi/' + name + '/json')
+  if (res.status !== 200) return { doc: null, reason: fetchFailureReason(res.status) }
+  try {
+    return { doc: JSON.parse(res.text), reason: null }
+  } catch {
+    return { doc: null, reason: 'metadata-not-json' }
+  }
 }
 
 /** Fetch one PyPI JSON document; null on any failure. Read-only. */
 export async function fetchPypiDocument(name, http = defaultHttp) {
-  const res = await http('https://pypi.org/pypi/' + name + '/json')
-  if (res.status !== 200) return null
-  try {
-    return JSON.parse(res.text)
-  } catch {
-    return null
-  }
+  return (await fetchPypiDocumentOutcome(name, http)).doc
 }
 
 /**
@@ -471,23 +525,36 @@ export function auditPypiPackage(server, doc, declared = {}) {
   if (info.version && declaredVersion && info.version !== declaredVersion) {
     add('declared-version-not-latest', 'info', 'registry declares ' + declaredVersion + ', PyPI latest is ' + info.version)
   }
-  if (info.yanked === true) add('package-yanked', 'info', 'the declared version is yanked on PyPI')
+  const yanked = files.filter(file => file.yanked === true)
+  if (yanked.length > 0) add('package-yanked', 'info', yanked.length === files.length
+    ? 'all files of the declared version ' + declaredVersion + ' are yanked on PyPI'
+    : 'some files of the declared version ' + declaredVersion + ' are yanked on PyPI; other files remain available')
   return findings
 }
 
-export async function fetchNpmDocument(name, http = defaultHttp) {
-  if (!isNpmPackageName(name)) return null
+/** Fetch one npm document together with the reason when there is none. Read-only. */
+export async function fetchNpmDocumentOutcome(name, http = defaultHttp) {
+  // Not "invalid-package-name": npm still serves legacy packages whose names predate the lowercase
+  // rule (JSONStream and Base64 answer 200 today). isNpmPackageName is a conservative input guard,
+  // not a statement about the registry. The reason says what this step did — it did not ask — and
+  // the declared name sits in the same record for a reader to judge.
+  if (!isNpmPackageName(name)) return { doc: null, reason: 'package-name-not-requested' }
   const res = await http(npmUrl(name))
-  if (res.status !== 200) return null
+  if (res.status !== 200) return { doc: null, reason: fetchFailureReason(res.status) }
   try {
-    return JSON.parse(res.text)
+    return { doc: JSON.parse(res.text), reason: null }
   } catch {
-    return null
+    return { doc: null, reason: 'metadata-not-json' }
   }
 }
 
+/** Fetch one npm document; null on any failure. Read-only. */
+export async function fetchNpmDocument(name, http = defaultHttp) {
+  return (await fetchNpmDocumentOutcome(name, http)).doc
+}
+
 /** Provenance covers the same metadata and direct script texts used by this scan. */
-export function registryProvenance(server, doc = null, hookScripts = {}) {
+export function registryProvenance(server, doc = null, hookScripts = {}, hookScriptReasons = {}) {
   const pkg = Array.isArray(server?.packages) ? server.packages[0] : null
   const identity = { registry: pkg?.registryType ?? null, name: pkg?.identifier ?? null, version: pkg?.version ?? null }
   if (identity.registry !== 'npm') {
@@ -501,7 +568,7 @@ export function registryProvenance(server, doc = null, hookScripts = {}) {
   const manifest = exactNpmManifest(doc, identity.version, identity.name)
   const scripts = hookScriptRefs(manifest?.scripts).map((path) => normalizeHookScriptPath(path) !== null && typeof hookScripts[path] === 'string'
     ? { path, status: 'present', content: hookScripts[path] }
-    : { path, status: 'missing' })
+    : { path, status: 'missing', reason: hookScriptReasons[path] ?? null })
   return contentProvenance({
     package: identity,
     scope: 'registryDocument/v1: registry server, exact npm version manifest, npm latest and deprecation metadata, and recognized direct node install-hook script texts; excludes transitive imports and package artifact contents',
@@ -511,7 +578,12 @@ export function registryProvenance(server, doc = null, hookScripts = {}) {
       versionManifest: manifest ? { status: 'present', value: manifest } : { status: 'missing' },
       hookScripts: scripts,
     },
-    complete: !!manifest && scripts.every((script) => script.status === 'present'),
+    // A file the package does not ship is a checked absence, the same way a repository tree with no
+    // manifest in it is: we asked both CDNs and both said it is not there. That is knowledge about
+    // the package, and it is complete. A CDN that never answered is not, and neither is a ref this
+    // step chose not to fetch — those stay incomplete, and they are the ones worth retrying.
+    complete: !!manifest && scripts.every((script) => script.status === 'present'
+      || script.reason === 'hook-script-not-published'),
   })
 }
 
@@ -533,9 +605,14 @@ export async function auditRegistryServer(server, { http = defaultHttp } = {}) {
     const doc = await fetchNpmDocument(row.package, http)
     const manifest = exactNpmManifest(doc, row.version, row.package)
     const hookScripts = {}
-    for (const ref of hookScriptRefs(manifest?.scripts)) hookScripts[ref] = await fetchHookScript(row.package, row.version, ref, http)
-    row.findings = auditPackage(server, doc, { version: row.version }, hookScripts)
-    row.provenance = registryProvenance(server, doc, hookScripts)
+    const hookScriptReasons = {}
+    for (const ref of hookScriptRefs(manifest?.scripts)) {
+      const outcome = await fetchHookScriptOutcome(row.package, row.version, ref, http)
+      if (typeof outcome.text === 'string') hookScripts[ref] = outcome.text
+      else hookScriptReasons[ref] = outcome.reason
+    }
+    row.findings = auditPackage(server, doc, { version: row.version }, hookScripts, hookScriptReasons)
+    row.provenance = registryProvenance(server, doc, hookScripts, hookScriptReasons)
     row.audited = true
     row.auditKind = 'npm'
   } else if (row.registryType === 'pypi' && row.package) {

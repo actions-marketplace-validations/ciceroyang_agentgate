@@ -10,6 +10,84 @@ see that it worked. “Nothing to do” is an answer, and it is written out rath
 The rules behind all of this — what a version identifier promises, what may change inside one, how
 a breaking change is announced — are in [compatibility.md](../spec/compatibility.md).
 
+## Unreleased: trust hardening
+
+These changes are local and are not included in the published version merely because the source
+still reports the same package version. Assign a new release version under the compatibility
+policy before publishing; do not overwrite an existing registry release.
+
+- **Affected:** scripts consuming discovery text, required-evidence policy users, watch archive
+  consumers, collector operators, evidence-pack reviewers and subpath site deployments.
+- **Do:** use `discover --format inventory` for a credential-free inventory JSON handoff, or accept
+  registry-qualified text such as `npm:some-tool@1.2.3` and `pypi:some-tool@1.2.3`; legacy inventory
+  text remains readable. Retain `discover --format json` separately for source and conflict review:
+  the inventory input intentionally contains only tool identity, not config paths or diagnostics.
+- **Do:** pass an explicit, non-sample `--index` (Action input `index`) when the policy requires
+  indexed evidence. The local npm package name and version must match the record. Absence is
+  incomplete; an unreadable, malformed or sample index is an input error, not a fallback.
+- **Do:** preserve existing watch archives and make a reviewed capture with the upgraded binary.
+  An old projection has no identity/finding fingerprint, so this transition may show an
+  added/removed baseline rather than a real package change. Subsequent captures compare the new
+  projection. Do not rewrite old hashes or interpret this migration as a new vulnerability.
+- **Do:** after approving collection, refresh repository metadata/classification, rerun
+  `fetch-manifests.mjs` and `audit-packages.mjs`, then rebuild the index with that audit. Legacy
+  cache entries without identity and observation metadata are not reused by these scripts.
+  `agentgate refresh` alone does not run the manifest/audit stages; it can still consume an audit
+  already on disk. Rebuilding an index is not a new observation and does not migrate old evidence.
+- **Do:** treat an empty archive or an empty/non-decision call log as unmeasured. Pack verification
+  proves internal file/hash consistency only, not authentic observation time, log completeness or
+  protection against rebuilding the entire pack. Keep an independently trusted copy when needed.
+- **Do:** use `build-site.mjs --base-path /agentgate` for the project-site deployment. Supply
+  `--diff-index-sha256` only when the diff genuinely belongs to those exact index bytes; an
+  unbound diff is omitted. Refresh failure now stops Pages deployment instead of publishing a sample.
+- **Check:** run `npm test`, the acceptance scripts and `scripts/verify.sh`; inspect sample labels,
+  observation times, required-evidence failures and the migration capture before customer use.
+  Local success does not validate the deployed service, a customer's environment or customer adoption.
+
+## 0.5.0
+
+- **Affected:** anyone reading `execution.byReason` out of `/v1/index/summary`, anyone who runs
+  `refresh` on a schedule, and anyone whose code branches on a finding rule name from the package
+  audit.
+- **What changed:** the package audit now actually reaches the published index. `refresh` never
+  passed `--audit` to `build-index`, so every scheduled rebuild dropped the audit and left ~6,200
+  audited packages described as "a package is declared here" — no error, no log line, the artifact on
+  disk the whole time. With it joined, `packageManifest` appears on repository records and the
+  coverage summary names what could not be measured instead of folding it into one word.
+  Three vocabularies became finer: a package whose metadata is absent now says whether the registry
+  has no such package or this run could not reach it; a hook script now says whether the package does
+  not ship it, a CDN did not answer, or this step did not ask; and a file the package does not ship
+  became its own finding, `install-hook-script-missing-from-package`, rather than an unknown.
+  The four MCP tools declare `outputSchema`, and each description names when to use it and which
+  sibling to use instead.
+- **Do:** nothing is required to upgrade, but two things are worth a look if you consume the data.
+  If you were treating every `metadata-unavailable` as one state, read the `reason` beside it —
+  `package-not-found` and `package-name-not-requested` are different facts. If you match on
+  `install-hook-script-unavailable`, note that the "package does not ship the file" case moved out
+  of it into `install-hook-script-missing-from-package`.
+- **Check:** `curl -s http://127.0.0.1:8080/v1/index/summary | jq -r '.execution.byReason | keys[]'`
+  lists `package-not-found` on an index built by this version; a 0.4.0 index has no such key.
+  `curl -s http://127.0.0.1:8080/v1/servers/github.com/mksglu/context-mode | jq '.record.evidence.packageManifest.findings[].rule'`
+  prints the install-hook findings for a package that has them.
+
+## 0.4.0
+
+- **Affected:** anyone who reads a coverage percentage out of `/v1/index/summary` or the evidence
+  page, or who runs `refresh`.
+- **What changed:** the index can carry two kinds of record — registry entries and repository
+  records — and they are counted **apart** (`sources.registry` / `sources.repositories`), because
+  one percentage over both would flatter the second kind. A repository record can never be `clean`:
+  its `packageManifest` component is skipped, so its state is incomplete by construction.
+  `refresh --repositories` runs the slower half of the chain — an incremental GitHub census, then a
+  classification that only re-fetches repositories whose `pushed_at` moved. The formats and the
+  version identifiers are frozen, and [compatibility.md](../spec/compatibility.md) now says what
+  each one promises.
+- **Do:** nothing, unless you were dividing the record count by something — read `sources` instead
+  of the top-level `count`. Without `--repositories` and without the two artifacts on disk, the
+  index is exactly what it was in 0.3.0.
+- **Check:** `curl -s http://127.0.0.1:8080/v1/index/summary | jq .sources` prints both counts; on
+  a 0.3.0 installation the key is absent.
+
 ## 0.3.0
 
 - **Affected:** anyone parsing `framework --format json`, or embedding the questionnaire mapping.
@@ -108,4 +186,3 @@ look like one.*
 - **What changed:** the bootstrap release, published by hand, with no provenance attestation.
 - **Do:** move to a supported version. The window is defined in
   [compatibility.md](../spec/compatibility.md); `0.1.x` is deprecated on npm.
-

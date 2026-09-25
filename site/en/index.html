@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zhiliang · AgentGate</title>
+<meta name="description" content="Turn an approved MCP tool inventory into a reviewable evidence record, with every source, failed check, correction, and unknown kept visible.">
+<link rel="canonical" href="https://xn--5kvo87g.com/en/">
+<link rel="alternate" hreflang="zh-CN" href="https://xn--5kvo87g.com/">
+<link rel="alternate" hreflang="en" href="https://xn--5kvo87g.com/en/">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Zhiliang · AgentGate"><meta property="og:locale" content="en_US">
+<meta property="og:title" content="Zhiliang · AgentGate"><meta property="og:description" content="Evidence for the MCP tools your agents can use—and explicit unknowns where evidence stops."><meta property="og:url" content="https://xn--5kvo87g.com/en/">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--ink:#101828;--muted:#526074;--line:#d9e0ea;--paper:#f7f9fc;--white:#fff;--accent:#1459d9;--soft:#eaf1ff;--good:#116b4f;--warn:#8a4b08;--shadow:0 20px 55px rgba(25,45,82,.12)}
+@media(prefers-color-scheme:dark){:root{--ink:#edf2f9;--muted:#aab6c7;--line:#303b4b;--paper:#0c111b;--white:#121a27;--accent:#78a6ff;--soft:#182a48;--good:#75d6ae;--warn:#f5bd70;--shadow:0 20px 55px rgba(0,0,0,.28)}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit}.wrap{width:min(1120px,calc(100% - 40px));margin:auto}.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;font-weight:760;text-decoration:none;letter-spacing:-.02em}.mark{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--ink);color:var(--paper);font:700 14px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.navlinks{display:flex;align-items:center;gap:20px;color:var(--muted);font-size:14px}.navlinks a{text-decoration:none}.navlinks a:hover,.navlinks a:focus-visible{color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:64px;align-items:center;padding:92px 0 80px}.eyebrow{margin:0 0 18px;color:var(--accent);font:700 13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.12em}.hero h1{max-width:750px;margin:0;font-size:clamp(42px,6.2vw,74px);line-height:1.02;letter-spacing:-.055em}.lead{max-width:700px;margin:26px 0 0;color:var(--muted);font-size:20px;line-height:1.6}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 18px;border:1px solid var(--ink);border-radius:10px;font-weight:700;text-decoration:none}.button.primary{background:var(--ink);color:var(--paper)}.button:hover,.button:focus-visible{transform:translateY(-1px);box-shadow:0 8px 24px rgba(25,45,82,.12)}.assurances{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:24px;color:var(--muted);font-size:14px}.assurances span:before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:var(--good)}
+.record{position:relative;padding:28px;border:1px solid var(--line);border-radius:18px;background:var(--white);box-shadow:var(--shadow);overflow:hidden}.record:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--accent),#73a2ff)}.record-label{margin:0 0 22px;color:var(--muted);font:700 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.1em}.record-row{display:grid;grid-template-columns:92px 1fr;gap:14px;padding:15px 0;border-top:1px solid var(--line)}.record-row:first-of-type{border-top:0}.record-row b{font:700 12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;color:var(--accent)}.record-row span{font-size:15px;color:var(--muted)}.record-note{margin:18px 0 0;padding:13px 14px;border-radius:9px;background:var(--soft);font-size:14px;color:var(--ink)}
+.section{padding:76px 0;border-top:1px solid var(--line)}.section-head{display:grid;grid-template-columns:.66fr 1.34fr;gap:48px;margin-bottom:36px}.kicker{margin:3px 0 0;color:var(--accent);font:700 13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.1em}.section h2{max-width:750px;margin:0;font-size:clamp(30px,4vw,48px);line-height:1.12;letter-spacing:-.04em}.section-intro{max-width:720px;margin:16px 0 0;color:var(--muted);font-size:18px}
+.journey{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:16px;background:var(--white);overflow:hidden}.journey article{min-height:290px;padding:26px;border-right:1px solid var(--line)}.journey article:last-child{border-right:0}.stage{display:inline-block;margin-bottom:52px;color:var(--accent);font:700 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.08em}.journey h3{margin:0 0 10px;font-size:22px;line-height:1.2;letter-spacing:-.02em}.journey p{margin:0;color:var(--muted)}.journey a{display:inline-block;margin-top:22px;color:var(--ink);font-weight:700;text-underline-offset:4px}
+.pilot-band{display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:start;padding:42px;border-radius:18px;background:var(--ink);color:var(--paper)}.pilot-band .kicker{color:#9fbcff}.pilot-band h2{color:var(--paper)}.pilot-band p{color:#c5cfdd;font-size:18px}.pilot-band .button{margin-top:12px;border-color:var(--paper);background:var(--paper);color:var(--ink)}.steps{display:grid;gap:0}.step{display:grid;grid-template-columns:78px 1fr;gap:18px;padding:18px 0;border-top:1px solid rgba(255,255,255,.16)}.step:first-child{border-top:0;padding-top:2px}.step b{color:#9fbcff;font:700 12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase}.step span{color:#dce3ed}.pilot-note{margin:18px 0 0!important;color:#aeb9ca!important;font-size:14px!important}
+.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.principle{padding:26px;border:1px solid var(--line);border-radius:15px;background:var(--white)}.principle b{display:grid;place-items:center;width:34px;height:34px;margin-bottom:24px;border-radius:9px;background:var(--soft);color:var(--accent);font:700 14px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.principle h3{margin:0 0 10px;font-size:20px;letter-spacing:-.02em}.principle p{margin:0;color:var(--muted)}code{padding:2px 5px;border-radius:5px;background:var(--soft);font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+.product{display:grid;grid-template-columns:.86fr 1.14fr;gap:54px;align-items:start}.product-copy h2{margin-top:0}.product-copy p{color:var(--muted);font-size:18px}.product-copy .button{margin-top:10px}.capabilities{display:grid;grid-template-columns:1fr 1fr;gap:12px}.capability{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--white)}.capability b{display:block;margin-bottom:6px;font-size:16px}.capability span{color:var(--muted);font-size:14px}.product-boundary{grid-column:1/-1;padding:18px 20px;border-left:4px solid var(--warn);border-radius:8px;background:var(--white);color:var(--muted);font-size:14px}.product-boundary strong{color:var(--ink)}
+.proof{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.proof-card{display:flex;min-height:230px;flex-direction:column;padding:26px;border:1px solid var(--line);border-radius:15px;background:var(--white);text-decoration:none}.proof-card:hover,.proof-card:focus-visible{border-color:var(--accent);box-shadow:0 12px 35px rgba(25,45,82,.09)}.proof-card small{color:var(--accent);font:700 12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:.08em}.proof-card h3{margin:28px 0 10px;font-size:22px;letter-spacing:-.02em}.proof-card p{margin:0;color:var(--muted)}.proof-card span{margin-top:auto;padding-top:22px;font-weight:700}
+.closing{display:grid;grid-template-columns:1.25fr .75fr;gap:44px;align-items:end;padding:72px 0}.closing h2{margin:0;font-size:clamp(34px,5vw,60px);line-height:1.05;letter-spacing:-.05em}.closing p{margin:18px 0 0;color:var(--muted);font-size:18px}.closing-actions{text-align:right}.closing-actions .button{width:100%}.closing-actions small{display:block;margin-top:12px;color:var(--muted);font-size:13px}.footer{display:flex;justify-content:space-between;gap:24px;padding:26px 0 48px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}.footer p{margin:0}.footer a{margin-right:14px}
+@media(max-width:900px){.hero{grid-template-columns:1fr;gap:38px;padding-top:64px}.record{max-width:650px}.section-head{grid-template-columns:1fr;gap:12px}.pilot-band,.product{grid-template-columns:1fr}.proof{grid-template-columns:1fr 1fr}.proof-card:last-child{grid-column:1/-1}.closing{grid-template-columns:1fr}.closing-actions{text-align:left;max-width:380px}}
+@media(max-width:700px){.journey,.principles,.proof,.capabilities{grid-template-columns:1fr}.journey article{min-height:0;border-right:0;border-bottom:1px solid var(--line)}.journey article:last-child{border-bottom:0}.stage{margin-bottom:26px}.proof-card:last-child,.product-boundary{grid-column:auto}}
+@media(max-width:620px){.wrap{width:min(100% - 28px,1120px)}.navlinks a:not(:last-child){display:none}.hero{padding:48px 0 58px}.hero h1{font-size:42px}.lead{font-size:18px}.record{padding:22px}.section{padding:58px 0}.pilot-band{padding:28px 22px}.record-row{grid-template-columns:1fr;gap:5px}.closing{padding:58px 0}.footer{display:block}.footer p+p{margin-top:12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button:hover,.button:focus-visible{transform:none}}
+</style></head><body>
+<header class="wrap nav">
+  <a class="brand" href="index.html"><span class="mark">AG</span><span>Zhiliang · AgentGate</span></a>
+  <nav class="navlinks" aria-label="Primary"><a href="pilot.html">Enterprise pilot</a><a href="report-sample.html">Sample report</a><a href="evidence.html">Evidence</a><a href="security.html">Security</a><a href="../index.html" lang="zh-CN" hreflang="zh-CN">中文</a><a href="https://github.com/ciceroyang/agentgate">GitHub</a></nav>
+</header>
+<main>
+  <section class="wrap hero">
+    <div>
+      <p class="eyebrow">MCP evidence for enterprise review</p>
+      <h1>Know what your agents can call—and what you still do not know.</h1>
+      <p class="lead">AgentGate turns an approved MCP tool inventory into a reviewable evidence record. Every source, failed check, correction, and unknown stays visible so your team can make a defensible decision.</p>
+      <div class="actions"><a class="button primary" href="pilot.html">See the enterprise pilot</a><a class="button" href="report-sample.html">Open a sample report</a></div>
+      <div class="assurances"><span>No credentials</span><span>No production access</span><span>Open-source core</span><span>Self-hostable</span></div>
+    </div>
+    <aside class="record" aria-label="Example evidence record structure">
+      <p class="record-label">Reviewable evidence record</p>
+      <div class="record-row"><b>Scope</b><span>The inventory and material boundary used for this review.</span></div>
+      <div class="record-row"><b>Evidence</b><span>Sources, scanner coverage, and reasons behind each finding.</span></div>
+      <div class="record-row"><b>Unknowns</b><span>Unavailable metadata, failed checks, and customer-owned questions.</span></div>
+      <div class="record-row"><b>Decision</b><span>Approve, remediate, monitor, investigate, reject, or stop.</span></div>
+      <p class="record-note"><strong>No silent success.</strong> If required work did not complete, the result cannot become clean.</p>
+    </aside>
+  </section>
+
+  <section class="section"><div class="wrap">
+    <div class="section-head"><p class="kicker">Where to start</p><div><h2>Decision first. Product depth second.</h2><p class="section-intro">Choose the shortest path that matches what you need to establish today.</p></div></div>
+    <div class="journey">
+      <article><span class="stage">Decide</span><h3>Run a bounded enterprise pilot</h3><p>Start with approved tool names. Review the first report, then continue, adjust scope, or stop after Week 1.</p><a href="pilot.html">See the four-week plan →</a></article>
+      <article><span class="stage">Verify</span><h3>Inspect a real deliverable</h3><p>Open the sample report before sharing anything. Check how sources, failures, unmeasured work, and findings are presented.</p><a href="report-sample.html">Open the sample report →</a></article>
+      <article><span class="stage">Operate</span><h3>Use the open-source core</h3><p>Review an inventory locally, inspect the public evidence index, or enforce a policy in your own environment.</p><a href="inventory.html">Review your inventory →</a></article>
+    </div>
+  </div></section>
+
+  <section class="section"><div class="wrap pilot-band">
+    <div><p class="kicker">Four-week design partner pilot</p><h2>Bring the list. Leave with a decision.</h2><p>The customer keeps control of scope and access. AgentGate turns the agreed material into an evidence record, then asks whether the result changed a real governance or purchasing decision.</p><a class="button" href="pilot.html">Review the mutual action plan</a></div>
+    <div class="steps"><div class="step"><b>Week 1</b><span>Initial report and a continue, adjust, or stop gate.</span></div><div class="step"><b>Week 2</b><span>Correct false positives, missed context, and evidence gaps.</span></div><div class="step"><b>Week 3</b><span>Compare retained evidence when a relevant change exists.</span></div><div class="step"><b>Week 4</b><span>Record the operational decision and the honest purchase path.</span></div><p class="pilot-note">The free pilot does not become a subscription or public case study without a separate written agreement.</p></div>
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <div class="section-head"><p class="kicker">Evidence rules</p><div><h2>The report shows where knowledge stops.</h2><p class="section-intro">AgentGate is designed around evidence boundaries rather than optimistic defaults.</p></div></div>
+    <div class="principles">
+      <article class="principle"><b>01</b><h3>Required checks must finish</h3><p>A result can be <code>clean</code> only when every required check completed. A skipped or crashed check remains <code>incomplete</code>.</p></article>
+      <article class="principle"><b>02</b><h3>Unmeasured stays unmeasured</h3><p>Unavailable manifests, registry metadata, packages, or private configuration are visible gaps—not implied approvals.</p></article>
+      <article class="principle"><b>03</b><h3>History cannot be reconstructed</h3><p>Retained snapshots make evidence changes visible. If no comparable snapshot exists, the report says so.</p></article>
+    </div>
+  </div></section>
+
+  <section class="section"><div class="wrap product">
+    <div class="product-copy"><p class="kicker">Open-source product</p><h2>Inspect it before you trust it.</h2><p>The current core can collect evidence, build an inventory, apply policy, retain change history, and place tool calls behind a runtime gateway. It is AGPL-3.0 and can be self-hosted.</p><a class="button" href="try.html">Try the current product</a></div>
+    <div class="capabilities">
+      <div class="capability"><b>Discover</b><span>Produce a local tool-name inventory without exporting credentials or environment variables.</span></div>
+      <div class="capability"><b>Audit</b><span>Record registry, package, repository, scanner, and evidence coverage.</span></div>
+      <div class="capability"><b>Enforce</b><span>Apply an explicit policy in CI or at a runtime gateway.</span></div>
+      <div class="capability"><b>Watch</b><span>Retain snapshots and show evidence changes that occur without a version change.</span></div>
+      <div class="product-boundary"><strong>Current boundary:</strong> SSO/SAML, RBAC, multi-tenancy, enterprise retention controls, signed audit exports, and SIEM integrations are planned requirements, not available product capabilities today.</div>
+    </div>
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <div class="section-head"><p class="kicker">Verify the claims</p><div><h2>Trust pages are part of the product.</h2><p class="section-intro">Use the evidence, security, and data-handling pages to inspect what exists before contacting us.</p></div></div>
+    <div class="proof">
+      <a class="proof-card" href="evidence.html"><small>Public evidence</small><h3>Evidence index</h3><p>Browse the current records, coverage, sources, and incomplete work.</p><span>Browse evidence →</span></a>
+      <a class="proof-card" href="security.html"><small>Verifiable controls</small><h3>Security</h3><p>Review release controls, vulnerability reporting, and explicit claim boundaries.</p><span>Review security →</span></a>
+      <a class="proof-card" href="privacy.html"><small>Data boundary</small><h3>Data handling</h3><p>See what the service receives, what it records, and what remains on your systems.</p><span>Review data handling →</span></a>
+    </div>
+  </div></section>
+
+  <section class="wrap closing">
+    <div><p class="eyebrow">A bounded first step</p><h2>Start with evidence, not a platform commitment.</h2><p>Review the sample, inspect the boundaries, then decide whether a four-week pilot is worth your team's time.</p></div>
+    <div class="closing-actions"><a class="button primary" href="pilot.html">See the enterprise pilot</a><small>Or email contact@智量.com · contact@xn--5kvo87g.com</small></div>
+  </section>
+</main>
+<footer class="wrap footer"><p><a href="pilot.html">Enterprise pilot</a><a href="pricing.html">Pricing</a><a href="history.html">Capture history</a><a href="https://github.com/ciceroyang/agentgate">GitHub</a><a href="mailto:contact@xn--5kvo87g.com">Contact</a></p><p>Open-source core · AGPL-3.0</p></footer>
+</body></html>

@@ -51,6 +51,7 @@
       "selected": { "server": "<string|null>", "package": "<string|null>", "registry": "<string|null>", "version": "<string|null>" } | null,
       "evidence": [ { "block": "<id>", "status": "<string|null>", "source": "<string|null>",
                       "reason": "<string|null>", "digest": "<sha256|null>", "scope": "<string|null>",
+                      "observedAt": "<ISO|null>", "auditedAt": "<ISO|null>", "scanner": "<string|null>",
                       "findings": [ { "rule": "...", "severity": "...", "evidence": "..." } ] } ],
       "execution": { "state": "...", "required": <int|null>, "completed": <int|null>,
                      "failed": <int|null>, "components": [ ... ] } | null,
@@ -100,15 +101,20 @@
 | --- | --- | --- |
 | `tool-identity` | 工具身份 | 该条 `selected` 非空（对上了索引记录） |
 | `exact-version` | 精确版本对应 | 该条 `state === "matched"` |
-| `content-digest` | 内容哈希与覆盖范围 | 证据块里有 `digest` 与 `scope` |
+| `content-digest` | 内容哈希与覆盖范围 | 证据块里有格式有效的 SHA-256 `digest` 与非空 `scope` |
 | `package-metadata` | 包元数据检查 | 存在 `packageManifest` 证据块且 `status !== "unmeasured"` |
 | `scan-execution` | 扫描执行记录 | 该条 `execution` 非空（哪些组件跑完、哪些没跑成） |
 | `change-history` | 变更历史 | 归档里 ≥ 2 次快照 |
-| `archive-integrity` | 归档可校验 | 归档哈希链校验通过 |
+| `archive-integrity` | 归档可校验 | 提供了非空归档且哈希链校验通过 |
 | `coverage-accounting` | 覆盖范围记账 | 由构造保证；`counts` 里写出未测条目数 |
-| `gateway-decisions` | 网关事前决策 | 提供了 `--calls` 日志并解析成功；否则 unmeasured |
+| `gateway-decisions` | 网关事前决策 | `--calls` 可解析且包含实际调用决策：有效时间、client 方向、tools/call 方法、非空 tool、allowed/refused 决策；否则 unmeasured |
 
 类的状态：`backing` 非空且 `missing` 为空 = measured；两者都非空 = partial；`backing` 为空 = unmeasured。
+
+观测时间与审查时间沿证据块传递；没有记录时保留 null，不用索引构建时间补写。
+归档与调用日志仍是上下文证据：当前没有密码学证明将每次调用绑定到每个清单工具，
+也不证明日志完整、来源真实或操作发生于所声明时间。
+当前问卷中未被 `owner: we` 条目引用的证据类，不单独决定整包退出码；应逐类查看缺口。
 
 ## 4. manifest.txt 与封条
 
@@ -128,6 +134,9 @@ note: manifest.txt 自身由 manifest.sha256 封存（自指哈希无法校验�
 ```
 
 `manifest.sha256` 只有一行：`<sha256>  manifest.txt`。
+
+封条和文件一同交付，只能证明所给材料内部一致；如果整份材料连同封条一起重建，
+单靠本地校验无法识别，也不能证明真实生成时间。需要外部可信副本或锚点才能作更强主张。
 
 ## 5. `pack --verify <dir>`
 

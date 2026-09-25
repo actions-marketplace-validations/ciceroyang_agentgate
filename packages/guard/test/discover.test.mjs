@@ -108,11 +108,11 @@ test("claude-code keeps servers per project, as a map or as an array", function 
 test("the same server in two places is one entry that names both sources", function () {
   const files = {
     "/home/tester/.cursor/mcp.json": JSON.stringify({ mcpServers: { shared: { command: "npx", args: ["-y", "shared-pkg@2.0.0"] } } }),
-    "/work/repo/.mcp.json": JSON.stringify({ mcpServers: { shared: { command: "npx", args: ["-y", "shared-pkg"] } } }),
+    "/work/repo/.mcp.json": JSON.stringify({ mcpServers: { shared: { command: "npx", args: ["-y", "shared-pkg@2.0.0"] } } }),
   }
   const report = run(files)
   assert.equal(report.servers.length, 1)
-  assert.equal(report.servers[0].version, "2.0.0", "the pinned one wins")
+  assert.equal(report.servers[0].version, "2.0.0", "only identical versions are merged")
   assert.deepEqual(report.servers[0].from.sort(), ["/home/tester/.cursor/mcp.json", "/work/repo/.mcp.json"])
   assert.deepEqual(report.servers[0].scopes.sort(), ["machine", "project"])
 })

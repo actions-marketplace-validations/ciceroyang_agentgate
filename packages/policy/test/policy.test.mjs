@@ -2,6 +2,8 @@ import { test } from "node:test"
 import assert from "node:assert/strict"
 import { normalizePolicy, loadPolicy, matchesServer, severityRank, POLICY_VERSION } from "../src/policy.mjs"
 import { evaluate, exitCodeFor } from "../src/evaluate.mjs"
+import { buildScanExecution } from "../../collect/src/execution.mjs"
+const completedExecution = id => buildScanExecution({ subject: { server: "a/b" }, components: [{ id, required: true, status: "completed", output_present: true, output_parseable: true, semantic_consistency: "ok" }] })
 
 const base = function (extra) { return Object.assign({ version: POLICY_VERSION, threshold: "high" }, extra || {}) }
 
@@ -87,10 +89,10 @@ test("a complete scan execution does not by itself make a record clean", functio
 test("a policy can name the scanners it insists on", function () {
   const policy = normalizePolicy(base({ required: { scanners: ["packageManifest"] } }))
   assert.deepEqual(policy.requiredScanners, ["packageManifest"])
-  const missing = evaluate({ policy: policy, records: [{ server: "a/b", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "complete", components: [{ id: "registryDocument", required: true, status: "completed" }] } } }] })
+  const missing = evaluate({ policy: policy, records: [{ server: "a/b", packages: [], evidence: {}, scanExecution: completedExecution("registryDocument") }] })
   assert.equal(missing.verdict, "incomplete")
   assert.deepEqual(missing.coverage.executionIncomplete, [{ server: "a/b", state: "complete", failed: ["packageManifest"] }])
-  const present = evaluate({ policy: policy, records: [{ server: "a/b", packages: [], evidence: {}, scanExecution: { scanner_execution: { state: "complete", components: [{ id: "packageManifest", required: true, status: "completed" }] } } }] })
+  const present = evaluate({ policy: policy, records: [{ server: "a/b", packages: [], evidence: {}, scanExecution: completedExecution("packageManifest") }] })
   assert.equal(present.verdict, "clean")
 })
 

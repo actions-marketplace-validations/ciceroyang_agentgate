@@ -87,15 +87,42 @@ gh release create v0.2.4 --title "0.2.4" --notes-file /tmp/notes.md   # 可选�
 
 registry 可能先回一句 `Your package is being processed and may take a few minutes to become available.`，大约 30 秒后 dist-tags 才可见——**看到这句就是发布成功，不是错误**。
 
-已跑通：`v0.1.1`（2026-09-17，dist-tags `next: 0.1.1`）、`v0.2.3`（2026-09-18，dist-tags `next: 0.2.3`，SLSA provenance v1，SBOM 挂在 release 上）。`v0.2.1`、`v0.2.2` 只有 GitHub release，没有上 npm。
+已跑通：`v0.1.1`（2026-09-17）、`v0.2.3`（2026-09-18）、**`v0.5.0`（2026-09-21，run 35621901451，SLSA provenance，SBOM 挂在 release 上）**。
+`v0.2.1`、`v0.2.2` 只有 GitHub release，没有上 npm。
 
-## 六、提升到 latest（最近一次：2026-09-18，0.2.4）
+**0.5.0 这次的实况：workflow 里那一步「Attach the SBOM to the release when there is one」打的是
+`no GitHub release for v0.5.0; the SBOM is on this workflow run` —— 因为 release 是在 publish
+之后才建的。** 所以顺序上有两种做法，任选其一：(a) 先 push tag 让 CI 发版，再从 workflow 产物里
+把 SBOM 下载下来挂到新建的 release 上（0.5.0 和 0.4.0 都是这么补的）；(b) 先建 release 再推 tag，
+workflow 就会自动挂。**别让它只留一个会过期的 workflow artifact** —— 信里那条「你可以自己核」会核不动。
+
+## 六、提升到 latest（最近一次：2026-09-20，0.4.0）
+
+**0.5.0 已于 2026-09-21 提升到 `latest`**（发布由 CI 用 OIDC 完成，带 SLSA provenance；提升由人执行）：
 
 ```sh
-npm dist-tag add @zhiliangtech/agentgate@0.2.4 latest
+npm dist-tag add @zhiliangtech/agentgate@0.5.0 latest
 ```
 
-现状：`{"latest":"0.2.4","next":"0.2.4"}`。验证：`npx --yes --prefer-online @zhiliangtech/agentgate@latest version` 打印 `agentgate 0.2.4`，`@latest mcp` 能返回 initialize。
+现状（2026-09-22 00:0x 核对，registry 直连，不读本机缓存）：`{"latest":"0.5.0","next":"0.5.0"}`。
+验证：`npm_config_cache` 指到空目录再跑 `npx --yes @zhiliangtech/agentgate@latest version` → `agentgate 0.5.0`。
+
+**第一次跑 `dist-tag add` 会先撞 E401**（本机根本没登录），按第五节那段先做 `npm login --auth-type=web`；
+然后**写操作本身还要一次 WebAuthn**（账号是 `auth-and-writes`，登录 ≠ 授权写）。
+0.5.0 这次两步都照这一页走通了。
+
+**2026-09-21 补一条实测：registry 的传播比这一页原先写的一分钟慢得多。**
+publish 那一步打印 `+ @zhiliangtech/agentgate@0.5.0` 并说 "being processed" 之后，
+**直连 `dist-tags` 在 1 分钟、3 分钟时都还是旧的，版本 URL 还是 404；到约 5 分钟才变**。
+所以「发布成功」的判据是日志里的 `+ @zhiliangtech/agentgate@x.y.z` 与
+`Provenance statement published to transparency log`，**不是立刻能查到**。
+在等到之前不要重发——重发会撞 "cannot publish over the previously published versions"。
+
+**2026-09-20 这次的三处实况（和上一次不同，值得记）：**
+
+- 本机 npm **根本没登录**，所以第一步不是动态码而是 E401：`Unable to authenticate, your authentication token seems to be invalid`。先 `npm login --auth-type=web`，它给一个 URL —— **这一次是免码的**，因为浏览器本来就登录着 npmjs.com，打开就显示「身份验证成功」。此后 `npm whoami` 才回 `zhiliangtech`。
+- 写操作那一步的验证 **不是 6 位动态码，是 WebAuthn 安全密钥**：给的 URL 是 `/auth/cli/<uuid>`，打开后会跳到 `/escalate/webauthn?next=...`，页面上是「双因素身份验证 → 安全密钥」，要人在浏览器里碰一下硬件密钥或 Touch ID。**所以这一步 agent 自己过不去，必须把页面开给人看。** `expect` 那句仍然有用：它负责在 pty 里把 URL 打出来。
+- 提完之后 **本机 `npx @latest` 还是打印旧版本**（这次是 0.2.4），这不是失败，就是 packument 缓存。以 registry 直连的 `/-/package/<name>/dist-tags` 为准，或者换一个空的 `npm_config_cache`。
 
 **这一步有两个坑，2026-09-18 都踩到了：**
 
@@ -109,6 +136,38 @@ npm dist-tag add @zhiliangtech/agentgate@0.2.4 latest
 - **本机 `npm view` 会滞后**：改完之后 `npm view ... dist-tags` 可能还显示旧的 `latest`（本机 packument 缓存），而 `curl https://registry.npmjs.org/-/package/@zhiliangtech%2fagentgate/dist-tags` 是即时的。以 registry 直连为准，或者换 `npm_config_cache`。
 
 **这一步只有人能做**：写操作需要动态码，而 npm 的网页授权流程在非交互环境会立刻退出、auth URL 在日志里也是 `***`。发下一版时同样要有人执行一次 `npm dist-tag add`。
+
+---
+
+## 七、版本号要同步到哪些清单文件（2026-09-21 补：漏过一个）
+
+**发一版要动的不止 `package.json`。** 每个对外条目都各自带一份写死的版本号，漏掉任何一个，
+那边就永远停在你上一次记得改的版本上。
+
+| 文件 | 谁在读它 | 改完还要做什么 |
+| --- | --- | --- |
+| `package.json` | npm | 打 tag 触发 CI 发版 |
+| `server.json` | **官方 MCP registry** | `/tmp/mcp-publisher login github -token $(gh auth token)` 然后 `/tmp/mcp-publisher publish` |
+| `lhm.plugin.json` | **LobeHub** | `npx @lobehub/market-cli@latest plugin update --dir .` |
+| `docs/capabilities.md` | 我们自己能力页里那句 `agentgate x.y.z` | — |
+| `README.md`、`docs/operations/pilot-package.md` | 给客户抄的命令 | — |
+
+`docs/samples/evidence-pack-example/pack.json` 里也有版本号，**那是封了样的样例，不要动** ——
+它的价值就在于封条还能验过。
+
+### 2026-09-21 踩到的那个漏
+
+0.5.0 发完之后查「还有哪里残留 0.4.0」，用的是 `grep -rn 0.4.0`。**`lhm.plugin.json` 因此没被查到
+——它停在 `0.3.0`，比上一个版本还早。** 结果 LobeHub 那边跑了一次「更新」，回的是
+`Updated ciceroyang-agentgate@0.3.0 (merged into the existing version)` —— 看起来成功了，其实没动。
+
+**正确做法是 grep 版本号本身，不是 grep 上一个版本号**：
+
+```sh
+grep -rn '"version"\s*:\s*"0\.' --include="*.json" . | grep -v node_modules | grep -v "^./data/"
+```
+
+而且**要看每个 manifest 的返回值**：LobeHub 的 CLI 打印 `@0.3.0` 时就该停下来问一句为什么。
 
 ---
 

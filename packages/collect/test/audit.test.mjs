@@ -337,18 +337,28 @@ test('mismatched manifest identity cannot become complete census evidence', asyn
   }
 })
 
-test('failed metadata or script reads are incomplete, while a fetched empty script is content', async () => {
+test('a file the package does not ship is a finding, while a silent CDN is incomplete', async () => {
   const missingMetadata = await auditRegistryServer(server, { http: async () => ({ status: 404, text: '' }) })
   assert.equal(missingMetadata.provenance.complete, false)
   assert.ok(missingMetadata.findings.some((finding) => finding.rule === 'package-metadata-unavailable'))
   const doc = pkg('node install.js')
-  for (const status of [404, 200]) {
-    const row = await auditRegistryServer(server, { http: async (url) => url.startsWith('https://registry.npmjs.org/')
-      ? { status: 200, text: JSON.stringify(doc) }
-      : { status, text: '' } })
-    assert.equal(row.provenance.complete, status === 200)
-    assert.equal(row.findings.some((finding) => finding.rule === 'install-hook-script-unavailable'), status === 404)
-  }
+  const cdn = (status) => async (url) => url.startsWith('https://registry.npmjs.org/')
+    ? { status: 200, text: JSON.stringify(doc) }
+    : { status, text: '' }
+  // Both CDNs say the file is not in the package. We asked, we got an answer, and the answer is
+  // about the package: the manifest declares a postinstall that cannot run. That is a finding with
+  // complete evidence, not a gap.
+  const notPublished = await auditRegistryServer(server, { http: cdn(404) })
+  assert.equal(notPublished.provenance.complete, true)
+  assert.ok(notPublished.findings.some((finding) => finding.rule === 'install-hook-script-missing-from-package'))
+  assert.ok(!notPublished.findings.some((finding) => finding.rule === 'install-hook-script-unavailable'))
+  // A CDN that never answered is the other thing entirely, and it stays incomplete so it gets retried.
+  const silent = await auditRegistryServer(server, { http: cdn(0) })
+  assert.equal(silent.provenance.complete, false)
+  assert.ok(silent.findings.some((finding) => finding.rule === 'install-hook-script-unavailable'))
+  assert.ok(!silent.findings.some((finding) => finding.rule === 'install-hook-script-missing-from-package'))
+  const fetched = await auditRegistryServer(server, { http: cdn(200) })
+  assert.equal(fetched.provenance.complete, true)
 })
 
 test('unsupported registries emit incomplete provenance without adding network reads', async () => {

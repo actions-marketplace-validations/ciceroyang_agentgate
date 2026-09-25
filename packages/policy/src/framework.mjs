@@ -221,6 +221,44 @@ const ENTRIES = [
     boundary: "整改计划、责任人与验收是你们的。" },
 ]
 
+/**
+ * Regulation (EU) 2024/1689 (the AI Act), the record-keeping obligations only: Article 12 and
+ * Article 19. Which paragraphs were read, and from where, is in `source` below - a mapping that
+ * does not say what it read is a mapping nobody can check.
+ *
+ * Almost nothing here is ours, and that is the honest result rather than a modest one: we do not
+ * run the customer's AI system and we do not produce its logs. What we can do is make the
+ * artefacts that do exist checkable, and count what we could not read.
+ */
+const EU_AIA_ENTRIES = [
+  { id: "EU-AIA-12.1", topic: "高风险 AI 系统在生命周期内自动记录事件（日志）", owner: "customer", evidence: [],
+    weProvide: "日志不是我们产生的，也不在你的系统里。我们只能对已经存在的日志产物做写入后的改动检测与内容摘要。",
+    boundary: "日志的产生必须在你的系统里实现；我们不运行它。" },
+  { id: "EU-AIA-12.1.integrity", topic: "被引用的日志产物此后没有被改动过", owner: "we",
+    evidence: ["content-digest", "archive-integrity"],
+    weProvide: "证据包对每个文件算 sha256 并加封条（agentgate pack --verify 可重算）；链式账本逐行校验前一条的哈希（agentgate history --verify）。",
+    boundary: "只证明「读到的那一份此后没变」，不证明它记得全，也不证明记录时刻的完整性。" },
+  { id: "EU-AIA-12.2", topic: "记录的事件足以支持追溯：风险情形、上市后监测、运行监测", owner: "customer", evidence: [],
+    weProvide: "我们能把你声明要记的事件字段与产物里实际出现的字段对照，并列出没读到的那些。",
+    boundary: "该记录哪些事件取决于你的风险分析与预期目的，不是我们决定的。" },
+  { id: "EU-AIA-12.2.coverage", topic: "声明要记的内容里，有多少真的出现在产物中", owner: "we",
+    evidence: ["coverage-accounting", "scan-execution"],
+    weProvide: "覆盖率记账：测到的与没测到的分开计数；任何一项没测到，整体会被标成不完整，而不是通过。",
+    boundary: "我们核对的是产物，不是运行时行为。" },
+  { id: "EU-AIA-12.3", topic: "生物识别场景的专门记录要求", owner: "third-party", evidence: [],
+    weProvide: "未覆盖。这一版映射只读到第 12(1)、12(2) 段；12(3)、12(4) 不在范围内，不在这里假装有。",
+    boundary: "需要你的合规或法务判断，可能还需要独立评估方。" },
+  { id: "EU-AIA-19.1", topic: "日志保留期：达到预期目的所需，且不少于六个月", owner: "customer", evidence: [],
+    weProvide: "我们不存储你的日志，因此无法证明任何保留期。",
+    boundary: "保留、删除与存储介质都在你的系统里。" },
+  { id: "EU-AIA-19.1.scope", topic: "「在你控制范围内的日志」这条限定条件的边界", owner: "customer",
+    evidence: ["coverage-accounting"],
+    weProvide: "我们能做的是把「控制范围」变成一份可枚举的清单：哪些产物在我们能核到的范围内，哪些不能。",
+    boundary: "控制范围本身的界定是你的。" },
+  { id: "EU-AIA-19.2", topic: "金融机构按金融业法留存日志", owner: "third-party", evidence: [],
+    weProvide: "未覆盖。",
+    boundary: "受金融业法监管的事项不在我们的范围内。" },
+]
 export const FRAMEWORKS = {
   aicaiq: {
     id: "aicaiq",
@@ -229,6 +267,14 @@ export const FRAMEWORKS = {
     note: "这张表说明我们能提供什么证据，不是合规结论。每一条最终由谁交账，见归属列。",
     domains: ["STA", "CCC", "LOG", "A&A"],
     entries: ENTRIES,
+  },
+  "eu-aia": {
+    id: "eu-aia",
+    name: "EU AI Act 记录义务（对照）",
+    source: "Regulation (EU) 2024/1689 第 12 条与第 19 条。只保留条款编号与义务要点，不转载条文原文；条文以 EUR-Lex 为准。核对过的段落：12(1)、12(2)、19(1)、19(2)。",
+    note: "这张表说明我们能提供什么证据，不是合规结论。它覆盖的只是记录义务，而且是其中我们读过的段落。",
+    domains: ["EU-AIA-12", "EU-AIA-19"],
+    entries: EU_AIA_ENTRIES,
   },
 }
 

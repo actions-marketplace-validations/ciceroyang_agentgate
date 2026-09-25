@@ -20,6 +20,13 @@ const FORMATS = ["raw", "wecom", "feishu", "slack"]
 
 function sha256Hex(buffer) { return createHash("sha256").update(buffer).digest("hex") }
 
+// Sort object keys and unordered evidence lists; keep only the digest, never private findings.
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
+  if (value && typeof value === "object") return Object.fromEntries(Object.keys(value).sort().map(k => [k, canonical(value[k])]))
+  return value ?? null
+}
+
 /** The identity of a list entry: the thing we would match against the index. */
 export function keyOf(entry) {
   return entry.server || entry.package || entry.name || "(未命名)"
@@ -33,7 +40,7 @@ export function canonicalInput(entries) {
       registry: entry.registry || null, version: entry.version || null,
     }
   })
-  rows.sort(function (a, b) { return keyOf(a).localeCompare(keyOf(b)) })
+  rows.sort(function (a, b) { return JSON.stringify(a).localeCompare(JSON.stringify(b)) })
   return JSON.stringify(rows)
 }
 
@@ -46,28 +53,41 @@ export function projectionOf(report) {
     const input = item.input || {}
     return {
       key: keyOf(input),
+      identity: JSON.stringify([input.server || null, input.registry || null, input.package || null, input.server || input.package ? null : input.name || null]),
       state: item.state || "insufficient",
       label: item.label || null,
       version: input.version || null,
       evidence: item.selected ? (item.selected.version || null) : null,
       findings: (item.findings || []).length,
+      fingerprint: sha256Hex(JSON.stringify(canonical({
+        selected: item.selected || null, findings: item.findings || [],
+        evidence: (item.evidence || []).map(({ observedAt, auditedAt, ...content }) => content),
+        execution: item.execution ? { state: item.execution.state, components: item.execution.components } : null,
+        scanner: report.index?.scanner || null,
+      }))),
     }
   })
-  rows.sort(function (a, b) { return a.key.localeCompare(b.key) })
+  rows.sort(function (a, b) { return a.identity.localeCompare(b.identity) || JSON.stringify(a).localeCompare(JSON.stringify(b)) })
   return rows
 }
 
 export function diffProjections(previous, current) {
-  const before = new Map((previous || []).map(function (i) { return [i.key, i] }))
-  const after = new Map((current || []).map(function (i) { return [i.key, i] }))
-  const added = (current || []).filter(function (i) { return !before.has(i.key) }).map(function (i) { return i.key })
-  const removed = (previous || []).filter(function (i) { return !after.has(i.key) }).map(function (i) { return i.key })
+  const identity = i => i.identity || i.key
+  const group = rows => {
+    const groups = new Map()
+    for (const row of rows || []) groups.set(identity(row), [...(groups.get(identity(row)) || []), row])
+    return groups
+  }
+  const before = group(previous)
+  const after = group(current)
+  const added = (current || []).filter(i => !before.has(identity(i))).map(i => i.key)
+  const removed = (previous || []).filter(i => !after.has(identity(i))).map(i => i.key)
   const changed = []
-  for (const item of current || []) {
-    const old = before.get(item.key)
-    if (!old) continue
-    const differs = old.state !== item.state || old.label !== item.label || old.version !== item.version ||
-      old.evidence !== item.evidence || old.findings !== item.findings
+  for (const [id, items] of after) {
+    const prior = before.get(id)
+    if (!prior) continue
+    const item = items[0], old = prior[0]
+    const differs = JSON.stringify(canonical(prior)) !== JSON.stringify(canonical(items))
     if (differs) {
       changed.push({
         key: item.key, fromState: old.state, toState: item.state,

@@ -47,6 +47,9 @@ function renderEvidence(evidence) {
   return "<section class=\"evidence\"><h4>" + esc(evidence.block || "未命名证据块") + "</h4><table><tbody>" + rows([
     ["记录状态", evidence.status],
     ["来源", evidence.source],
+    ["清单观测时间", evidence.observedAt || "未单独记录，不能用索引构建时间替代"],
+    ["包审查时间", evidence.auditedAt || "未单独记录，不能用索引构建时间替代"],
+    ["包审查器标识", evidence.scanner || "未单独记录"],
     ["未覆盖原因", evidence.reason || "未记录额外原因；状态仍以本证据块为准"],
     ["对应包与版本", identity],
     ["检查范围", content.scope],
@@ -102,20 +105,118 @@ function renderItem(item, index) {
  * per-item rows above are evidence, and this table is who answers what. Merging them would let
  * the reader take one for the other.
  */
-function renderFramework(framework) {
-  const owners = { we: "我们出证据", customer: "你们自证", "third-party": "第三方" };
+function renderFramework(framework, locale = "zh") {
+  const en = locale === "en";
+  const owners = en ? { we: "AgentGate provides evidence", customer: "Customer provides evidence", "third-party": "Third party" } : { we: "我们出证据", customer: "你们自证", "third-party": "第三方" };
   const entries = Array.isArray(framework.entries) ? framework.entries : [];
-  return "<h2>问卷对照（" + esc(framework.name) + "）</h2>" +
-    "<p class=\"muted\">" + esc(framework.note) + " 来源：" + esc(framework.source) + "</p>" +
-    "<table><thead><tr><th>条目</th><th>它问什么</th><th>最终由谁交账</th><th>我们能给什么</th><th>边界</th></tr></thead><tbody>" +
+  return "<h2>" + (en ? "Questionnaire mapping (" : "问卷对照（") + esc(framework.name) + (en ? ")" : "）") + "</h2>" +
+    "<p class=\"muted\">" + esc(framework.note) + (en ? " Source: " : " 来源：") + esc(framework.source) + (en ? " · Mapping text is shown in its original language." : "") + "</p>" +
+    "<table><thead><tr>" + (en ? "<th>Item</th><th>Question</th><th>Evidence owner</th><th>What AgentGate provides</th><th>Boundary</th>" : "<th>条目</th><th>它问什么</th><th>最终由谁交账</th><th>我们能给什么</th><th>边界</th>") + "</tr></thead><tbody>" +
     entries.map(function (entry) {
       return "<tr><td>" + esc(entry.id) + "</td><td>" + esc(entry.topic) + "</td><td>" + esc(owners[entry.owner] || entry.owner) + "</td><td>" + esc(entry.weProvide) + "</td><td>" + esc(entry.boundary) + "</td></tr>";
     }).join("") + "</tbody></table>";
 }
 
+function valueTextEn(value, fallback = "Not provided") {
+  if (value === null || value === undefined || value === "") return fallback;
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+const STATES_EN = {
+  matched: "Evidence matched",
+  unmatched: "No matching record",
+  ambiguous: "Candidate confirmation required",
+  version_missing: "Actual version required",
+  version_mismatch: "Version mismatch",
+  insufficient: "Insufficient evidence",
+};
+
+function labelEn(item) { return item.label || STATES_EN[item.state] || "Unknown status"; }
+function inputNameEn(item) {
+  const input = item.input || {};
+  return input.name || input.server || input.package || "Unnamed tool";
+}
+function rowsEn(fields) {
+  return fields.map(([name, value]) => "<tr><th scope=\"row\">" + esc(name) + "</th><td>" + esc(valueTextEn(value)) + "</td></tr>").join("");
+}
+function nextStepsEn(item) {
+  const steps = Array.isArray(item.nextSteps) ? item.nextSteps : [];
+  return steps.length ? "<ul>" + steps.map(step => "<li>" + esc(step) + "</li>").join("") + "</ul>" : "<p>Add material that confirms the tool identity, actual version, or inspection scope.</p>";
+}
+function renderEvidenceEn(evidence) {
+  const provenance = evidence.provenance || {}, content = provenance.content || {}, pkg = provenance.package || {};
+  const digestRecorded = content.algorithm === "sha256" && typeof content.digest === "string" && /^[a-f0-9]{64}$/i.test(content.digest);
+  const identity = [pkg.registry, pkg.name, pkg.version].filter(Boolean).join(" / ");
+  return "<section class=\"evidence\"><h4>" + esc(evidence.block || "Unnamed evidence block") + "</h4><table><tbody>" + rowsEn([
+    ["Record status", evidence.status], ["Source", evidence.source],
+    ["Inventory observation time", evidence.observedAt || "Not recorded separately; index build time is not a substitute"],
+    ["Package inspection time", evidence.auditedAt || "Not recorded separately; index build time is not a substitute"],
+    ["Package scanner identity", evidence.scanner || "Not recorded separately"],
+    ["Uncovered reason", evidence.reason || "No additional reason recorded; use the evidence-block status"],
+    ["Package identity and version", identity], ["Inspection scope", content.scope],
+    ["Provenance", evidence.provenance ? (provenance.complete === true ? "Complete for the stated inspection scope" : "Incomplete") : "Not provided"],
+    ["Content digest status", digestRecorded ? "SHA-256 recorded; this report did not retrieve the original content and recompute it" : "No valid SHA-256 digest provided"],
+    ["Digest algorithm", content.algorithm], ["Content digest", content.digest],
+  ]) + "</tbody></table></section>";
+}
+function renderExecutionEn(item) {
+  if (!item.selected) return "";
+  const execution = item.execution;
+  if (!execution) return '<h4>Scan coverage</h4><p class="gap">This index record predates scan-execution and does not identify which scanners ran. Missing records do not mean the scanners completed.</p>';
+  const components = Array.isArray(execution.components) ? execution.components : [];
+  const counted = ["required", "completed", "failed"].every(key => Number.isInteger(execution[key]));
+  const summary = counted
+    ? "State: " + valueTextEn(execution.state) + " · required " + execution.required + ", completed " + execution.completed + ", failed " + execution.failed
+    : "State: " + valueTextEn(execution.state) + " · counts not provided; completion cannot be determined";
+  const table = components.length
+    ? "<table><thead><tr><th>Scanner</th><th>Required</th><th>Status</th><th>Output</th><th>Consistency</th><th>Reason</th></tr></thead><tbody>" + components.map(component => "<tr><td>" + esc(component.id) + "</td><td>" + (component.required ? "Required" : "Optional") + "</td><td>" + esc(component.status) + "</td><td>" + (component.output_present ? "Present" : "Absent") + " / " + (component.output_parseable ? "parseable" : "not parseable") + "</td><td>" + esc(component.semantic_consistency) + "</td><td>" + esc(component.reason || "") + "</td></tr>").join("") + "</tbody></table>"
+    : '<p class="gap">No scanners are listed, so this record cannot be treated as complete.</p>';
+  return '<h4>Scan coverage</h4><p class="' + (execution.state === "complete" && counted ? "muted" : "gap") + '">' + esc(summary) + "</p>" + table + '<p class="muted">Coverage describes this index record only. Failed work is not counted as a pass, and an unmatched version cannot prove the state of your installation.</p>';
+}
+function renderItemEn(item, index) {
+  const input = item.input || {}, selected = item.selected || {};
+  const evidence = Array.isArray(item.evidence) ? item.evidence : [], candidates = Array.isArray(item.candidates) ? item.candidates : [];
+  return '<article class="item"><h3>' + (index + 1) + ". " + esc(inputNameEn(item)) + '</h3><p class="state">' + esc(labelEn(item)) + "</p><p>" + esc(item.reason || "No explanation recorded") + '</p><div class="identity"><section><h4>User-provided inventory</h4><table><tbody>' + rowsEn([
+    ["Name", input.name], ["Server", input.server], ["Package", input.package], ["Registry", input.registry], ["Actual version (user-provided)", input.version || "Not provided; actual version cannot be confirmed"],
+  ]) + '</tbody></table></section><section><h4>Matching index record</h4><table><tbody>' + rowsEn([
+    ["Server", selected.server || "Not confirmed"], ["Package", selected.package], ["Registry", selected.registry], ["Index version", selected.version || "Not provided; cannot replace the actual version"], ["Evidence generated", item.evidenceGeneratedAt],
+  ]) + "</tbody></table></section></div>" +
+    (!item.selected && candidates.length ? "<h4>Candidates awaiting confirmation</h4><ul>" + candidates.map(candidate => "<li>" + esc([candidate.server, candidate.package, candidate.registry, candidate.version].filter(Boolean).join(" / ")) + "</li>").join("") + "</ul>" : "") +
+    renderExecutionEn(item) + (evidence.length ? "<h4>Index evidence and inspection scope</h4>" + evidence.map(renderEvidenceEn).join("") : '<p class="gap">No evidence block applies to this inventory item. Uncovered does not mean no issues were found.</p>') + "</article>";
+}
+
+function renderInventoryReportEn(data, options) {
+  const items = Array.isArray(data.items) ? data.items : [], source = data.index || {};
+  const gaps = items.filter(item => item.state !== "matched");
+  const findingItems = items.flatMap(item => (Array.isArray(item.findings) ? item.findings : []).map(finding => ({ item, finding })));
+  const sample = source.snapshot === true || /sample/i.test(valueTextEn(source.snapshot, ""));
+  const snapshot = source.snapshot === true ? "Historical sample snapshot" : source.snapshot === false ? "Public evidence snapshot (not a sample)" : valueTextEn(source.snapshot, "Type not provided");
+  const counts = { total: items.length, matched: items.filter(item => item.state === "matched").length, attention: items.filter(item => item.state !== "matched" || (Array.isArray(item.findings) && item.findings.length > 0)).length };
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"><title>Tool inventory evidence report · AgentGate</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#fff;color:#17191b;font:15px/1.75 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:44px 28px 72px}.brand{font-size:13px;letter-spacing:.05em;color:#656b72}h1{font-size:28px;line-height:1.3;margin:16px 0 12px}h2{font-size:20px;margin:36px 0 14px;padding-top:24px;border-top:1px solid #dfe3e6}h3{font-size:17px;margin:0 0 10px}h4{font-size:14px;margin:18px 0 8px}p{margin:8px 0}ul{padding-left:22px}.muted{color:#656b72;font-size:13px}.notice{padding:16px 18px;background:#f4f6f7;border:1px solid #dfe3e6;border-radius:8px;margin:20px 0}.gap{padding:14px 16px;background:#fffbf2;border-left:3px solid #b48228}.summary{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}.summary div{flex:1;min-width:140px;padding:14px 16px;border:1px solid #dfe3e6;border-radius:8px}.summary b{display:block;font-size:25px}.summary span{font-size:13px;color:#656b72}.item{border:1px solid #dfe3e6;border-radius:8px;padding:20px;margin:16px 0;break-inside:avoid}.state{display:inline-block;font-size:13px;border:1px solid #b6bec6;border-radius:4px;padding:2px 8px}.identity{display:grid;grid-template-columns:1fr 1fr;gap:20px}.evidence{margin-top:20px;border-top:1px solid #e7eaed}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px 10px;border-bottom:1px solid #e7eaed;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{font-weight:500;color:#656b72;width:150px}footer{margin-top:36px;padding-top:18px;border-top:1px solid #dfe3e6;font-size:13px;color:#656b72}.finding{margin:12px 0;padding:16px;border:1px solid #dfe3e6;border-radius:6px}@media(max-width:640px){main{padding:26px 16px}.identity{grid-template-columns:1fr}.item{padding:16px}th{width:110px}}@media print{main{max-width:none;padding:12px}.notice,.gap{print-color-adjust:exact}h2,h3,h4{break-after:avoid}.evidence,.finding{break-inside:avoid}}</style></head><body><main>
+<p class="brand">Zhiliang / AgentGate</p><h1>Tool inventory evidence report</h1><p class="muted">Generated: ${esc(valueTextEn(data.generatedAt))} · report schema: ${esc(valueTextEn(data.schemaVersion))}</p>
+${data.demonstration === true ? '<div class="gap"><strong>Demonstration report: this inventory came from the page example and does not represent anyone’s installation or use.</strong></div>' : ''}
+<div class="notice"><strong>“Evidence matched” means the tool identity and index evidence met the matching conditions. It is not a security certification or approval to use the tool.</strong><p>This report compares user-provided inventory data with existing historical registry material. It did not scan the machine, verify the installation, execute a tool, or access its service. Historical material does not prove current runtime behavior, and user-entered versions were not verified against the machine.</p><p>The report was generated locally in the browser. It contains the names and versions you entered; review them before sharing. User input and source evidence are shown as recorded, including their original language.</p></div>
+<div class="summary"><div><b>${counts.total}</b><span>Inventory items</span></div><div><b>${counts.matched}</b><span>Evidence matched · not a safety claim</span></div><div><b>${counts.attention}</b><span>Require attention · including findings</span></div></div>
+<h2>Index used for this report</h2><table><tbody>${rowsEn([["Snapshot type", snapshot], ["Index generated", source.generatedAt], ["Scanner version", source.scanner], ["Total index records", source.total]])}</tbody></table>
+<p class="${sample ? 'gap' : 'muted'}">${sample ? 'This is a sample index for demonstration. It is not complete or current evidence.' : 'This report used the historical snapshot embedded when the page loaded. Generating it did not update the index or inspect upstream content again.'}</p>
+${source.truncated === true ? '<p class="gap">The page index was truncated. A missing record may be outside this page and does not prove that no public evidence exists.</p>' : ''}
+<h2>Review first: uncovered and unconfirmed items</h2>
+${gaps.length ? gaps.map(item => '<section class="gap"><h3>' + esc(inputNameEn(item)) + ' · ' + esc(labelEn(item)) + '</h3><p>' + esc(item.reason || 'Additional matching material is required') + '</p>' + nextStepsEn(item) + '</section>').join('\n') : '<p>No match gaps remain for this input and index scope. This does not mean the tools are risk-free or expand the scope of any evidence block.</p>'}
+<h2>Findings in the available evidence</h2><p class="muted">These findings belong to the selected index records. When a version is not matched, they cannot be attributed directly to your installed version.</p>
+${findingItems.length ? findingItems.map(({ item, finding }) => '<section class="finding"><h3>' + esc(inputNameEn(item)) + '</h3><p class="muted">Index object: ' + esc(item.selected ? [item.selected.server, item.selected.package, item.selected.version].filter(Boolean).join(' / ') : 'Not confirmed') + ' · evidence block: ' + esc(finding.block || 'Not provided') + '</p><p><strong>' + esc(finding.rule || 'Rule not provided') + '</strong> · ' + esc(finding.severity || 'Severity not provided') + '</p><p>' + esc(finding.message || finding.evidence || 'No finding explanation recorded') + '</p>' + (finding.file ? '<p class="muted">Location: ' + esc(finding.file) + '</p>' : '') + '</section>').join('\n') : '<p>No findings are attached to the index evidence shown here. Uncovered items remain subject to the previous section; this is not evidence that every tool is risk-free.</p>'}
+<h2>Item-by-item matching and evidence scope</h2>${items.map(renderItemEn).join('\n')}
+${options && options.framework ? renderFramework(options.framework, "en") : ''}
+<footer>This is a static, script-free HTML report and will not update over the network. Index evidence, an actual installation, and organizational approval are separate facts. Uncovered work was not counted as a pass.</footer>
+</main></body></html>\n`;
+}
+
 /** The HTML contains no scripts, forms, external resources or untrusted markup. */
 export function renderInventoryReport(report, options) {
   const data = report || {};
+  if (data.locale === "en") return renderInventoryReportEn(data, options);
   const items = Array.isArray(data.items) ? data.items : [];
   const source = data.index || {};
   const gaps = items.filter(item => item.state !== "matched");

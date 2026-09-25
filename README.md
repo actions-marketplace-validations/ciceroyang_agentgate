@@ -29,6 +29,10 @@ Server setup is in [docs/operations/deployment-runbook.md](docs/operations/deplo
 The first deployment, on 2026-09-16, is written up in
 [docs/verification.md](docs/verification.md) together with what was checked and what still is not.
 
+[docs/capabilities.md](docs/capabilities.md) lists what this project can and cannot claim, one line
+each, every line carrying a command you can run. It exists because a consultant once wrote our
+capabilities down for us and included four we do not have.
+
 ## Try it without installing
 
 The service runs at <https://xn--5kvo87g.com/>: landing page, pricing, the evidence index
@@ -64,7 +68,7 @@ npx @zhiliangtech/agentgate check --root .
 npx @zhiliangtech/agentgate serve
 ```
 
-`npx` follows the `latest` dist-tag. Pin a version (`@zhiliangtech/agentgate@0.2.0`) if you need
+`npx` follows the `latest` dist-tag. Pin a version (`@zhiliangtech/agentgate@0.5.0`) if you need
 an exact one.
 
 With no policy file, `check` uses a built-in default that refuses nothing extra, and `serve`
@@ -216,8 +220,12 @@ A policy states what a company refuses. It is data rather than code, and it has 
 ```
 
 ```sh
-node bin/agentgate.mjs check --policy agentgate.policy.json --root .
+node bin/agentgate.mjs check --policy agentgate.policy.json --root . --index data/index.json
 ```
+
+The policy above requires indexed evidence. Supply a real index matching the local npm package's
+exact name and version: missing evidence exits 2; an explicit missing, malformed or sample index
+exits 3. A local source scan does not substitute for the required package evidence.
 
 With no policy file and no `--policy`, the check still runs. It reports what the checks found and
 says it used the built-in default, which refuses nothing extra; inventing obligations on your
@@ -227,7 +235,7 @@ be read is an error, because that is a typo.
 The same evaluation can go to a person instead of a terminal:
 
 ```sh
-node bin/agentgate.mjs check --policy agentgate.policy.json --root . --format html --out report.html
+node bin/agentgate.mjs check --policy agentgate.policy.json --root . --index data/index.json --format html --out report.html
 ```
 
 One static, printable file with no script in it. Anything that could not be measured gets its own
@@ -253,6 +261,7 @@ the pull request rather than left in a log nobody opens.
 - uses: ciceroyang/agentgate@main
   with:
     policy: agentgate.policy.json
+    index: data/index.json
 ```
 
 See [examples/github-actions/policy.yml](examples/github-actions/policy.yml). The action runs the
@@ -312,9 +321,10 @@ node packages/collect/bin/agent-add.mjs --index data/index.json <server-name>
 
 ## Writing
 
-- [The audit finished on 264 of 2,057 MCP servers](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.md) ([中文](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.zh-CN.md)) — how many of the collected servers were actually measured, and what stopped the rest.
+- [We indexed 11,605 MCP records and could audit 258 of them](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.md) ([中文](docs/articles/2026-09-how-much-of-the-mcp-ecosystem-is-auditable.zh-CN.md)) — how many of the collected servers were actually measured, and what stopped the rest. The numbers are the 2026-09-19 build the piece was written against; the index is rebuilt several times a day and moves.
 - [The loudest rule was wrong nine times out of nine](docs/articles/2026-09-the-loudest-rule-was-wrong.md)
 - [Clean is a claim about work that was done](docs/articles/2026-09-clean-is-a-claim.md)
+- [A reason that reads as a finding](docs/articles/2026-09-a-reason-that-reads-as-a-finding.md) — five coverage gaps whose text described the subject when it should have described the scanner. Four of them are mine.
 
 ## Test
 
@@ -371,7 +381,7 @@ This is an early open-source core. It covers collection, an evidence index, scan
 checks in CI, a runtime gateway for MCP servers over stdio, historical diffs and a read-only
 service. Deployment scripts and a runbook are in the tree, and the first deployment with its
 checks is written up in [docs/verification.md](docs/verification.md). That write-up says nothing
-about the current health of the hosted service, and the Docker image build is still unverified.
+about the current health of the hosted service. The container path is not asserted but built: CI runs `docker compose up --build` and then a health check against the running container.
 
 What the version identifiers promise, and which versions are supported, is written down in
 [docs/spec/compatibility.md](docs/spec/compatibility.md); [SECURITY.md](SECURITY.md) says how to report

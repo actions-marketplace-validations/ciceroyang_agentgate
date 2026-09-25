@@ -17,6 +17,10 @@ inputs:
     description: Scanner severity that fails the run, used only when no policy is given.
     required: false
     default: "high"
+  index:
+    description: Evidence index for the exact package/version, required when the policy requires indexed evidence. Never falls back to the bundled sample.
+    required: false
+    default: ""
   sarif-file:
     description: Where to write the SARIF report.
     required: false
@@ -41,12 +45,17 @@ runs:
   steps:
     - id: run
       shell: bash
+      env:
+        AG_INPUT_INDEX: ${{ inputs.index }}
       run: |
         set +e
+        index_args=()
+        if [ -n "$AG_INPUT_INDEX" ]; then index_args=(--index "$AG_INPUT_INDEX"); fi
         if [ -n "${{ inputs.policy }}" ]; then
           node "$GITHUB_ACTION_PATH/bin/agentgate.mjs" check \
             --root "${{ inputs.path }}" \
             --policy "${{ inputs.policy }}" \
+            "${index_args[@]}" \
             --format sarif \
             --out "${{ inputs.sarif-file }}" > "${{ inputs.report-file }}" 2>&1
         else

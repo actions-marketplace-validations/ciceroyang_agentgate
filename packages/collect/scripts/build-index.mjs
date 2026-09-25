@@ -9,6 +9,7 @@
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { canBeClean, executionFromBlocks } from "../src/execution.mjs"
+import { buildRepositoryRecords, normalizeRepoUrl } from "../src/repository-records.mjs"
 
 const VERDICT = { CLEAN: "clean", FINDINGS: "findings", INCOMPLETE: "incomplete" }
 // Every severity a rule may emit has to be in here or in UNMEASURED. The scan lives in
@@ -44,6 +45,21 @@ export function deriveVerdict(blocks, threshold) {
   return notable ? VERDICT.FINDINGS : VERDICT.CLEAN
 }
 
+/**
+ * The aggregate verdict for one record.
+ *
+ * `clean` is a claim about work that ran: it needs every required scanner to have finished, so an
+ * unfinshed run can never be clean. `findings` is not that kind of claim — a problem we found is a
+ * problem we found, whether or not the other scanners finished. Gating findings on completion is
+ * what published 871 records carrying a >=medium finding as "incomplete"; the site then showed 35
+ * findings where 906 existed. The gate stays on the claim, not on the evidence.
+ */
+export function aggregateVerdict(blocks, threshold, execution) {
+  const derived = deriveVerdict(blocks, threshold)
+  if (derived === VERDICT.CLEAN && !canBeClean(execution)) return VERDICT.INCOMPLETE
+  return derived
+}
+
 /** Accept an already-parsed artifact or a path to one. */
 function asJson(value) {
   if (!value) return null
@@ -63,6 +79,13 @@ export function buildIndex(options) {
   const census = asJson(options.census)
   const guard = asJson(options.guard)
   const repos = asJson(options.repos)
+  // The repository census is optional and off unless asked for: without it the index is exactly
+  // what it was before, which is what every existing test and the daily job expect.
+  const github = asJson(options.github)
+  const classification = asJson(options.classification)
+  // The audit artifact is what turns a repository record from "we know a package exists" into "we
+  // read it". Optional, like the census: without it the records are exactly what they were.
+  const audit = asJson(options.audit)
   if (!census) throw new Error("a census artifact is required")
   const threshold = options.threshold || "medium"
 
@@ -146,17 +169,43 @@ export function buildIndex(options) {
       repository: row.repository || null,
       packages: packages,
       evidence: blocks,
-      // The execution record says which scanners were required and which finished. If any of them
-      // did not, the verdict is incomplete however clean the findings look: a verdict of clean is
-      // a claim about work that ran, and this is where that claim is held to account.
-      verdict: canBeClean(execution) ? deriveVerdict(blocks, threshold) : VERDICT.INCOMPLETE,
+      // The execution record says which scanners were required and which finished. An unfinished run
+      // can never be clean — that claim is held to account here. It can still be "findings": see
+      // aggregateVerdict for why the gate belongs on the claim and not on the evidence.
+      verdict: aggregateVerdict(blocks, threshold, execution),
       scanExecution: execution,
       generatedAt: options.generatedAt || new Date().toISOString(),
     })
   }
+  let repositoryStats = null
+  if (github && Array.isArray(github.repos)) {
+    const knownUrls = new Set()
+    for (const row of census.rows || []) {
+      const url = normalizeRepoUrl(row && row.repository)
+      if (url) knownUrls.add(url)
+    }
+    const built = buildRepositoryRecords({
+      repositories: github.repos,
+      classification: (classification && classification.results) || {},
+      audit: (audit && audit.results) || {},
+      knownUrls: knownUrls,
+      generatedAt: options.generatedAt,
+      now: options.generatedAt,
+    })
+    for (const record of built.records) records.push(record)
+    repositoryStats = built.stats
+  }
   return {
     generatedAt: options.generatedAt || new Date().toISOString(),
     threshold: threshold,
+    // Where the records came from, kept apart on purpose: registry entries are servers somebody
+    // registered and can be audited; repository records are repositories we only read metadata
+    // for. One coverage percentage over both would flatter the second kind.
+    sources: {
+      registry: records.length - (repositoryStats ? repositoryStats.added : 0),
+      repositories: repositoryStats ? repositoryStats.added : 0,
+      repositoryStats: repositoryStats,
+    },
     // Which build of the scanner produced this. A diff compares two snapshots, and without
     // this it cannot tell "their package changed" from "our rules changed" — so every rule fix
     // is reported as a silent change in someone else's package.
@@ -168,12 +217,15 @@ export function buildIndex(options) {
 }
 
 function parse(argv) {
-  const args = { census: null, guard: null, repos: null, out: null, threshold: "medium", scanner: null }
+  const args = { census: null, guard: null, repos: null, github: null, classification: null, audit: null, out: null, threshold: "medium", scanner: null }
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i]
     if (a === "--census") args.census = argv[++i]
     else if (a === "--guard") args.guard = argv[++i]
     else if (a === "--repos") args.repos = argv[++i]
+    else if (a === "--github") args.github = argv[++i]
+    else if (a === "--classification") args.classification = argv[++i]
+    else if (a === "--audit") args.audit = argv[++i]
     else if (a === "--out") args.out = argv[++i]
     else if (a === "--threshold") args.threshold = argv[++i]
     else if (a === "--scanner") args.scanner = argv[++i]
@@ -186,10 +238,11 @@ function parse(argv) {
 const isMain = process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).href
 if (isMain) {
   const args = parse(process.argv.slice(2))
-  const index = buildIndex({ census: args.census, guard: args.guard, repos: args.repos, threshold: args.threshold, scanner: args.scanner })
+  const index = buildIndex({ census: args.census, guard: args.guard, repos: args.repos, github: args.github, classification: args.classification, audit: args.audit, threshold: args.threshold, scanner: args.scanner })
   const counts = {}
   for (const r of index.records) counts[r.verdict] = (counts[r.verdict] || 0) + 1
   if (args.out) writeFileSync(args.out, JSON.stringify(index, null, 2) + "\n")
   else process.stdout.write(JSON.stringify(index, null, 2) + "\n")
-  console.error("index: " + index.count + " records | " + JSON.stringify(counts))
+  console.error("index: " + index.count + " records | " + JSON.stringify(counts)
+    + (index.sources && index.sources.repositories > 0 ? " | +" + index.sources.repositories + " repository records (" + JSON.stringify(index.sources.repositoryStats) + ")" : ""))
 }

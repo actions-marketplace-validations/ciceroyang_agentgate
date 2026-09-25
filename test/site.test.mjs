@@ -16,7 +16,7 @@ function buildPage(indexPath, diffText) {
   if (diffText !== undefined) {
     const diffPath = join(out, "diff.md")
     writeFileSync(diffPath, diffText)
-    args.push("--diff", diffPath)
+    args.push("--diff", diffPath, "--diff-index-sha256", createHash("sha256").update(readFileSync(indexPath)).digest("hex"))
   }
   const run = spawnSync(process.execPath, args, { encoding: "utf8" })
   assert.equal(run.status, 0, run.stderr)
@@ -50,8 +50,11 @@ test("the built page runs without throwing and renders rows", function () {
   assert.equal(made.diff, undefined, "the diff element is not touched when there is nothing to show")
 })
 
-test("the page renders a diff when one is given", function () {
-  const html = buildPage(join(ROOT, "data", "sample-index.json"), "index diff\n  added: 3")
+test("the page renders a diff bound to the same non-sample index", function () {
+  const dir = scratchDir("ag-site-diff-")
+  const index = join(dir, "index.json")
+  writeFileSync(index, JSON.stringify({ generatedAt: "fixture", records: [] }))
+  const html = buildPage(index, "index diff\n  added: 3")
   const made = runPageScript(html)
   assert.match(made.diff.textContent, /added: 3/)
   assert.equal(made.diff.style.display, "block")
@@ -105,7 +108,14 @@ test("the plain pages are published beside the index, and the index does not ove
   // The sample report is a separate step in the published workflow; generate it the same way so
   // this test walks the site a visitor actually gets.
   const sample = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check", "--root", join(ROOT, "examples", "action-verify"), "--policy", join(ROOT, "examples", "action-verify", "agentgate.policy.json"), "--format", "html", "--out", join(out, "report-sample.html")], { encoding: "utf8" })
+  assert.equal(sample.status, 1, sample.stderr)
   assert.ok(existsSync(join(out, "report-sample.html")), "the sample report was not written: " + sample.stderr)
+  const englishSample = spawnSync(process.execPath, [join(ROOT, "bin", "agentgate.mjs"), "check", "--root", join(ROOT, "examples", "action-verify"), "--policy", join(ROOT, "examples", "action-verify", "agentgate.policy.json"), "--format", "html", "--lang", "en", "--out", join(out, "en", "report-sample.html")], { encoding: "utf8" })
+  assert.equal(englishSample.status, 1, englishSample.stderr)
+  const englishReport = readFileSync(join(out, "en", "report-sample.html"), "utf8")
+  assert.match(englishReport, /<html lang="en">/)
+  assert.match(englishReport, /Check coverage/)
+  assert.doesNotMatch(englishReport, /[\u3400-\u9fff]/)
 
   const landing = readFileSync(join(out, "index.html"), "utf8")
   assert.match(landing, /智量/, "the landing page is what a visitor lands on")
@@ -122,7 +132,7 @@ test("the plain pages are published beside the index, and the index does not ove
   writeFileSync(scriptPath, blocks[1])
   const parsed = spawnSync(process.execPath, ["--check", scriptPath], { encoding: "utf8" })
   assert.equal(parsed.status, 0, "the index page script does not parse: " + parsed.stderr)
-  assert.ok(evidence.indexOf('"/s/" + slug(') !== -1, "the index must link to the per-server pages")
+  assert.ok(evidence.indexOf('"s/" + slug(') !== -1, "the index must link relative to its deployment base")
 
   assert.match(readFileSync(join(out, "pricing.html"), "utf8"), /29,800|29,?800|价格/)
   assert.match(readFileSync(join(out, "try.html"), "utf8"), /自己试|十分钟/)
@@ -413,8 +423,47 @@ test("the sample evidence pack is published byte for byte, so its manifest still
   // explains the pack must not link to a file that is not there.
   assert.ok(existsSync(join(out, "pack", "manifest.sha256")), "the seal is missing")
   const evidence = readFileSync(join(out, "evidence.html"), "utf8")
-  const links = Array.from(evidence.matchAll(/href="\/pack\/([a-z0-9.-]+)"/g)).map(function (m) { return m[1] })
+  const links = Array.from(evidence.matchAll(/href="pack\/([a-z0-9.-]+)"/g)).map(function (m) { return m[1] })
   assert.ok(links.length >= 2, "the index does not link to the pack")
   for (const name of links) assert.ok(existsSync(join(out, "pack", name)), "the index links to a pack file that is not published: " + name)
   assert.ok(readFileSync(join(out, "sitemap.xml"), "utf8").indexOf("/pack/pack.html") !== -1, "the pack page is not in the sitemap")
+})
+
+test("the English site is built from the same index with working language routes", function () {
+  const out = scratchDir("ag-site-en-")
+  const run = spawnSync(process.execPath, [join(ROOT, "scripts", "build-site.mjs"), "--index", join(ROOT, "data", "sample-index.json"), "--out", out, "--name", "evidence.html", "--pages", join(ROOT, "site")], { encoding: "utf8" })
+  assert.equal(run.status, 0, run.stderr)
+  for (const name of ["index.html", "pricing.html", "pilot.html", "try.html", "inventory.html", "history.html", "evidence.html", "privacy.html", "security.html", "404.html"]) {
+    const file = join(out, "en", name)
+    assert.ok(existsSync(file), "missing English page: " + name)
+    const html = readFileSync(file, "utf8")
+    assert.match(html, /<html lang="en">/, name)
+    assert.doesNotMatch(html, /__[A-Z][A-Z0-9_]+__/, "unresolved placeholder in " + name)
+  }
+  const evidence = readFileSync(join(out, "en", "evidence.html"), "utf8")
+  for (const name of ["index.html", "pilot.html", "evidence.html"]) {
+    const page = readFileSync(join(out, "en", name), "utf8")
+    assert.match(page, /href="report-sample\.html"/, name)
+    assert.doesNotMatch(page, /href="\.\.\/report-sample\.html"/, name)
+  }
+  assert.match(evidence, /Chinese-language sample evidence pack/)
+  assert.match(evidence, /Showing /)
+  assert.match(evidence, /incomplete means required work was not measured/)
+  const script = /<script>([\s\S]*)<\/script>/.exec(evidence)
+  assert.ok(script)
+  const scriptPath = join(out, "english-evidence-script.js")
+  writeFileSync(scriptPath, script[1])
+  assert.equal(spawnSync(process.execPath, ["--check", scriptPath], { encoding: "utf8" }).status, 0)
+
+  const index = JSON.parse(readFileSync(join(ROOT, "data", "sample-index.json"), "utf8"))
+  const slug = String(index.records[0].server).split("/").join("__").replace(/[^A-Za-z0-9._-]/g, "_")
+  const server = readFileSync(join(out, "en", "s", slug + ".html"), "utf8")
+  assert.match(server, /Unmeasured work/)
+  assert.match(server, /unmeasured does not mean clean/i)
+  assert.doesNotMatch(server, /没测到|哪些扫描器跑完了/)
+  const sitemap = readFileSync(join(out, "sitemap.xml"), "utf8")
+  assert.match(sitemap, /<loc>https:\/\/xn--5kvo87g\.com\/en\/<\/loc>/)
+  assert.match(sitemap, /<loc>https:\/\/xn--5kvo87g\.com\/en\/pilot\.html<\/loc>/)
+  assert.match(sitemap, /<loc>https:\/\/xn--5kvo87g\.com\/en\/report-sample\.html<\/loc>/)
+  assert.ok(sitemap.includes("/en/s/" + slug + ".html"))
 })

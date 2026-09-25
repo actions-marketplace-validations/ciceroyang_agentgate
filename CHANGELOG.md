@@ -5,6 +5,175 @@ the tag agree with it, and `scripts/release-check.mjs` refuses a release whose s
 
 ## [Unreleased]
 
+- Fail closed when required indexed evidence is absent; reject invalid or sample indexes and
+  match local npm evidence by registry, name and exact version. Named scanner requirements now
+  preserve the whole-execution gate, including output/consistency validation. The Action accepts
+  an explicit evidence index.
+- Bind manifest/audit caches to source identity, repository revision, content and scanner code;
+  expire observations rather than renewing their timestamps. Old cache formats are re-read.
+  Parse supported TOML package tables without borrowing names or versions from other tables.
+- Preserve discovery identity across registries and aliases; add a credential-free inventory JSON
+  export. Watch fingerprints now cover findings, content evidence and scanner identity while
+  retaining only hashes of private material.
+- Log allowed batch calls and each whole-batch refusal, withhold proxy startup arguments, and
+  require actual decision records and nonempty archives before claiming evidence-pack coverage.
+- Check PyPI withdrawal at the declared-version file level; attribute install-script findings to
+  the hook that references them.
+- Stop Pages deployment on collection failure instead of substituting a sample. Support subpath
+  deployment, label samples, bind displayed diffs to exact non-sample index bytes, and narrow
+  historical-chain claims to internal consistency. Help no longer triggers collection.
+- Include release unit tests in the default suite and release-content checks in CI. These changes
+  are not a deployment or a claim of enterprise readiness; see the
+  [trust-hardening handoff](docs/operations/trust-hardening.md).
+
+### Breaking
+
+- Discovery text now includes the registry prefix; scripts consuming the old bare package text
+  must migrate. The inventory JSON export preserves package coordinates but does not carry full
+  discovery diagnostics: retain the full discovery JSON when reviewing sources and alias conflicts.
+- Invalid, absent or incomplete required evidence no longer passes `check`; the provisional pack
+  requires nonempty archives and actual gateway decisions for the corresponding evidence classes.
+  Existing files remain readable, but previously optimistic outcomes can become incomplete.
+- The first watch capture after upgrading from the old projection can report a baseline identity
+  change. Preserve the original archive; see [upgrade instructions](docs/operations/upgrade.md).
+
+## [0.5.0] - 2026-09-21
+
+- A file the published package does not ship is now a finding instead of a gap. `registryProvenance`
+  marked the evidence incomplete whenever a hook script could not be read, so
+  `@yagyeshvyas/vibeguard` — whose manifest declares `"postinstall": "node scripts/postinstall.js"`
+  while the tarball contains no such file — was recorded as `install-hook-script-unavailable`
+  (unknown) with `complete: false`. We had asked both unpkg and jsdelivr and both answered. A
+  checked absence is knowledge, the same way a repository tree with no manifest in it is; the rule
+  now says so, and the finding is what is actually true: `install-hook-script-missing-from-package`
+  (high), with evidence that is complete. A CDN that never answered, or a ref this step chose not
+  to fetch, still leaves the evidence incomplete — those are worth retrying, and this one is not.
+
+- A hook script we could not read now says which of three things happened. `fetchHookScript`
+  returned `null` for a file the package does not ship, for a CDN that never answered, and for a
+  path this step refused to request — one word, `install-hook-script-unavailable`, for all three.
+  The first is knowledge about the package; the second is knowledge about this run and is worth
+  retrying; the third is this build's own choice, and refs past the five-per-package cap now say
+  `hook-script-not-fetched` rather than borrowing the word for a missing file. The reason travels
+  into the finding's evidence and into the provenance digest, so a recorded review covers it.
+
+- The index carries the audit's own reason for a package it could not read, instead of one word for
+  both cases. `auditReason` mapped every `metadata-unavailable` to `package-metadata-unavailable`,
+  so the published coverage summary still merged "the registry has no such package" with "this run
+  could not reach the registry" — the two facts the audit had just started telling apart. An audit
+  written before it recorded a reason still gets the old word rather than silence.
+
+- `agentgate refresh` hands `--audit` to `build-index`. It did not, so every scheduled run rebuilt
+  the published index without the package audit and the repository records fell back to "a package
+  is declared here" — 6,199 audited packages' worth of evidence, dropped on a four-hourly timer with
+  no error and no log line. The artifact was on disk the whole time. This is the quiet version of
+  the mistake the rest of this section is about: not a wrong claim, but a capability that exists in
+  the code and never reaches the file anyone reads.
+
+- A package we could not get metadata for now says which of two different things happened.
+  `fetchNpmDocument` and `fetchPypiDocument` returned `null` for every failure, so a 404
+  ("the registry does not have this package") and a timeout or a 429 ("this run could not reach
+  the registry") arrived at the record as the same `metadata-unavailable` with no reason at all.
+  The first is a fact about the package; the second is a fact about the run. Merging them meant the
+  published file could not be used to tell a wrong coordinate from a failed fetch — the same shape
+  of mistake as `no-package-declared-in-repository` below, in a field with a wider blast radius.
+  The fetch functions keep their existing signatures and now have `…Outcome` twins that carry a
+  reason (`package-not-found`, `registry-unreachable`, `registry-http-<status>`,
+  `metadata-not-json`, `package-name-not-requested`), and the audit writes it down. The last one
+  is deliberately not called "invalid name": npm still serves legacy packages that predate the
+  lowercase rule (`JSONStream` and `Base64` answer 200 today), so `isNpmPackageName` describes what
+  this step will ask about, not what the registry has.
+
+- The repository record no longer claims something it never checked. Its `packageManifest`
+  component is `skipped` with reason `package-not-inspected` (was
+  `no-package-declared-in-repository`). The old string read as a finding about the repository —
+  "there is no package declared here" — when this build simply never looks: repository records are
+  built from the census and the classification, and neither carries package data. Three
+  repositories that do declare a `package.json` (firecrawl/firecrawl-mcp-server, upstash/context7,
+  apify/apify-mcp-server) were recorded as declaring none. The reason now names what this build
+  did, and nothing about the repository.
+
+- The classification step now keeps the manifest path instead of only using it to pick a kind.
+  `classifyPaths` already matched `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod` and the
+  rest — a repository with a server file `and` a manifest is what `server-like` means — and then
+  discarded the path. It costs nothing to keep: the file tree was already fetched and parsed. With
+  it, the reason a package was not read has three honest states rather than one:
+  `manifest-found-not-inspected` (the tree lists a manifest; this step does not read it),
+  `no-package-manifest-in-repository` (the tree was read and holds none — a checked absence), and
+  `package-not-inspected` (a classification written before the field existed, which proves nothing
+  either way). None of the three can make a record `clean`.
+
+- `packages/collect/scripts/fetch-manifests.mjs` reads the manifest a repository declared and
+  extracts the coordinates a package audit needs — registry, name, version — from `package.json`,
+  `pyproject.toml`, `Cargo.toml`, `composer.json`, `pom.xml`, `*.csproj` and `go.mod`. It reads
+  from `raw.githubusercontent.com`, which does not spend GitHub API quota, and it writes down the
+  URL and a sha256 of the bytes it read, so anyone can fetch the same file and check the digest. It
+  does not derive a name from the repository name and does not invent a version: a manifest without
+  one yields `version: null`, which the policy layer already treats as missing evidence. A manifest
+  it cannot read is reported as `unreadable` with the HTTP status, and one it can read but cannot
+  parse is reported with the parse error — neither throws.
+
+- `packages/collect/scripts/audit-packages.mjs` takes those coordinates and runs the same audit the
+  registry path runs, so a repository record can carry measured evidence instead of a component that
+  is skipped because nobody looked. The server object it builds carries no `transport`: inventing
+  `stdio` would add a finding about a transport nobody checked. Hook scripts are fetched so their
+  status is real rather than "missing because we did not ask". A registry this step cannot audit yet
+  is reported as `unsupported-registry`, and a manifest with no package name as
+  `no-package-name-in-manifest` — both are facts, and neither is a pass.
+
+- `build-index.mjs --audit <package-audit.json>` joins that audit back into the index, so a
+  repository record can carry the package coordinate and a measured `packageManifest` block
+  instead of an empty `packages` array. Without the flag the records are exactly what they were.
+
+  The invariant holds, and it is now spelled out. A repository record still can never be `clean`,
+  because a third required component says why: `repositorySource`, skipped with reason
+  `source-not-read`. The metadata block reads a repository's public metadata; the package block
+  reads the package it publishes; **neither reads the repository itself**, which is what a reader
+  would have to inspect to say anything about the server. Before this, "never clean" rested on the
+  package half being skipped wholesale. It now rests on the gap that actually remains — and when
+  that gap is closed, the component is removed rather than quietly reinterpreted.
+
+- A second mapping: `agentgate framework --id eu-aia` covers the record-keeping obligations of
+  Regulation (EU) 2024/1689 — Article 12 and Article 19. Eight items, and the count is published
+  with them: 2 ours, 4 the customer's, 2 a third party's. **Almost nothing is ours, and that is the
+  honest result rather than a modest one** — we do not run the customer's AI system and we do not
+  produce its logs. What we can do is make the artefacts that do exist checkable
+  (`content-digest`, `archive-integrity`) and count what could not be read
+  (`coverage-accounting`, `scan-execution`).
+
+  The entry that names Articles 12(3) and 12(4) says **未覆盖** and belongs to a third party,
+  because this version of the mapping only read 12(1), 12(2), 19(1) and 19(2) — and it says which
+  of them it read, in the `source` field, because a mapping that does not say what it read is a
+  mapping nobody can check. The article text itself is not reproduced; only the paragraph numbers
+  and our own wording, the same rule the CSA mapping follows.
+
+- The four MCP tools declare what they return, and each description says when to use it. Glama
+  scores tool definitions and publishes the rubric
+  ([glama-ai/tool-definition-quality-score](https://github.com/glama-ai/tool-definition-quality-score));
+  two of its six levers were unaddressed — no tool carried an `outputSchema`, and no description
+  named the sibling to use for the other case.
+
+  The schemas are written from the handler's own return values, not from intent.
+  `protocol.mjs` puts the handler's `structured` object into `structuredContent`, so a schema here
+  describes bytes a caller already receives. A test calls every tool and compares the declared
+  schema against the sent value; breaking one field (`total: integer` → `string`) fails with
+  `inventory_tools.summary.total: declared string, sent integer`.
+
+## [0.4.0] - 2026-09-20
+
+- The index can carry two kinds of record, and they are counted apart. `build-index.mjs --github
+  <census> --classification <file>` adds a repository-level record for every repository the
+  classification called a server and the registry does not already cover. Such a record can
+  never be `clean`: its `packageManifest` component is `skipped`
+  (`no-package-declared-in-repository`), so the state is incomplete by construction. A repository
+  already represented by a registry row is not added again, and two records may not share one
+  identity. `/v1/index/summary` and the evidence page report registry entries and repository
+  records separately, because one coverage percentage over both would flatter the second kind.
+- `agentgate refresh --repositories` runs the slower half of the chain: an incremental GitHub
+  census (`--since`, unioned with the previous output) followed by an incremental classification
+  that only fetches repositories whose `pushed_at` moved, with a path kept for every verdict.
+  Without the flag, and without the artifacts on disk, the index is exactly what it was before.
+
 - The formats are frozen and the promise is written down:
   [docs/spec/compatibility.md](docs/spec/compatibility.md) says what each version identifier means,
   what may change inside one, how a breaking change is announced, and which versions are supported.

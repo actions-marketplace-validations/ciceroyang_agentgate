@@ -18,7 +18,8 @@ export const EVIDENCE_CLASSES = [
     return entry.state === "matched" ? null : (entry.reason || "版本与索引记录没有逐条对应")
   }),
   item("content-digest", "内容哈希与覆盖范围", function (entry) {
-    return entry.evidence.some(function (e) { return e.digest && e.scope })
+    // buildPack projects provenance.content into digest/scope before evaluating classes.
+    return entry.evidence.some(function (e) { return /^[a-f0-9]{64}$/i.test(e.digest || "") && typeof e.scope === "string" && e.scope.length > 0 })
       ? null : "这一条的证据块里没有内容哈希或没有写明覆盖范围"
   }),
   item("package-metadata", "包元数据检查", function (entry) {
@@ -34,6 +35,7 @@ export const EVIDENCE_CLASSES = [
   }),
   context("archive-integrity", "归档可校验", function (ctx) {
     if (!ctx.archive || ctx.archive.present !== true) return "没有提供归档目录，哈希链无从校验"
+    if (!Array.isArray(ctx.archive.entries) || ctx.archive.entries.length === 0) return "归档为空，没有可校验的捕获记录"
     return ctx.archive.verified === true ? null : "归档哈希链校验没有通过"
   }),
   context("coverage-accounting", "覆盖范围记账", function (ctx) {
@@ -41,7 +43,8 @@ export const EVIDENCE_CLASSES = [
   }),
   context("gateway-decisions", "网关事前决策", function (ctx) {
     if (!ctx.calls || ctx.calls.provided !== true) return "没有提供网关调用日志（--calls），事前决策记录不在本次范围内"
-    return ctx.calls.parsed === true ? null : "网关调用日志无法解析"
+    if (ctx.calls.parsed !== true) return "网关调用日志无法解析"
+    return ctx.calls.decisionCount > 0 ? null : "日志没有有效的工具调用允许或拒绝记录；有文件不等于有决策证据"
   }),
 ]
 

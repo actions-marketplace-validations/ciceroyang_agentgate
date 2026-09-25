@@ -3,11 +3,16 @@ const MAX_BYTES = 1024 * 1024
 const MAX_ENTRIES = 500
 const INPUT_FIELDS = ['name', 'server', 'package', 'registry', 'version']
 const SEVERITIES = ['critical', 'high', 'medium', 'low', 'info']
-const LABELS = {
+const LABELS_ZH = {
   matched: '版本与证据对应', unmatched: '当前索引未找到', ambiguous: '需要确认候选',
   version_missing: '需要你的精确版本', version_mismatch: '版本不一致', insufficient: '证据不足',
 }
-const LIMIT = '结论只覆盖列出的已检查材料，不代表整包、传递依赖或运行时安全。'
+const LABELS_EN = {
+  matched: 'Version and evidence matched', unmatched: 'Not found in the current index', ambiguous: 'Candidate confirmation required',
+  version_missing: 'Your exact version is required', version_mismatch: 'Version mismatch', insufficient: 'Insufficient evidence',
+}
+const LIMIT_ZH = '结论只覆盖列出的已检查材料，不代表整包、传递依赖或运行时安全。'
+const LIMIT_EN = 'The result covers only the listed material that was checked; it does not represent the whole package, transitive dependencies, or runtime safety.'
 const object = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
 const nonempty = (value) => typeof value === 'string' && value.trim().length > 0
 const textOrNull = (value) => typeof value === 'string' ? value : null
@@ -22,6 +27,11 @@ function exactVersion(value, registry) {
 
 function fromName(value) {
   const name = value.trim()
+  const qualified = /^(npm|pypi|crates\.io|packagist|maven|go|nuget):(.+)$/.exec(name)
+  if (qualified) {
+    const at = qualified[2].lastIndexOf('@')
+    return { name, server: null, registry: qualified[1], package: at > 0 ? qualified[2].slice(0, at) : qualified[2], version: at > 0 ? qualified[2].slice(at + 1) : null }
+  }
   const at = name.lastIndexOf('@')
   // An ordinary registry server such as org.example/server@1.0.0 is not an npm package.
   if (at > 0 && npmName(name.slice(0, at)) && nonempty(name.slice(at + 1))) {
@@ -30,40 +40,43 @@ function fromName(value) {
   return { name, server: null, package: null, registry: null, version: null }
 }
 
-function normalizeInput(value, position) {
+function normalizeInput(value, position, locale) {
+  const msg = (zh, en) => locale === 'en' ? en : zh
   if (typeof value === 'string' && nonempty(value)) return fromName(value)
   if (!object(value) || Object.keys(value).some((key) => !INPUT_FIELDS.includes(key))) {
-    throw new Error('第 ' + position + ' 项格式不支持：只接受名称或 name/server/package/registry/version 字段，不接受启动配置、环境变量或凭据。')
+    throw new Error(msg('第 ' + position + ' 项格式不支持：只接受名称或 name/server/package/registry/version 字段，不接受启动配置、环境变量或凭据。', 'Item ' + position + ' is not supported. Use a name or the name/server/package/registry/version fields; do not provide launch configuration, environment variables, or credentials.'))
   }
   const result = {}
   for (const field of INPUT_FIELDS) {
     const item = value[field]
-    if (item !== undefined && item !== null && typeof item !== 'string') throw new Error('第 ' + position + ' 项的 ' + field + ' 必须是文本或 null。')
+    if (item !== undefined && item !== null && typeof item !== 'string') throw new Error(msg('第 ' + position + ' 项的 ' + field + ' 必须是文本或 null。', 'The ' + field + ' field in item ' + position + ' must be text or null.'))
     result[field] = typeof item === 'string' && item.trim() ? item.trim() : null
   }
   result.name = result.name || result.server || result.package
-  if (!result.name) throw new Error('第 ' + position + ' 项缺少名称，请提供 name、server 或 package。')
+  if (!result.name) throw new Error(msg('第 ' + position + ' 项缺少名称，请提供 name、server 或 package。', 'Item ' + position + ' has no name. Provide name, server, or package.'))
   return result
 }
 
-export function parseInventory(text) {
-  if (typeof text !== 'string') throw new Error('请提供文本清单或 JSON 文本。')
-  if (text.length > MAX_BYTES || new TextEncoder().encode(text).length > MAX_BYTES) throw new Error('清单不能超过 1 MB。')
+export function parseInventory(text, options = {}) {
+  const locale = options?.locale === 'en' ? 'en' : 'zh'
+  const msg = (zh, en) => locale === 'en' ? en : zh
+  if (typeof text !== 'string') throw new Error(msg('请提供文本清单或 JSON 文本。', 'Provide a plain-text inventory or JSON text.'))
+  if (text.length > MAX_BYTES || new TextEncoder().encode(text).length > MAX_BYTES) throw new Error(msg('清单不能超过 1 MB。', 'The inventory cannot exceed 1 MB.'))
   const trimmed = text.trim()
   if (!trimmed) return []
   let values
   if (/^[\[{]/.test(trimmed)) {
     let parsed
-    try { parsed = JSON.parse(trimmed) } catch { throw new Error('JSON 格式错误，请使用数组或 {"tools":[...]}。') }
+    try { parsed = JSON.parse(trimmed) } catch { throw new Error(msg('JSON 格式错误，请使用数组或 {"tools":[...]}。', 'Invalid JSON. Use an array or {"tools":[...]}.')) }
     if (Array.isArray(parsed)) values = parsed
     else if (object(parsed) && Object.keys(parsed).length === 1 && own(parsed, 'tools') && Array.isArray(parsed.tools)) values = parsed.tools
-    else throw new Error('JSON 只接受数组或 {"tools":[...]}；不能导入 mcpServers、env 或其它配置结构。')
+    else throw new Error(msg('JSON 只接受数组或 {"tools":[...]}；不能导入 mcpServers、env 或其它配置结构。', 'JSON must be an array or {"tools":[...]}. mcpServers, env, and other configuration structures are not accepted.'))
   } else {
-    if (/^\s*["']?(?:mcpServers|env)["']?\s*:/im.test(trimmed)) throw new Error('不能导入 mcpServers 或 env 配置，请只粘贴工具名称和版本。')
+    if (/^\s*["']?(?:mcpServers|env)["']?\s*:/im.test(trimmed)) throw new Error(msg('不能导入 mcpServers 或 env 配置，请只粘贴工具名称和版本。', 'Do not import mcpServers or env configuration. Paste tool names and versions only.'))
     values = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
   }
-  if (values.length > MAX_ENTRIES) throw new Error('一次最多支持 500 项工具。')
-  return values.map((value, index) => ({ id: 'tool-' + (index + 1), ...normalizeInput(value, index + 1) }))
+  if (values.length > MAX_ENTRIES) throw new Error(msg('一次最多支持 500 项工具。', 'A single inventory can contain at most 500 tools.'))
+  return values.map((value, index) => ({ id: 'tool-' + (index + 1), ...normalizeInput(value, index + 1, locale) }))
 }
 
 function inputProjection(entry) {
@@ -91,6 +104,7 @@ function evidenceOf(record) {
     const value = record.evidence[block]
     return {
       block, status: textOrNull(value?.status), source: textOrNull(value?.source), reason: textOrNull(value?.reason),
+      observedAt: textOrNull(value?.observedAt), auditedAt: textOrNull(value?.auditedAt), scanner: textOrNull(value?.scanner),
       provenance: provenanceProjection(value?.provenance),
       findings: Array.isArray(value?.findings) ? value.findings.map((finding) => findingProjection(finding, block)) : [],
     }
@@ -127,40 +141,42 @@ function executionProjection(wrapper) {
  * contradiction cannot be matched. Records written before the block existed carry no
  * `scanExecution` and are unaffected; they are handled by the block-level checks above.
  */
-function coverageProblem(record) {
+function coverageProblem(record, locale) {
+  const msg = (zh, en) => locale === 'en' ? en : zh
   const wrapper = record?.scanExecution
   if (!object(wrapper)) return null
   const exec = wrapper.scanner_execution
-  if (!object(exec) || !Array.isArray(exec.components)) return '这条记录带有扫描覆盖块，但格式不完整，不能作为完整证据。'
+  if (!object(exec) || !Array.isArray(exec.components)) return msg('这条记录带有扫描覆盖块，但格式不完整，不能作为完整证据。', 'This record has a scan-coverage block, but its format is incomplete and cannot be treated as complete evidence.')
   const required = exec.components.filter((component) => object(component) && component.required === true)
   const finished = required.filter((component) => component.status === 'completed' && component.output_present === true && component.output_parseable === true && component.semantic_consistency === 'ok')
   if ([exec.required, exec.completed, exec.failed].some((value) => Number.isInteger(value) && value >= 0) &&
       (exec.required !== required.length || exec.completed !== finished.length || exec.failed !== required.length - finished.length)) {
-    return '这条记录的扫描覆盖块计数与列出的扫描器不一致，不能作为完整证据。'
+    return msg('这条记录的扫描覆盖块计数与列出的扫描器不一致，不能作为完整证据。', 'The scan-coverage counts do not match the listed scanners, so the record cannot be treated as complete evidence.')
   }
-  if (exec.state !== 'complete' || required.length === 0 || finished.length !== required.length) return '这条记录的扫描覆盖块显示并非所有必需的扫描器都跑完，不能作为完整证据。'
-  if (object(wrapper.digest) && wrapper.digest.matches === false) return '这条记录的内容摘要与扫描覆盖块记录不一致，不能作为完整证据。'
+  if (exec.state !== 'complete' || required.length === 0 || finished.length !== required.length) return msg('这条记录的扫描覆盖块显示并非所有必需的扫描器都跑完，不能作为完整证据。', 'The scan-coverage block shows that not every required scanner completed, so the record cannot be treated as complete evidence.')
+  if (object(wrapper.digest) && wrapper.digest.matches === false) return msg('这条记录的内容摘要与扫描覆盖块记录不一致，不能作为完整证据。', 'The content digest does not match the scan-coverage record, so it cannot be treated as complete evidence.')
   return null
 }
 
-function bindingProblem(record, candidate) {
+function bindingProblem(record, candidate, locale) {
+  const msg = (zh, en) => locale === 'en' ? en : zh
   if (!object(record) || !nonempty(record.server) || !Array.isArray(record.packages) ||
-      record.packages.some((pkg) => !object(pkg) || !nonempty(pkg.registry) || !nonempty(pkg.name) || !exactVersion(pkg.version, pkg.registry))) return '索引记录缺少可核对的精确包身份，或包记录格式不完整。'
-  if (!nonempty(candidate.package) || !nonempty(candidate.registry) || !exactVersion(candidate.version, candidate.registry)) return '该记录没有可核对的精确包身份和版本。'
-  if (candidate.registry === 'npm' && !npmName(candidate.package)) return '索引中的 npm 包名格式不完整，不能核对包身份。'
-  if (record.verdict === 'incomplete' || (record.verdict !== undefined && !['clean', 'findings', 'incomplete'].includes(record.verdict))) return '索引将这条记录标为未完成或未知状态。'
-  const coverage = coverageProblem(record)
+      record.packages.some((pkg) => !object(pkg) || !nonempty(pkg.registry) || !nonempty(pkg.name) || !exactVersion(pkg.version, pkg.registry))) return msg('索引记录缺少可核对的精确包身份，或包记录格式不完整。', 'The index record lacks a verifiable exact package identity, or the package record is incomplete.')
+  if (!nonempty(candidate.package) || !nonempty(candidate.registry) || !exactVersion(candidate.version, candidate.registry)) return msg('该记录没有可核对的精确包身份和版本。', 'This record has no verifiable exact package identity and version.')
+  if (candidate.registry === 'npm' && !npmName(candidate.package)) return msg('索引中的 npm 包名格式不完整，不能核对包身份。', 'The npm package name in the index is malformed and cannot be used to verify package identity.')
+  if (record.verdict === 'incomplete' || (record.verdict !== undefined && !['clean', 'findings', 'incomplete'].includes(record.verdict))) return msg('索引将这条记录标为未完成或未知状态。', 'The index marks this record as incomplete or unknown.')
+  const coverage = coverageProblem(record, locale)
   if (coverage) return coverage
-  if (!object(record.evidence) || Object.keys(record.evidence).length === 0) return '索引没有提供检查证据。'
+  if (!object(record.evidence) || Object.keys(record.evidence).length === 0) return msg('索引没有提供检查证据。', 'The index provides no inspection evidence.')
   for (const [block, evidence] of Object.entries(record.evidence)) {
-    if (!object(evidence) || !['clean', 'findings'].includes(evidence.status) || !nonempty(evidence.source) || !Array.isArray(evidence.findings)) return block + ' 未完成检查，或证据格式不完整。'
-    if (nonempty(evidence.reason) || nonempty(evidence.error)) return block + ' 仍带有检查未完成或失败的说明，需要先核对。'
-    if ((evidence.status === 'clean' && evidence.findings.length > 0) || (evidence.status === 'findings' && evidence.findings.length === 0)) return block + ' 的检查状态与发现列表相互矛盾。'
-    if (evidence.findings.some((finding) => !object(finding) || !nonempty(finding.rule) || !SEVERITIES.includes(finding.severity) || (!nonempty(finding.evidence) && !nonempty(finding.message)))) return block + ' 包含未知或缺少说明的发现，不能作为完整证据。'
+    if (!object(evidence) || !['clean', 'findings'].includes(evidence.status) || !nonempty(evidence.source) || !Array.isArray(evidence.findings)) return block + msg(' 未完成检查，或证据格式不完整。', ' did not complete inspection, or its evidence format is incomplete.')
+    if (nonempty(evidence.reason) || nonempty(evidence.error)) return block + msg(' 仍带有检查未完成或失败的说明，需要先核对。', ' still contains an incomplete or failed-check reason and must be reviewed.')
+    if ((evidence.status === 'clean' && evidence.findings.length > 0) || (evidence.status === 'findings' && evidence.findings.length === 0)) return block + msg(' 的检查状态与发现列表相互矛盾。', ' has a status that contradicts its findings list.')
+    if (evidence.findings.some((finding) => !object(finding) || !nonempty(finding.rule) || !SEVERITIES.includes(finding.severity) || (!nonempty(finding.evidence) && !nonempty(finding.message)))) return block + msg(' 包含未知或缺少说明的发现，不能作为完整证据。', ' contains an unknown or unexplained finding and cannot be treated as complete evidence.')
     const proof = evidence.provenance
-    if (!object(proof) || proof.complete !== true || !object(proof.package) || !object(proof.content)) return block + ' 缺少完整的内容来源证明。'
-    if (proof.package.registry !== candidate.registry || proof.package.name !== candidate.package || proof.package.version !== candidate.version) return block + ' 的来源证明与所选包、来源或版本不一致。'
-    if (proof.content.algorithm !== 'sha256' || typeof proof.content.digest !== 'string' || !/^[a-f0-9]{64}$/i.test(proof.content.digest) || !nonempty(proof.content.scope)) return block + ' 缺少有效 SHA256 内容摘要或明确的检查范围。'
+    if (!object(proof) || proof.complete !== true || !object(proof.package) || !object(proof.content)) return block + msg(' 缺少完整的内容来源证明。', ' lacks complete content provenance.')
+    if (proof.package.registry !== candidate.registry || proof.package.name !== candidate.package || proof.package.version !== candidate.version) return block + msg(' 的来源证明与所选包、来源或版本不一致。', ' provenance does not match the selected package, registry, or version.')
+    if (proof.content.algorithm !== 'sha256' || typeof proof.content.digest !== 'string' || !/^[a-f0-9]{64}$/i.test(proof.content.digest) || !nonempty(proof.content.scope)) return block + msg(' 缺少有效 SHA256 内容摘要或明确的检查范围。', ' lacks a valid SHA-256 content digest or an explicit inspection scope.')
   }
   return null
 }
@@ -202,13 +218,17 @@ function candidatesFor(entry, groups) {
 const candidateProjection = (candidate) => ({ key: candidate.key, server: candidate.server, package: candidate.package, registry: candidate.registry, version: candidate.version })
 const selectedProjection = (candidate) => ({ server: candidate.server, package: candidate.package, registry: candidate.registry, version: candidate.version })
 
-function setState(item, state, reason, steps = []) {
-  return { ...item, state, label: LABELS[state], reason, nextSteps: [...steps, LIMIT] }
+function setState(item, state, reason, steps, locale) {
+  const labels = locale === 'en' ? LABELS_EN : LABELS_ZH
+  const limit = locale === 'en' ? LIMIT_EN : LIMIT_ZH
+  return { ...item, state, label: labels[state], reason, nextSteps: [...(steps || []), limit] }
 }
 
 export function createInventoryReport(entries, index, options = {}) {
-  if (!Array.isArray(entries)) throw new Error('工具清单必须是数组，请先解析清单。')
-  if (entries.length > MAX_ENTRIES) throw new Error('一次最多支持 500 项工具。')
+  const locale = options?.locale === 'en' ? 'en' : 'zh'
+  const msg = (zh, en) => locale === 'en' ? en : zh
+  if (!Array.isArray(entries)) throw new Error(msg('工具清单必须是数组，请先解析清单。', 'The tool inventory must be an array. Parse it before generating a report.'))
+  if (entries.length > MAX_ENTRIES) throw new Error(msg('一次最多支持 500 项工具。', 'A single inventory can contain at most 500 tools.'))
   const validIndex = object(index) && Array.isArray(index.records)
   const records = validIndex ? index.records : []
   const groups = candidateGroups(records)
@@ -226,24 +246,24 @@ export function createInventoryReport(entries, index, options = {}) {
   const items = entries.map((entry, position) => {
     const input = inputProjection(entry)
     const id = typeof entry?.id === 'string' ? entry.id : 'tool-' + (position + 1)
-    let item = { id, input, state: 'insufficient', label: LABELS.insufficient, reason: '', nextSteps: [], candidates: [], selected: null, evidenceGeneratedAt: null, evidence: [], execution: null, findings: [] }
+    let item = { id, input, state: 'insufficient', label: (locale === 'en' ? LABELS_EN : LABELS_ZH).insufficient, reason: '', nextSteps: [], candidates: [], selected: null, evidenceGeneratedAt: null, evidence: [], execution: null, findings: [] }
     const wellFormed = object(entry) && /^tool-[1-9]\d*$/.test(id) && nonempty(entry.name) &&
       Object.keys(entry).every((key) => INPUT_FIELDS.includes(key) || key === 'id') &&
       INPUT_FIELDS.every((key) => entry[key] === null || entry[key] === undefined || typeof entry[key] === 'string')
-    if (!wellFormed) return setState(item, 'insufficient', '这项工具记录格式不完整，不能据此匹配。', ['只保留名称、包名、来源和你实际使用的版本，再重新导入。'])
+    if (!wellFormed) return setState(item, 'insufficient', msg('这项工具记录格式不完整，不能据此匹配。', 'This tool record is incomplete and cannot be matched.'), [msg('只保留名称、包名、来源和你实际使用的版本，再重新导入。', 'Keep only the name, package, registry, and the version you actually use, then import it again.')], locale)
     const duplicateKey = JSON.stringify([input.server, input.package, input.registry, input.version, input.server || input.package ? null : input.name])
-    if (counts.get(duplicateKey) > 1 || ids.get(entry.id) > 1) return setState(item, 'insufficient', '清单中存在重复工具或重复标识，需要先核对并去重。', ['保留一条真实工具记录，或补充不同的包、来源和版本。'])
-    if (!validIndex) return setState(item, 'insufficient', '当前索引格式错误或没有可读取的记录列表。', ['提供有效的证据索引后重新生成报告。'])
+    if (counts.get(duplicateKey) > 1 || ids.get(entry.id) > 1) return setState(item, 'insufficient', msg('清单中存在重复工具或重复标识，需要先核对并去重。', 'The inventory contains duplicate tools or identifiers and must be deduplicated.'), [msg('保留一条真实工具记录，或补充不同的包、来源和版本。', 'Keep one real tool record, or add the distinct package, registry, and version.')], locale)
+    if (!validIndex) return setState(item, 'insufficient', msg('当前索引格式错误或没有可读取的记录列表。', 'The current index is invalid or has no readable record list.'), [msg('提供有效的证据索引后重新生成报告。', 'Provide a valid evidence index and generate the report again.')], locale)
     const matches = candidatesFor(input, groups)
     item.candidates = matches.candidates.map(candidateProjection)
-    if (matches.candidates.length === 0) return setState(item, 'unmatched', '当前索引中没有找到对应工具；这不表示工具安全或不存在。' + (truncated ? '本次索引已截断，未覆盖全部记录。' : ''), ['核对准确的 registry server、包名及来源，必要时使用完整索引。'])
+    if (matches.candidates.length === 0) return setState(item, 'unmatched', msg('当前索引中没有找到对应工具；这不表示工具安全或不存在。', 'No matching tool was found in the current index. This does not mean the tool is safe or nonexistent.') + (truncated ? msg('本次索引已截断，未覆盖全部记录。', ' This index was truncated and does not contain every record.') : ''), [msg('核对准确的 registry server、包名及来源，必要时使用完整索引。', 'Confirm the exact registry server, package name, and source. Use the complete index if needed.')], locale)
     const selection = own(selections, id) ? selections[id] : null
     let candidate = selection ? matches.candidates.find((candidate) => candidate.key === selection) : null
-    if (selection && !candidate) return setState(item, 'ambiguous', '之前选择的候选已不在当前结果中，请重新确认。', ['从当前候选中选择你实际使用的工具。'])
+    if (selection && !candidate) return setState(item, 'ambiguous', msg('之前选择的候选已不在当前结果中，请重新确认。', 'The previously selected candidate is no longer in the current result. Confirm it again.'), [msg('从当前候选中选择你实际使用的工具。', 'Choose the tool you actually use from the current candidates.')], locale)
     if (!candidate) {
       const sameVersion = matches.candidates.filter((candidate) => exactVersion(input.version, candidate.registry) && input.version === candidate.version)
       const choices = sameVersion.length > 0 ? sameVersion : matches.candidates
-      if (!matches.exact || choices.length !== 1) return setState(item, 'ambiguous', matches.exact ? '存在多个包、来源或版本候选，不能自动确定你的工具。' : '这些只是名称相近的候选，即使只有一项也需要你确认。', ['选择实际使用的候选，并填写你自己的精确版本。'])
+      if (!matches.exact || choices.length !== 1) return setState(item, 'ambiguous', matches.exact ? msg('存在多个包、来源或版本候选，不能自动确定你的工具。', 'Multiple package, registry, or version candidates exist. The page cannot choose your tool automatically.') : msg('这些只是名称相近的候选，即使只有一项也需要你确认。', 'These candidates have similar names only. You must confirm the match even when one candidate remains.'), [msg('选择实际使用的候选，并填写你自己的精确版本。', 'Select the candidate you actually use and enter your own exact version.')], locale)
       candidate = choices[0]
     }
     item.selected = selectedProjection(candidate)
@@ -251,21 +271,22 @@ export function createInventoryReport(entries, index, options = {}) {
     item.evidence = evidenceOf(candidate.records[0])
     item.execution = executionProjection(candidate.records[0].scanExecution)
     item.findings = item.evidence.flatMap((evidence) => evidence.findings)
-    if (candidate.records.length !== 1) return setState(item, 'insufficient', '索引中有相同包身份的重复记录，无法确认哪一份证据有效。', ['先核对重复索引记录，再生成报告。'])
-    if (!nonempty(candidate.package) || !nonempty(candidate.registry) || !exactVersion(candidate.version, candidate.registry)) return setState(item, 'insufficient', '索引记录缺少精确包身份或版本，不能核对你所用的版本。', ['获取带有准确包名、来源和精确版本的索引记录。'])
-    if (!exactVersion(input.version, candidate.registry)) return setState(item, 'version_missing', '需要你实际使用的精确版本；空值、latest 或版本范围都不能用于证据匹配。', ['填写本机或配置中确认的实际版本；不要直接复制候选版本。'])
-    if (input.version !== candidate.version) return setState(item, 'version_mismatch', '你提供的版本 ' + input.version + ' 与索引候选版本 ' + (candidate.version || '未记录') + ' 不同，现有证据不能移用。', ['获取你所用版本的对应证据，或核对版本填写是否准确。'])
-    if (snapshot) return setState(item, 'insufficient', '当前索引是历史样本快照，不能作为你的工具已完成检查的证明。', ['换用带有当前检查来源证明的真实索引。'])
-    if (['snapshot', 'sample'].some((key) => own(index, key) && typeof index[key] !== 'boolean')) return setState(item, 'insufficient', '索引的快照或样本标记格式不明确，无法确认其证据用途。', ['核对索引来源、快照和样本标记。'])
-    if (!nonempty(item.evidenceGeneratedAt) || !Number.isFinite(Date.parse(item.evidenceGeneratedAt))) return setState(item, 'insufficient', '索引和记录没有提供可解析的证据生成时间，无法说明这些材料何时被检查。', ['补充真实的证据生成时间后重新核对；不要自行猜测时间。'])
-    const problem = bindingProblem(candidate.records[0], candidate)
-    if (problem) return setState(item, 'insufficient', problem, ['补齐对应版本的完整检查状态、内容摘要和检查范围。'])
-    item = setState(item, 'matched', '工具身份、你的精确版本与列出的检查证据对应；这不是安全认证。', item.findings.length ? ['逐条查看下面的发现，并决定是否需要人工处理。'] : ['如工具版本或材料发生变化，请重新核对证据。'])
-    if (item.findings.length > 0) item.label = '版本与证据对应，有发现待查看'
+    if (candidate.records.length !== 1) return setState(item, 'insufficient', msg('索引中有相同包身份的重复记录，无法确认哪一份证据有效。', 'The index contains duplicate records for the same package identity, so the valid evidence cannot be determined.'), [msg('先核对重复索引记录，再生成报告。', 'Review the duplicate index records before generating the report.')], locale)
+    if (!nonempty(candidate.package) || !nonempty(candidate.registry) || !exactVersion(candidate.version, candidate.registry)) return setState(item, 'insufficient', msg('索引记录缺少精确包身份或版本，不能核对你所用的版本。', 'The index record lacks an exact package identity or version and cannot be matched to your version.'), [msg('获取带有准确包名、来源和精确版本的索引记录。', 'Obtain an index record with the exact package name, registry, and version.')], locale)
+    if (!exactVersion(input.version, candidate.registry)) return setState(item, 'version_missing', msg('需要你实际使用的精确版本；空值、latest 或版本范围都不能用于证据匹配。', 'Your exact installed version is required. Empty values, latest, and version ranges cannot be matched to evidence.'), [msg('填写本机或配置中确认的实际版本；不要直接复制候选版本。', 'Enter the version confirmed from your own machine or configuration; do not copy the candidate version without verification.')], locale)
+    if (input.version !== candidate.version) return setState(item, 'version_mismatch', msg('你提供的版本 ' + input.version + ' 与索引候选版本 ' + (candidate.version || '未记录') + ' 不同，现有证据不能移用。', 'Your version ' + input.version + ' differs from the index candidate ' + (candidate.version || 'not recorded') + '. Existing evidence cannot be transferred to another version.'), [msg('获取你所用版本的对应证据，或核对版本填写是否准确。', 'Obtain evidence for the version you use, or confirm that the version was entered correctly.')], locale)
+    if (snapshot) return setState(item, 'insufficient', msg('当前索引是历史样本快照，不能作为你的工具已完成检查的证明。', 'The current index is a historical sample and cannot prove that your tool completed inspection.'), [msg('换用带有当前检查来源证明的真实索引。', 'Use a current index with provenance for the inspected material.')], locale)
+    if (['snapshot', 'sample'].some((key) => own(index, key) && typeof index[key] !== 'boolean')) return setState(item, 'insufficient', msg('索引的快照或样本标记格式不明确，无法确认其证据用途。', 'The index snapshot/sample marker is malformed, so its evidentiary use cannot be determined.'), [msg('核对索引来源、快照和样本标记。', 'Review the index source and its snapshot and sample markers.')], locale)
+    if (!nonempty(item.evidenceGeneratedAt) || !Number.isFinite(Date.parse(item.evidenceGeneratedAt))) return setState(item, 'insufficient', msg('索引和记录没有提供可解析的证据生成时间，无法说明这些材料何时被检查。', 'The index and record provide no parseable evidence-generation time, so the inspection time cannot be stated.'), [msg('补充真实的证据生成时间后重新核对；不要自行猜测时间。', 'Add the actual evidence-generation time and check again; do not guess it.')], locale)
+    const problem = bindingProblem(candidate.records[0], candidate, locale)
+    if (problem) return setState(item, 'insufficient', problem, [msg('补齐对应版本的完整检查状态、内容摘要和检查范围。', 'Provide complete inspection status, content digest, and scope for the corresponding version.')], locale)
+    item = setState(item, 'matched', msg('工具身份、你的精确版本与列出的检查证据对应；这不是安全认证。', 'The tool identity and your exact version match the listed inspection evidence. This is not a security certification.'), item.findings.length ? [msg('逐条查看下面的发现，并决定是否需要人工处理。', 'Review each finding below and decide whether manual action is required.')] : [msg('如工具版本或材料发生变化，请重新核对证据。', 'Recheck the evidence when the tool version or inspected material changes.')], locale)
+    if (item.findings.length > 0) item.label = msg('版本与证据对应，有发现待查看', 'Version and evidence matched; findings require review')
     return item
   })
   return {
     schemaVersion: 1,
+    locale,
     generatedAt: nonempty(options?.generatedAt) ? options.generatedAt : new Date().toISOString(),
     index: {
       generatedAt: textOrNull(index?.generatedAt), snapshot, scanner: textOrNull(index?.scanner), truncated,

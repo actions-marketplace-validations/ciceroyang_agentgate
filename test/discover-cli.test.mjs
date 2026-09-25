@@ -23,7 +23,7 @@ test("discover prints an inventory-ready list and exits 0", function () {
   const dir = fixture()
   const out = run(["discover", "--home", dir, "--roots", join(dir, "repo")])
   assert.equal(out.status, 0, out.stderr)
-  assert.equal(out.stdout.trim(), "demo-pkg@1.0.0")
+  assert.equal(out.stdout.trim(), "npm:demo-pkg@1.0.0")
   assert.match(out.stderr, /服务器 1 个/)
 })
 
@@ -51,7 +51,7 @@ test("--out writes once and refuses to overwrite", function () {
   const target = join(dir, "tools.txt")
   const first = run(["discover", "--home", dir, "--roots", join(dir, "repo"), "--out", target])
   assert.equal(first.status, 0, first.stderr)
-  assert.equal(readFileSync(target, "utf8").trim(), "demo-pkg@1.0.0")
+  assert.equal(readFileSync(target, "utf8").trim(), "npm:demo-pkg@1.0.0")
   const mode = statSync(target).mode & 0o777
   assert.equal(mode, 0o600, "a private inventory should not be world readable")
   const second = run(["discover", "--home", dir, "--roots", join(dir, "repo"), "--out", target])

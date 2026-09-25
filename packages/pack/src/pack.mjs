@@ -59,7 +59,8 @@ export function buildPack(options) {
         const content = (block.provenance && block.provenance.content) || {}
         return {
           block: block.block, status: block.status, source: block.source, reason: block.reason,
-          digest: content.digest || null, scope: content.scope || null,
+          digest: content.algorithm === "sha256" ? content.digest || null : null, scope: content.scope || null,
+          observedAt: block.observedAt || null, auditedAt: block.auditedAt || null, scanner: block.scanner || null,
           findings: block.findings || [],
         }
       }),

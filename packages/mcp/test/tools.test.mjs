@@ -118,3 +118,62 @@ test("check_project scans a directory, refuses nothing silently and never claims
 test("an unknown tool name is refused by the handler too, not only by the protocol", async function () {
   await assert.rejects(function () { return call("read_everything", {}) }, /no such tool/)
 })
+
+/**
+ * The schema a tool declares has to describe the bytes the tool sends. A schema that describes
+ * something else is a claim with nothing behind it, which is the failure this project names
+ * everywhere else; this test is where that rule is applied to our own tool definitions.
+ */
+function schemaProblems(schema, value, path) {
+  const problems = []
+  if (!schema || typeof schema !== "object") return problems
+  const types = Array.isArray(schema.type) ? schema.type : schema.type ? [schema.type] : []
+  const actual = value === null ? "null" : Array.isArray(value) ? "array" : typeof value === "number" && Number.isInteger(value) ? "integer" : typeof value
+  if (types.length > 0) {
+    const ok = types.indexOf(actual) !== -1 || (actual === "integer" && types.indexOf("number") !== -1)
+    if (!ok) problems.push(path + ": declared " + types.join("|") + ", sent " + actual)
+  }
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    for (const key of schema.required || []) {
+      if (!Object.prototype.hasOwnProperty.call(value, key)) problems.push(path + "." + key + ": required by the schema, absent from the output")
+    }
+    for (const [key, sub] of Object.entries(schema.properties || {})) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) problems.push(...schemaProblems(sub, value[key], path + "." + key))
+    }
+  }
+  if (Array.isArray(value) && schema.items) {
+    value.forEach(function (item, i) { problems.push(...schemaProblems(schema.items, item, path + "[" + i + "]")) })
+  }
+  return problems
+}
+
+test("every tool declares an output schema, and it matches what the tool actually sends", async function () {
+  const dir = scratchDir("mcp-output")
+  mkdirSync(dir, { recursive: true })
+  const calls = [
+    ["lookup_server", { server: "acme/clean" }],
+    ["lookup_server", { server: "acme/nowhere" }],
+    ["lookup_server", { package: "gap-pkg" }],
+    ["inventory_tools", { tools: ["acme/clean", "gap-pkg"] }],
+    ["coverage_report", {}],
+    ["check_project", { root: dir }],
+  ]
+  for (const tool of listTools()) {
+    assert.equal(tool.outputSchema && tool.outputSchema.type, "object", tool.name + " declares no output schema")
+    const args = (calls.find(function (c) { return c[0] === tool.name }) || [])[1]
+    const out = await call(tool.name, args || {})
+    assert.ok(out.structured !== undefined, tool.name + " sends no structured content, so its schema has nothing to describe")
+    assert.deepEqual(schemaProblems(tool.outputSchema, out.structured, tool.name), [],
+      tool.name + ": the declared schema and the sent value disagree")
+  }
+})
+
+test("every description says when to use it and names the sibling to use instead", function () {
+  for (const tool of listTools()) {
+    const others = ["lookup_server", "inventory_tools", "coverage_report", "check_project"]
+      .filter(function (n) { return n !== tool.name })
+    assert.match(tool.description, /Use (this|it)\b/, tool.name + " does not say when to use it")
+    assert.ok(others.some(function (n) { return tool.description.indexOf(n) !== -1 }),
+      tool.name + " does not name a sibling tool, so nothing separates it from them")
+  }
+})

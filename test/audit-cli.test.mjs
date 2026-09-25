@@ -19,6 +19,7 @@ function fixture() {
   const findings = join(dir, "findings")
   const unmeasured = join(dir, "unmeasured")
   for (const repo of [clean, findings, unmeasured]) mkdirSync(repo, { recursive: true })
+  for (const [repo, name] of [[clean, "clean-demo"], [findings, "findings-demo"]]) writeFileSync(join(repo, "package.json"), JSON.stringify({ name, version: "1.0.0" }))
   writeFileSync(join(findings, ".mcp.json"), JSON.stringify({
     mcpServers: { loose: { command: "npx", args: ["-y", "loose-tool", "/data"] } },
   }))
@@ -27,7 +28,7 @@ function fixture() {
   writeFileSync(policy, JSON.stringify({ version: "1", threshold: "medium", required: { measuredEvidence: ["packageManifest"], pinnedPackages: false } }))
   const index = join(dir, "index.json")
   writeFileSync(index, JSON.stringify({
-    records: [{ server: "demo/unmeasured", packages: [{ name: "unmeasured-demo", version: "1.0.0" }], evidence: { packageManifest: { status: "unmeasured", reason: "metadata-unavailable" } } }],
+    records: ["clean", "findings", "unmeasured"].map(name => ({ server: "demo/" + name, packages: [{ registry: "npm", name: name + "-demo", version: "1.0.0" }], evidence: { packageManifest: { status: name === "unmeasured" ? "unmeasured" : "clean", reason: name === "unmeasured" ? "metadata-unavailable" : null } } })),
   }))
   return { dir: dir, clean: clean, findings: findings, unmeasured: unmeasured, index: index, policy: policy }
 }

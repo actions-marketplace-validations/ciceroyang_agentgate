@@ -28,6 +28,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - name: Refuse to publish if the tests fail
         run: npm test
+      - name: Refuse to publish invalid release contents
+        run: node scripts/release-check.mjs --tag "$GITHUB_REF_NAME"
       - name: Refuse to publish a tag that does not match the version
         run: |
           tag="${GITHUB_REF_NAME#v}"

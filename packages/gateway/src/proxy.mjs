@@ -35,15 +35,20 @@ export function createProxy(options) {
       // was forwarded and executed. A batch that contains one is refused whole: a partial
       // answer would have to be assembled from two speakers, and guessing at the shape is
       // how this was missed in the first place.
-      const refused = msg
-        .filter(function (m) { return m && m.method === "tools/call" })
+      const calls = msg.filter(function (m) { return m && m.method === "tools/call" })
+      const refused = calls
         .map(function (m) { return decideToolCall(policy, m.params && m.params.name) })
         .filter(function (d) { return !d.allowed })
       if (refused.length > 0) {
-        stats.refused += 1
+        stats.refused += calls.length
+        for (const call of calls) log({ direction: "client", method: "tools/call", tool: call.params?.name, decision: "refused", reason: "entire batch refused: " + refused[0].reason })
         log({ direction: "client", method: "batch", decision: "refused", reason: refused[0].reason })
         out.write(JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32001, message: "agentgate refused a batch containing a forbidden call: " + refused[0].reason } }) + "\n")
         return
+      }
+      for (const call of calls) {
+        stats.allowed += 1
+        log({ direction: "client", method: "tools/call", tool: call.params?.name, decision: "allowed" })
       }
       child.stdin.write(line + "\n")
       return

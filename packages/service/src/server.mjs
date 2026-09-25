@@ -134,7 +134,23 @@ export function createService(options) {
             }
           } else execution.absent += 1
         }
-        return json(200, { generatedAt: index.generatedAt, threshold: index.threshold, count: index.count, verdicts: verdicts, execution: execution, source: loaded.path })
+        // Two kinds of record live in this index and their coverage is not comparable: a registry
+        // entry is a server somebody registered and can be audited, a repository record is metadata
+        // we read from a public repository. Reporting one percentage over both would flatter the
+        // second kind, so they are counted apart and the caller can see which is which.
+        const sources = { registry: { count: 0, verdicts: {}, execution: { complete: 0, incomplete: 0, absent: 0 } },
+          repositories: { count: 0, verdicts: {}, execution: { complete: 0, incomplete: 0, absent: 0 } } }
+        for (const r of records) {
+          const kind = String(r.server || "").indexOf("github.com/") === 0 ? "repositories" : "registry"
+          const bucket = sources[kind]
+          bucket.count += 1
+          bucket.verdicts[r.verdict] = (bucket.verdicts[r.verdict] || 0) + 1
+          const state = r.scanExecution && r.scanExecution.scanner_execution ? r.scanExecution.scanner_execution.state : null
+          if (state === "complete") bucket.execution.complete += 1
+          else if (state === "incomplete") bucket.execution.incomplete += 1
+          else bucket.execution.absent += 1
+        }
+        return json(200, { generatedAt: index.generatedAt, threshold: index.threshold, count: index.count, verdicts: verdicts, execution: execution, sources: sources, source: loaded.path })
       }
       // The ledger itself, so the record can be mirrored somewhere other than this machine.
       // It is the raw JSONL: whoever mirrors it can check the chain without trusting this route.

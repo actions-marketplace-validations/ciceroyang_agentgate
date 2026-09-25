@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Try AgentGate in ten minutes</title><meta name="description" content="Review the evidence index, scan a repository, or enforce a policy in CI. No account or credentials required.">
+<link rel="canonical" href="https://xn--5kvo87g.com/en/try.html"><link rel="alternate" hreflang="zh-CN" href="https://xn--5kvo87g.com/try.html"><link rel="alternate" hreflang="en" href="https://xn--5kvo87g.com/en/try.html"><link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<style>:root{--fg:#111;--muted:#5b6472;--line:#e6e8eb;--bg:#fff}@media(prefers-color-scheme:dark){:root{--fg:#e8eaed;--muted:#9aa4b2;--line:#2a2f36;--bg:#0f1115}}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 system-ui,sans-serif}main{max-width:780px;margin:auto;padding:40px 20px 96px}.lang{text-align:right;color:var(--muted);font-size:14px}h1{font-size:28px;margin:8px 0 10px}h2{font-size:18px;margin:40px 0 10px;padding-top:18px;border-top:1px solid var(--line)}.muted,footer{color:var(--muted)}pre{background:rgba(127,127,127,.10);padding:12px 14px;border-radius:8px;overflow:auto;font-size:14px;line-height:1.6}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}a{color:inherit}.cta{display:inline-block;margin-top:8px;padding:10px 16px;border:1px solid var(--fg);border-radius:8px;text-decoration:none}footer{margin-top:64px;font-size:14px;border-top:1px solid var(--line);padding-top:16px}</style></head><body><main>
+<p class="lang"><a lang="zh-CN" hreflang="zh-CN" href="../try.html">中文</a> · <strong>English</strong></p>
+<h1>Try AgentGate in ten minutes</h1><p class="muted">No registration and no credentials. Choose the level of effort that fits you.</p>
+<h2>Start with your own tool inventory</h2><p>Paste a list of names or choose a text/JSON file containing names, package identities, and versions. Confirm the matching tool and your actual version in the browser, then download a standalone evidence report. The inventory is not uploaded and the tools are not executed.</p><p><a class="cta" href="inventory.html">Build my inventory report</a></p><p class="muted">This compares your input with the snapshot embedded in the page. Missing records, version mismatches, samples, and incomplete evidence remain visible. The report is not a security certification.</p>
+<h2>1. Install nothing: browse the index</h2><p><a class="cta" href="evidence.html">Open the evidence index</a></p><p>Filter by verdict or name, then open a record to inspect its evidence blocks. Use the capture time, sources, and stated coverage. A scheduled refresh does not guarantee every refresh succeeded or that the index covers the full ecosystem.</p>
+<h2>Query one record</h2><pre><code>curl -s https://xn--5kvo87g.com/v1/servers/&lt;server-name&gt; | head -40</code></pre><p>The response is a record: package identity, evidence blocks, and a verdict of <code>clean</code>, <code>findings</code>, or <code>incomplete</code>. Do not skip <code>unmeasured</code>; it means the material was not checked.</p><pre><code>https://xn--5kvo87g.com/badge/&lt;server-name&gt;.svg</code></pre>
+<h2>2. Scan your own repository</h2><p>Use Node.js 20 or later. No account is required:</p><pre><code>git clone https://github.com/ciceroyang/agentgate
+cd agentgate
+node packages/guard/bin/agent-guard.mjs /path/to/your/repo --fail-on high</code></pre><p>Read the final status first. <code>incomplete</code> means a required check did not finish; it is not a pass.</p>
+<h2>3. Enforce a policy in CI</h2><pre><code>{
+  "version": "agentgate.policy/v1",
+  "threshold": "high",
+  "required": { "pinnedPackages": true, "measuredEvidence": ["packageManifest"] },
+  "forbidden": { "rules": ["AG-INSTALL-001"], "tools": ["delete_*", "send_money"] }
+}</code></pre><pre><code>- uses: ciceroyang/agentgate@main
+  with:
+    policy: agentgate.policy.json
+    index: data/index.json</code></pre><p>This policy requires package evidence tied to the local npm package identity and exact version. Missing evidence returns <code>incomplete</code>; a historical sample is not a substitute.</p>
+<h2>Want us to run the review?</h2><p>We are looking for three companies for a four-week free review. Send a list of MCP server names—not code or credentials—and we will prepare the report. There is no fee; we ask for one one-hour feedback call.</p><p><a class="cta" href="mailto:contact@xn--5kvo87g.com?subject=Free%20AgentGate%20evidence%20review">Request a free review</a></p>
+<footer><p>We read public source material only. Dynamic validation is limited to our own isolated environment.</p><p><a href="index.html">Home</a> · <a href="pricing.html">Pricing</a> · <a href="https://github.com/ciceroyang/agentgate">GitHub</a> · <a href="https://github.com/ciceroyang/agentgate/blob/main/docs/roadmap.md">Roadmap</a></p></footer>
+</main></body></html>

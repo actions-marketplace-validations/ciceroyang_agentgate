@@ -159,6 +159,9 @@ node scripts/build-site.mjs --index data/index.json --out /var/www/zhiliang --na
 node bin/agentgate.mjs check --root examples/action-verify \
   --policy examples/action-verify/agentgate.policy.json \
   --format html --out /var/www/zhiliang/report-sample.html || true
+node bin/agentgate.mjs check --root examples/action-verify \
+  --policy examples/action-verify/agentgate.policy.json \
+  --format html --lang en --out /var/www/zhiliang/en/report-sample.html || true
 
 # 6. 交给 systemd
 sudo useradd -r -s /usr/sbin/nologin agentgate || true

@@ -18,10 +18,11 @@ export function renderInventoryPage(template, index) {
 
 export function inventoryResource(path, load) {
   const headers = { "cache-control": "no-store", "x-content-type-options": "nosniff", "referrer-policy": "no-referrer" }
-  if (path === "/inventory.html") {
+  if (path === "/inventory.html" || path === "/en/inventory.html") {
     const loaded = load()
-    if (!loaded) return { status: 503, type: "text/plain; charset=utf-8", body: "没有可用的证据索引，暂时不能生成工具清单报告。", headers }
-    const template = readFileSync(new URL("inventory.html", SITE), "utf8")
+    const english = path.startsWith("/en/")
+    if (!loaded) return { status: 503, type: "text/plain; charset=utf-8", body: english ? "No evidence index is available, so a tool-inventory report cannot be generated yet." : "没有可用的证据索引，暂时不能生成工具清单报告。", headers }
+    const template = readFileSync(new URL(english ? "en/inventory.html" : "inventory.html", SITE), "utf8")
     return { status: 200, type: "text/html; charset=utf-8", body: renderInventoryPage(template, loaded.data), headers }
   }
   const asset = ASSETS.get(path)

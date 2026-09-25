@@ -85,7 +85,7 @@ export function buildScanExecution(options) {
 
 /** `clean` is allowed only when every required component finished and nothing contradicted itself. */
 export function canBeClean(record) {
-  return Boolean(record && record.scanner_execution && record.scanner_execution.state === "complete")
+  return Boolean(record?.scanner_execution?.state === "complete" && validateScanExecution(record).ok)
 }
 
 export function validateScanExecution(record) {
@@ -105,12 +105,13 @@ export function validateScanExecution(record) {
     if (CONSISTENCY.indexOf(c.semantic_consistency) === -1) problems.push(c.id + ": semantic_consistency is not one of " + CONSISTENCY.join(", "))
     if (typeof c.output_present !== "boolean" || typeof c.output_parseable !== "boolean") problems.push(c.id + ": output presence/parseability must be booleans")
   }
-  const requiredList = components.filter(function (c) { return c.required === true })
+  const requiredList = components.filter(function (c) { return c?.required === true })
   const countedComplete = requiredList.filter(componentComplete).length
   if (exec.required !== requiredList.length) problems.push("required says " + exec.required + ", the components say " + requiredList.length)
   if (exec.completed !== countedComplete) problems.push("completed says " + exec.completed + ", the components say " + countedComplete)
   if (exec.failed !== requiredList.length - countedComplete) problems.push("failed says " + exec.failed + ", the components say " + (requiredList.length - countedComplete))
   if (exec.state !== "complete" && exec.state !== "incomplete") problems.push("state is not complete/incomplete")
+  if (exec.state === "complete" && requiredList.length === 0) problems.push("state is complete but no component was required")
   if (exec.state === "complete" && countedComplete !== requiredList.length) problems.push("state is complete but not every required component is")
   if (exec.state === "complete" && record.digest && record.digest.matches === false) problems.push("state is complete but the digest is recorded as not matching")
   if (record.digest) {

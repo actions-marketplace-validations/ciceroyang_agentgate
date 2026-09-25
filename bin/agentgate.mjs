@@ -16,7 +16,7 @@ import { installShutdown } from "../packages/service/src/observability.mjs"
 import { DEFAULT_PORT, DEFAULT_HOST } from "../packages/service/src/defaults.mjs"
 import { runScan } from "../packages/guard/src/engine.mjs"
 import { makeReader } from "../packages/guard/src/fs-scan.mjs"
-import { discover, renderText } from "../packages/guard/src/discover.mjs"
+import { discover, renderText, renderInventory } from "../packages/guard/src/discover.mjs"
 import { ALL_CHECKS } from "../packages/guard/src/checks/index.mjs"
 import { loadPolicy, defaultPolicy } from "../packages/policy/src/policy.mjs"
 import { evaluate, exitCodeFor } from "../packages/policy/src/evaluate.mjs"
@@ -106,28 +106,57 @@ function refresh(flags) {
   }
   run("census", join(ROOT, "packages", "collect", "mcp-audit.mjs"), ["--max", "6000", "--out", join(dataDir, "census.json"), "--markdown", join(dataDir, "census.md")])
   run("guard-scan", join(ROOT, "packages", "collect", "scripts", "guard-scan.mjs"), ["--census", join(dataDir, "census.json"), "--max", max, "--out", join(dataDir, "guard-scan.json")])
+  // The repository side of the chain. It is a separate, slower job (`--repositories`) because a
+  // full enumeration of a GitHub topic is over an hour; the daily run only reads what that job
+  // left behind. When the artifacts are absent the index is exactly what it was before.
+  const repoCensus = join(dataDir, "github-census.json")
+  const repoClassification = join(dataDir, "repository-classification.json")
+  const repoAudit = join(dataDir, "package-audit.json")
+  if (flags.repositories) {
+    let since = "2015-01-01"
+    try {
+      const previous = JSON.parse(readFileSync(repoCensus, "utf8"))
+      if (previous.generatedAt) since = new Date(Date.parse(previous.generatedAt) - 86400000).toISOString().slice(0, 10)
+    } catch (error) { /* first run: the whole topic */ }
+    const githubArgs = ["--topic", "mcp-server", "--min-stars", "1", "--out", repoCensus]
+    if (since !== "2015-01-01") githubArgs.push("--since", since)
+    if (flags.token && flags.token !== true) githubArgs.push("--token", String(flags.token))
+    run("github-census", join(ROOT, "packages", "collect", "github-census.mjs"), githubArgs)
+    const classifyArgs = ["--census", repoCensus, "--out", repoClassification, "--rate", String(flags.rate || "1.3")]
+    if (flags.token && flags.token !== true) classifyArgs.push("--token", String(flags.token))
+    run("classify-repositories", join(ROOT, "packages", "collect", "scripts", "classify-repositories.mjs"), classifyArgs)
+  }
   // The deployed commit is the cheapest honest identifier of "which scanner ran". It moves when
   // the rules move, which is what a later diff needs to know.
   let scanner = "unknown"
   try { scanner = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim() } catch (error) { scanner = "unknown" }
-  run("index", join(ROOT, "packages", "collect", "scripts", "build-index.mjs"), ["--census", join(dataDir, "census.json"), "--guard", join(dataDir, "guard-scan.json"), "--scanner", scanner, "--out", join(dataDir, "index.json")])
+  const indexArgs = ["--census", join(dataDir, "census.json"), "--guard", join(dataDir, "guard-scan.json"), "--scanner", scanner, "--out", join(dataDir, "index.json")]
+  if (existsSync(repoCensus) && existsSync(repoClassification)) {
+    indexArgs.push("--github", repoCensus, "--classification", repoClassification)
+    process.stderr.write("[refresh] repository records: on (" + repoCensus + ")\n")
+  }
+  // Without this the audit is dropped on every refresh and the published index quietly goes back to
+  // "we know a package is declared" for all of them. build-index takes --audit either way; leaving
+  // it out here is silence, not a decision.
+  if (existsSync(repoAudit)) {
+    indexArgs.push("--audit", repoAudit)
+    process.stderr.write("[refresh] package audit: on (" + repoAudit + ")\n")
+  }
+  run("index", join(ROOT, "packages", "collect", "scripts", "build-index.mjs"), indexArgs)
   console.log("[refresh] done: " + join(dataDir, "index.json"))
 }
 
-function readPackageName(root) {
-  const p = join(root, "package.json")
-  if (!existsSync(p)) return null
-  try { return JSON.parse(readFileSync(p, "utf8")).name || null } catch (error) { return null }
-}
-
 function recordsFor(root, indexPath) {
-  if (!indexPath || !existsSync(indexPath)) return null
-  let index
-  try { index = JSON.parse(readFileSync(indexPath, "utf8")) } catch (error) { return null }
-  const name = readPackageName(root)
-  if (!name) return []
-  return (index.records || []).filter(function (r) {
-    return (r.packages || []).some(function (p) { return p.name === name })
+  if (!indexPath) return null
+  if (indexPath === true) throw new Error("--index requires a file path")
+  const index = JSON.parse(readFileSync(indexPath, "utf8"))
+  if (!index || !Array.isArray(index.records)) throw new Error("index.records must be an array")
+  if (index.snapshot === true || index.sample === true) throw new Error("a historical sample cannot support a policy decision")
+  let pkg
+  try { pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) } catch { return [] }
+  if (!pkg.name || !pkg.version) return []
+  return index.records.filter(function (r) {
+    return Array.isArray(r?.packages) && r.packages.some(function (p) { return p.registry === "npm" && p.name === pkg.name && p.version === pkg.version })
   })
 }
 
@@ -160,7 +189,9 @@ function runCheck(root, flags) {
     checks = ALL_CHECKS.filter(function (c) { return wanted.indexOf(c.id) !== -1 })
   }
   const scan = runScan({ root: root, checks: checks, readText: makeReader(), exclude: exclude })
-  const records = recordsFor(root, flags.index || process.env.AGENTGATE_INDEX)
+  let records
+  try { records = recordsFor(root, flags.index || process.env.AGENTGATE_INDEX) }
+  catch (error) { console.error("index: " + error.message); process.exit(3) }
   const result = evaluate({ policy: policy, scan: scan, records: records })
   const lines = []
   lines.push("policy " + result.policyVersion + "   root " + root)
@@ -191,11 +222,15 @@ function renderResult(run, root, flags) {
   const format = flags.format || "console"
   return format === "sarif" ? toSarif(run.result, { version: VERSION })
     : format === "json" ? JSON.stringify(run.result, null, 2)
-    : format === "html" ? toHtmlReport(run.result, { root: root, policy: run.policy, generatedAt: new Date().toISOString() })
+    : format === "html" ? toHtmlReport(run.result, { root: root, policy: run.policy, generatedAt: new Date().toISOString(), lang: flags.lang })
     : run.human
 }
 
 function check(flags) {
+  if (flags.lang !== undefined && !["zh-CN", "en"].includes(flags.lang)) {
+    console.error("check: --lang only supports zh-CN or en")
+    process.exit(3)
+  }
   const root = resolve(flags.root || ".")
   const run = runCheck(root, flags)
   const rendered = renderResult(run, root, flags)
@@ -399,7 +434,7 @@ function discoverCommand(flags) {
   const home = flags.home ? resolve(String(flags.home)) : homedir()
   const roots = String(flags.roots || ".").split(",").map(function (s) { return resolve(s.trim()) }).filter(Boolean)
   const format = flags.format || "text"
-  if (["text", "json"].indexOf(format) === -1) { console.error("discover: --format only supports text or json"); process.exit(3) }
+  if (["text", "json", "inventory"].indexOf(format) === -1) { console.error("discover: --format only supports text, json or inventory"); process.exit(3) }
   const report = discover({
     home: home,
     roots: roots,
@@ -407,7 +442,8 @@ function discoverCommand(flags) {
     exists: existsSync,
     readFile: function (p) { return readFileSync(p, "utf8") },
   })
-  const rendered = format === "json" ? JSON.stringify(report, null, 2) : renderText(report)
+  const rendered = format === "json" ? JSON.stringify(report, null, 2) : format === "inventory" ? renderInventory(report) : renderText(report)
+  if (report.conflicts.length) console.error("discover: 相同别名对应不同身份或版本，已全部保留，请核对：" + report.conflicts.join(", "))
   if (flags.out) {
     if (resolve(String(flags.out)) === resolve(join(home, ".claude.json"))) { console.error("discover: 报告不能覆盖配置文件"); process.exit(3) }
     try {
@@ -477,8 +513,8 @@ function proxy(flags, rest) {
   let policy
   try { policy = loadPolicy(flags.policy || "agentgate.policy.json") } catch (error) { console.error("policy: " + error.message); process.exit(3) }
   const logPath = flags.log || "agentgate-calls.jsonl"
-  process.stderr.write("agentgate proxy: " + rest.join(" ") + "\n")
-  process.stderr.write("agentgate proxy: refusals logged to " + logPath + "\n")
+  process.stderr.write("agentgate proxy: starting server (command and arguments withheld)\n")
+  process.stderr.write("agentgate proxy: decisions logged to " + logPath + "\n")
   createProxy({
     command: rest[0],
     args: rest.slice(1),
@@ -543,8 +579,8 @@ function packCommand(flags) {
   if (flags.calls && flags.calls !== true) {
     try {
       const lines = readFileSync(String(flags.calls), "utf8").split(/\r?\n/).filter(function (line) { return line.trim().length > 0 })
-      for (const line of lines) JSON.parse(line)
-      calls = { provided: true, parsed: true, count: lines.length }
+      const decisions = lines.map(line => JSON.parse(line)).filter(entry => entry && entry.direction === "client" && entry.method === "tools/call" && typeof entry.tool === "string" && entry.tool.length > 0 && ["allowed", "refused"].includes(entry.decision) && Number.isFinite(Date.parse(entry.at)))
+      calls = { provided: true, parsed: true, count: lines.length, decisionCount: decisions.length }
     } catch (error) { calls = { provided: true, parsed: false, count: 0 } }
   }
   let pack
@@ -573,6 +609,8 @@ function packCommand(flags) {
   } else process.exitCode = 0
 }
 
+// Help is side-effect free even for commands that normally collect data or start services.
+if (args.flags.help) args.command = "help"
 if (args.command === "inventory") inventory(args.flags)
 else if (args.command === "pack") packCommand(args.flags)
 else if (args.command === "discover") discoverCommand(args.flags)
@@ -590,10 +628,10 @@ else if (args.command === "version") console.log("agentgate " + VERSION)
 else {
   console.log("agentgate <command>")
   console.log("")
-  console.log("  discover  [--home <dir>] [--roots a,b] [--format text|json] [--out report.txt]   read the MCP configs already on this machine")
+  console.log("  discover  [--home <dir>] [--roots a,b] [--format text|json|inventory] [--out report.txt]   read the MCP configs already on this machine")
   console.log("  inventory --input tools.txt [--index data/index.json] [--framework aicaiq] [--format html|json] [--out report.html]")
   console.log("  framework [--id aicaiq] [--format text|json] [--out file]   who answers which questionnaire item")
-  console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--out file]")
+  console.log("  check     --policy policy.json [--root .] [--index data/index.json] [--format console|sarif|json|html] [--lang zh-CN|en] [--out file]")
   console.log("  audit     --roots a,b,c [--policy p.json] [--index data/index.json] [--fail-on medium] [--format text|json]")
   console.log("  pack      --input tools.txt [--index data/index.json] [--framework aicaiq] [--archive dir] [--calls calls.jsonl] [--out agentgate-pack]")
   console.log("            --verify <dir>   重算 sha256 与封条，任何一个字节被改就非零退出")
@@ -603,7 +641,9 @@ else {
   console.log("  mcp       [--index data/index.json]   serve the evidence as MCP tools over stdio (read-only)")
   console.log("  proxy     --policy policy.json [--log calls.jsonl] -- <server command> [args...]")
   console.log("  serve     [--port 8080] [--host 127.0.0.1] [--index path] [--sample path]")
-  console.log("  refresh   [--max 300]   fetch public sources and rebuild data/index.json")
+  console.log("  refresh   [--max 300] [--repositories]   fetch public sources and rebuild data/index.json")
+  console.log("            --repositories   also run the slower half: an incremental GitHub census and classification,")
+  console.log("                             merged into the index as records counted apart from the registry")
   console.log("  history   [--history data/history] [--backfill] [--max-age 26] [--format json]   verify the chained capture ledger")
   console.log("  version")
 }

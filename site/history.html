@@ -3,6 +3,7 @@
 <title>采集记录 · 智量 agentgate</title>
 <meta name="description" content="agentgate 每次采集都往一条只追加的账本里写一行，带哈希。这里列出全部采集、覆盖的天数和缺口。">
 <link rel="canonical" href="https://xn--5kvo87g.com/history.html">
+<link rel="alternate" hreflang="zh-CN" href="https://xn--5kvo87g.com/history.html"><link rel="alternate" hreflang="en" href="https://xn--5kvo87g.com/en/history.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="智量 · agentgate">
@@ -29,10 +30,11 @@ pre{background:rgba(127,127,127,.08);border:1px solid var(--line);border-radius:
 footer{margin-top:64px;color:var(--muted);font-size:14px;border-top:1px solid var(--line);padding-top:16px}
 </style></head><body><main>
 
+<p class="sub" style="text-align:right"><strong>中文</strong> · <a lang="en" hreflang="en" href="en/history.html">English</a></p>
 <h1>采集记录</h1>
 <p class="sub">从 __FIRST__ 起，__CAPTURES__ 次采集，覆盖 __DAYS__ 天，最近一次 __LAST__。</p>
 
-<p>这一页证明的不是我们的结论正确，而是<strong>这条记录没有被事后改写</strong>。每次采集都会往一条只追加的账本里写一行：时间、条数、结论分布、当时的扫描器提交、那次索引文件的 SHA-256，以及上一行的哈希。改动其中任何一行，它后面每一行的哈希都对不上；替换证据文件本身，也会和记下来的哈希对不上。</p>
+<p>这一页提供<strong>记录与保留快照的内部一致性校验</strong>，不独立证明真实发生时间或历史从未重写。每次采集追加时间、条数、结论分布、扫描器标识、索引文件的 SHA-256 和上一行哈希；在已有可信副本不变的前提下，可以发现不一致的改动。</p>
 
 <p class="muted">缺口照原样列出，不做平滑：__GAPS__</p>
 
@@ -42,7 +44,7 @@ __ROWS__
 </tbody></table>
 
 <h2>它不证明什么</h2>
-<p>它不证明第三方包是安全的，也不证明我们的规则是对的。它只证明：这些采集是按这个顺序、在这些时间发生的，事后没有被改写。结论本身的依据在<a href="evidence.html">证据索引</a>里，逐条可查。</p>
+<p>它不证明第三方包安全、规则正确或时间戳真实，也无法单独排除整条链被重新生成。GitHub 镜像是另一份可比对的副本，当前校验没有把它作为预先可信的外部时间锚点。结论本身的依据在<a href="evidence.html">证据索引</a>里，逐条可查。</p>
 
 <h2>账本原文</h2>
 <p class="muted">下面就是账本本身，可以整段复制走。用仓库里的 <code>node bin/agentgate.mjs history --verify</code> 对着自己的副本重算一遍。</p>

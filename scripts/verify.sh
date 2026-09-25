@@ -29,5 +29,6 @@ node scripts/rehearse-deploy.mjs | tail -1
 echo "== regression and scale =="
 node packages/guard/scripts/regression.mjs > /dev/null && echo "regression ok"
 node scripts/bench.mjs 20000 100 | tail -1
-node scripts/measure-verify.mjs | head -3
+echo "== claim extraction measurement (diagnostic, not a release gate) =="
+node scripts/measure-verify.mjs
 echo "ALL CHECKS PASSED"

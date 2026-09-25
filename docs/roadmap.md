@@ -2,6 +2,33 @@
 
 *What "an initial working product" means here, so it can be checked rather than felt.*
 
+## Current commercial objective
+
+Earn the first enterprise user, turn demonstrated value into paid use and progressively profitable
+delivery, then build an investment case from customer evidence. MCP competitors are the market
+context, not a substitute for a buyer choosing and using this product.
+
+The current priority is a trustworthy tool-evidence review workflow, not a broader feature list.
+The [trust-hardening handoff](operations/trust-hardening.md) separates local fixes from a deployed
+release and customer validation. Historical milestone acceptance below is engineering evidence,
+not evidence that an enterprise has adopted the product or that the business is profitable.
+
+Advance by observed customer outcomes:
+
+- **Trial:** an external team brings an authorized real tool list, confirms the report's gaps and
+  uses it for a concrete review decision. The initial buyer/problem hypothesis is an AI product or
+  platform team preparing an MCP tool review or security questionnaire; validate it in conversation.
+- **Paid use:** identify the user, budget owner, procurement/security requirements and a deliverable
+  they will purchase. A positive comment or a free report is not a paid commitment.
+- **Repeatable economics:** record delivery effort, collection/hosting cost, support burden and
+  actual payment/renewal. Do not call a contract profitable before accounting for these costs.
+- **Investment readiness:** show repeat usage, repeatable acquisition and paid outcomes with
+  permission to reference them. Funding remains an external decision, not an engineering milestone.
+
+No new prices, service guarantees, customer names or outreach authority are established here.
+Existing pilot offers remain proposals, not validated pricing. Build buyer-specific enterprise
+features only after a real requirement and willingness to adopt are established.
+
 A product is not a pile of working scripts. The line below is drawn at the point where a
 company that has never heard of this can clone it, start it, point it at their own
 repository, get a decision with reasons, and see that decision enforced. Everything past
@@ -105,7 +132,7 @@ say so. Five gates, each one checkable:
 | --- | --- | --- | --- |
 | 1. We can show our own work | Zero runtime dependencies, our own SBOM, provenance on every published version, one gate command that runs the acceptances, a rollback path and a restore drill that has actually been run | Passed for the most part: `scripts/verify.sh` prints ALL CHECKS PASSED, the release carries `agentgate.cdx.json`, every version since 0.1.1 has SLSA provenance, and `rollback.md` plus `restore-drill.mjs` exist | **Closed 2026-09-18**: [SECURITY.md](../SECURITY.md), the support window in [compatibility.md](spec/compatibility.md), and private vulnerability reporting switched on |
 | 2. The formats are frozen | Every format we ask someone to write down or hand over is versioned, with a deprecation policy and an upgrade path across at least one breaking change | Five specs are named `v1` (`policy`, `inventory`, `scan-execution`, `mcp-server`, `evidence-pack`) and none carries a compatibility promise; no upgrade guide; no supported-versions policy | **Closed 2026-09-18**: every spec declares `frozen` or `provisional`, and [compatibility.md](spec/compatibility.md) plus [upgrade.md](operations/upgrade.md) are held to the code and to the CHANGELOG by [the governance test](../test/governance.test.mjs) |
-| 3. Somebody else can run it | The container build is verified rather than asserted, there is a deployment path past one compose file, and the enterprise surface (retention, audit export, SIEM, SSO/RBAC, multi-tenancy) exists for the buyers who require it | The README says it plainly: the Docker image build is unverified, and SSO/SAML, RBAC, multi-tenancy and signed audit export are not implemented | Weeks to months, and only worth starting once gate 4 says which of them a real buyer asks for |
+| 3. Somebody else can run it | The container build is verified rather than asserted, there is a deployment path past one compose file, and the enterprise surface (retention, audit export, SIEM, SSO/RBAC, multi-tenancy) exists for the buyers who require it | The container build is verified rather than asserted (CI builds the image and serves from it), and the enterprise surface — SSO/SAML, RBAC, multi-tenancy, signed audit export — is not implemented | Weeks to months, and only worth starting once gate 4 says which of them a real buyer asks for |
 | 4. Somebody else depends on it | One external team runs it in their own CI for a month, with a non-zero exit code wired to a merge | Zero teams. The pilot document says it out loud: the tool is young and only its author uses it | Not ours to schedule. This is the real distance |
 | 5. We can stand behind it | A price a customer has actually paid, a support window, billing, and SLA wording | The Team and Enterprise prices are unvalidated hypotheses | Moves with gate 4 |
 

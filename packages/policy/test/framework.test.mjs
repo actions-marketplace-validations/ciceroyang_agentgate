@@ -58,7 +58,27 @@ test("the AICM alias resolves to the questionnaire mapping, not to a control-set
 
 test("an unknown framework is refused with the ones that exist", function () {
   assert.throws(function () { frameworkById("soc2") }, /不认识的框架：soc2/)
-  assert.deepEqual(Object.keys(FRAMEWORKS), ["aicaiq"])
+  // The list is the registry. Adding a framework is a deliberate act, so it is asserted rather
+  // than discovered.
+  assert.deepEqual(Object.keys(FRAMEWORKS), ["aicaiq", "eu-aia"])
+})
+
+test("the EU AI Act mapping says which paragraphs it read, and classifies every item", function () {
+  const eu = frameworkById("eu-aia")
+  // A mapping that does not say what it read is a mapping nobody can check. Article 12(3) and
+  // 12(4) are biometric-specific and were not read, so the entry that names them must say so
+  // rather than stay silent - silence there would read as coverage.
+  assert.match(eu.source, /12\(1\)/)
+  assert.match(eu.source, /核对过的段落/)
+  for (const entry of eu.entries) {
+    assert.ok(Object.prototype.hasOwnProperty.call(OWNERS, entry.owner), entry.id + " owner " + entry.owner)
+    assert.ok(entry.boundary.length > 0, entry.id + " has no boundary")
+    assert.ok(entry.weProvide.length > 0, entry.id + " has no claim")
+    if (entry.owner === "we") assert.ok(entry.evidence.length > 0, entry.id + " claims without evidence")
+  }
+  const uncovered = eu.entries.find(function (e) { return e.id === "EU-AIA-12.3" })
+  assert.match(uncovered.weProvide, /未覆盖/)
+  assert.equal(uncovered.owner, "third-party")
 })
 
 test("the four domains a questionnaire actually asks about are all present", function () {

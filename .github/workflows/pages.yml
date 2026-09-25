@@ -34,7 +34,9 @@ jobs:
           node-version: "24"
       - name: Refresh from the live registry
         run: |
-          node bin/agentgate.mjs refresh --max 300 && echo "refreshed" || echo "refresh failed; falling back to the committed sample"
+          node bin/agentgate.mjs refresh --max 300
+          test -s data/index.json
+          # A failed refresh stops this deployment, leaving the last successful Pages site intact.
       - name: Mirror the deployment's capture ledger
         run: |
           mkdir -p data/history
@@ -55,9 +57,10 @@ jobs:
       - name: Build the browsable index
         run: |
           INDEX=data/index.json
-          test -s "$INDEX" || INDEX=data/sample-index.json
+          test -s "$INDEX"
           echo "building from $INDEX"
-          node scripts/build-site.mjs --index "$INDEX" --out dist --diff data/diff.md --history data/history
+          # The mirrored diff belongs to the deployment, not this independently refreshed index.
+          node scripts/build-site.mjs --index "$INDEX" --out dist --base-path /agentgate --history data/history
       - name: Keep the mirrored record on the history branch
         run: |
           test -s data/history/ledger.jsonl || { echo "no ledger to record"; exit 0; }

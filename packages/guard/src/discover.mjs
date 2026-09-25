@@ -173,24 +173,31 @@ export function discover(options) {
     sources.push(Object.assign({}, candidate, { status: "read", reason: null, servers: items.length }))
     for (const item of items) records.push(recordOf(item, candidate))
   }
+  const identityOf = r => JSON.stringify([r.registry, r.package, r.version, r.transport,
+    r.package ? null : [r.name, r.host, r.source, r.projectPath]])
   const byName = new Map()
   for (const record of records) {
-    const existing = byName.get(record.name)
+    const key = identityOf(record)
+    const existing = byName.get(key)
     if (existing) {
       if (existing.from.indexOf(record.source) === -1) existing.from.push(record.source)
-      if (!existing.package && record.package) { existing.package = record.package; existing.version = record.version; existing.registry = record.registry }
-      if (!existing.host && record.host) existing.host = record.host
     } else {
-      byName.set(record.name, { name: record.name, transport: record.transport, package: record.package, version: record.version, registry: record.registry, host: record.host, from: [record.source], scopes: [record.scope], tools: [record.tool] })
+      byName.set(key, { name: record.name, transport: record.transport, package: record.package, version: record.version, registry: record.registry, host: record.host, from: [record.source], scopes: [record.scope], tools: [record.tool] })
     }
   }
   const servers = Array.from(byName.values()).sort(function (a, b) { return a.name.localeCompare(b.name) })
   for (const record of records) {
-    const merged = byName.get(record.name)
+    const merged = byName.get(identityOf(record))
     if (merged.scopes.indexOf(record.scope) === -1) merged.scopes.push(record.scope)
     if (merged.tools.indexOf(record.tool) === -1) merged.tools.push(record.tool)
   }
-  const incomplete = sources.some(function (s) { return s.status !== "read" })
+  const aliases = new Map()
+  for (const record of records) {
+    if (!aliases.has(record.name)) aliases.set(record.name, new Set())
+    aliases.get(record.name).add(identityOf(record))
+  }
+  const conflicts = [...aliases].filter(([, identities]) => identities.size > 1).map(([name]) => name)
+  const incomplete = sources.some(function (s) { return s.status !== "read" }) || conflicts.length > 0
   return {
     schemaVersion: SCHEMA_VERSION,
     generatedAt: options.now || new Date().toISOString(),
@@ -199,6 +206,7 @@ export function discover(options) {
     sources: sources.sort(function (a, b) { return a.abs.localeCompare(b.abs) }),
     records: records.sort(function (a, b) { return a.name.localeCompare(b.name) || a.source.localeCompare(b.source) }),
     servers: servers,
+    conflicts,
     counts: {
       sourcesFound: sources.length,
       sourcesRead: sources.filter(function (s) { return s.status === "read" }).length,
@@ -213,6 +221,11 @@ export function discover(options) {
 /** One line per server, in the shape agentgate inventory --input accepts. */
 export function renderText(report) {
   return report.servers.map(function (s) {
-    return s.package ? s.package + (s.version ? "@" + s.version : "") : s.name
+    return s.package ? (s.registry || "unknown") + ":" + s.package + (s.version ? "@" + s.version : "") : s.name
   }).join("\n") + (report.servers.length ? "\n" : "")
+}
+
+/** Preserve package coordinates for inventory; source/conflict diagnostics stay in full JSON. */
+export function renderInventory(report) {
+  return JSON.stringify({ tools: report.servers.map(s => ({ name: s.name, package: s.package, registry: s.registry, version: s.version })) }, null, 2)
 }
